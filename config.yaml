@@ -1,0 +1,12 @@
+name: "Smooth Unicode"
+frequency:
+    - mean: 600
+    - stdev: 25
+twitter:
+    -   token: "1917328862-Cmkqw5djmQpscaj5TMpj8Yi0AXPV5ebix0T6guA"
+    -   secret: "0h25Wdh6uEObaYwPLlJQlIPECdL0qDgHoimW3PRogp8"
+mastodon:
+    -   token: ""
+    -   secret: ""
+atom:
+    -   directory: ""

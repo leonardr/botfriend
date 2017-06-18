@@ -1,0 +1,52 @@
+Bot:
+id
+name (used as subdirectory name to load other config)
+next_post_time
+posts
+
+Post:
+id
+bot_id
+text
+date    
+binaries
+deliveries
+
+Delivery:
+id
+date
+post_id
+service
+external_id
+error
+
+Binary:
+    filename (within directory based on bot config and post date)
+
+Bots are loaded from subdirectories. Each has an __init__.py and a config.yaml
+
+for bot in bots:
+    if bot.should_post():
+       bot.post()
+
+post() generates the post, sends it to all deliveries
+
+You can also fill the posts table with unposted posts. If there are unposted
+posts, post() will choose one and post it rather than calling out to
+the submodule code.
+
+# Should post?
+
+Just look at next post time
+
+Next post time is calculated after a successful post
+
+
+
+
+# Deliveries
+
+Twitter
+Mastodon
+Web page
+Atom archive feed
