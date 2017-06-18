@@ -1,3 +1,4 @@
+import os
 import logging
 from model import production_session
 
@@ -14,7 +15,7 @@ class Configuration(object):
         self.bots = bots
 
     @classmethod
-    def from_directory(self, directory):
+    def from_directory(cls, directory):
         """Load database and configuration from a directory on disk.
 
         The database is kept in `botbuddy.sqlite` and bots are found
@@ -26,8 +27,9 @@ class Configuration(object):
 
         bots = []
         for f in os.listdir(directory):
-            p = os.path.join(directory, p)
+            p = os.path.join(directory, f)
             if os.path.isdir(p):
+                log.info("Loading %s" % f)
                 # It's a directory; does it contain a bot?
                 expect = [os.path.join(directory, x)
                           for x in '__init__.py', 'bot.yaml']
