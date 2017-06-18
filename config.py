@@ -1,6 +1,11 @@
+from nose.tools import set_trace
 import os
 import logging
 from model import production_session
+logging.getLogger().setLevel(logging.INFO)
+stderr_handler = logging.StreamHandler()
+logging.getLogger().addHandler(stderr_handler)
+
 
 class Configuration(object):
     """Encapsulates all configuration for a botbuddy installation."""
@@ -24,7 +29,6 @@ class Configuration(object):
         log = logging.getLogger("Loading configuration from %s" % directory)
         database_path = os.path.join(directory, 'botbuddy.sqlite')
         _db = production_session(database_path)
-
         bots = []
         for f in os.listdir(directory):
             p = os.path.join(directory, f)
