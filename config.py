@@ -33,11 +33,18 @@ class Configuration(object):
         for f in os.listdir(directory):
             p = os.path.join(directory, f)
             if os.path.isdir(p):
-                log.info("Loading %s" % f)
                 # It's a directory; does it contain a bot?
-                expect = [os.path.join(directory, x)
-                          for x in '__init__.py', 'bot.yaml']
-                if all(os.path.exists(x) for x in expect):
+                can_load = True
+                for expect in ('__init__.py', 'bot.yaml'):
+                    path = os.path.join(directory, expect) 
+                    if not os.path.exists(path):
+                        logging.warn(
+                            "Not loading %s: missing %s",
+                            f, expect
+                        )
+                        can_load = False
+                        break
+                if can_load:
                     bot = Bot.from_directory(_db, directory)
         return Configuration(_db, bots)
                 
