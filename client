@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+from config import Configuration
+Configuration.from_directory("/home/leonardr/programming/botbuddy/bots")
