@@ -67,6 +67,11 @@ class Post(Base):
     # The time the post was, or is supposed to be, delivered.
     date = Column(DateTime)
 
+    # The original content of the post. This may need to be cut down
+    # for specific delivery mechanisms, but that's okay -- we know how
+    # to do that automatically.
+    content = Column(String)
+    
     deliveries = relationship('deliveries', backref='post')
     attachments = relationship('attachments', backref='post')
     
