@@ -31,12 +31,12 @@ class Configuration(object):
         _db = production_session(database_path)
         bots = []
         for f in os.listdir(directory):
-            p = os.path.join(directory, f)
-            if os.path.isdir(p):
+            bot_directory = os.path.join(directory, f)
+            if os.path.isdir(bot_directory):
                 # It's a directory; does it contain a bot?
                 can_load = True
                 for expect in ('__init__.py', 'bot.yaml'):
-                    path = os.path.join(directory, expect) 
+                    path = os.path.join(bot_directory, expect) 
                     if not os.path.exists(path):
                         logging.warn(
                             "Not loading %s: missing %s",
