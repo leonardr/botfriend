@@ -1,0 +1,5 @@
+# $ apt install sqlite3-dev
+sqlalchemy
+pyyaml
+nose
+tweepy
