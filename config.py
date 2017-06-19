@@ -4,7 +4,7 @@ import sys
 import logging
 from model import (
     production_session,
-    Bot,
+    BotModel,
 )
 logging.getLogger().setLevel(logging.INFO)
 stderr_handler = logging.StreamHandler()
@@ -18,7 +18,7 @@ class Configuration(object):
         """Constructor.
 
         :param _db: A connection to the database.
-        :param bots: A list of Bot objects.
+        :param bots: A list of BotModel objects.
         """
         self._db = _db
         self.bots = bots
@@ -33,7 +33,8 @@ class Configuration(object):
         log = logging.getLogger("Loading configuration from %s" % directory)
         database_path = os.path.join(directory, 'botbuddy.sqlite')
         _db = production_session(database_path)
-        bots = []
+        botmodels = []
+        seen_names = set()
         package_init = os.path.join(directory, '__init__.py')
         if not os.path.exists(package_init):
             log.warn(
@@ -59,6 +60,13 @@ class Configuration(object):
                         can_load = False
                         break
                 if can_load:
-                    bot = Bot.from_directory(_db, bot_directory)
-        return Configuration(_db, bots)
+                    botmodel = BotModel.from_directory(_db, bot_directory)
+                    if botmodel.name in seen_names:
+                        raise Exception(
+                            "Two different bots are configured with the same name. (%s)" % botmodel.name
+                        )
+                    seen_names.add(botmodel.name)
+                    botmodels.append(botmodel)
+                    
+        return Configuration(_db, botmodels)
                 
