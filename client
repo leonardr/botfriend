@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from config import Configuration
-config = Configuration.from_directory("sample-bots")
+import sys
+config = Configuration.from_directory(sys.argv[1])
 for model in config.bots:
     post = model.implementation.run()
     print post.content
