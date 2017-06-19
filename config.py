@@ -12,7 +12,7 @@ logging.getLogger().addHandler(stderr_handler)
 
 
 class Configuration(object):
-    """Encapsulates all configuration for a botbuddy installation."""
+    """Encapsulates all configuration for a botfriend installation."""
 
     def __init__(self, _db, bots):
         """Constructor.
@@ -27,11 +27,11 @@ class Configuration(object):
     def from_directory(cls, directory):
         """Load database and configuration from a directory on disk.
 
-        The database is kept in `botbuddy.sqlite` and bots are found
+        The database is kept in `botfriend.sqlite` and bots are found
         in subdirectories.
         """
         log = logging.getLogger("Loading configuration from %s" % directory)
-        database_path = os.path.join(directory, 'botbuddy.sqlite')
+        database_path = os.path.join(directory, 'botfriend.sqlite')
         _db = production_session(database_path)
         botmodels = []
         seen_names = set()
