@@ -152,7 +152,8 @@ class BotModel(Base):
             self.log.info("Not posting until %s" % self.next_post_time)
 
     def create_post(self, content):
-        post = create(Post, bot_id=self.id)
+        _db = Session.object_session(self)
+        post = create(_db, Post, bot_id=self.id)
         post.content = content
         post.date = datetime.datetime.utcnow()
         return pose
