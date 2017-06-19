@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from config import Configuration
-config = Configuration.from_directory("/home/leonardr/programming/botbuddy/bots")
+config = Configuration.from_directory("sample-bots")
 for model in config.bots:
     post = model.implementation.run()
+    print post.content
+config._db.commit()

@@ -1,0 +1,12 @@
+name: "Serial Entrepreneur"
+frequency:
+    - mean: 150
+    - stdev: 30
+twitter:
+    -   token: "1234567-abcdefg1234567"
+    -   secret: "ABCDEFabcdef123456789ABCDEF"
+mastodon:
+    -   token: ""
+    -   secret: ""
+atom:
+    -   directory: ""

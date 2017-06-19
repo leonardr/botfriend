@@ -1,3 +1,4 @@
+import datetime
 import importlib
 import os
 import sys
@@ -68,7 +69,6 @@ def get_one_or_create(db, model, create_method='',
     if one:
         return one, False
     else:
-        __transaction = db.begin_nested()
         try:
             # These kwargs are supported by get_one() but not by create().
             get_one_keys = ['on_multiple', 'constraint']
@@ -76,13 +76,11 @@ def get_one_or_create(db, model, create_method='',
                 if key in kwargs:
                     del kwargs[key]
             obj = create(db, model, create_method, create_method_kwargs, **kwargs)
-            __transaction.commit()
             return obj
         except IntegrityError, e:
             logging.info(
                 "INTEGRITY ERROR on %r %r, %r: %r", model, create_method_kwargs, 
                 kwargs, e)
-            __transaction.rollback()
             return db.query(model).filter_by(**kwargs).one(), False
 
 
@@ -153,10 +151,10 @@ class BotModel(Base):
 
     def create_post(self, content):
         _db = Session.object_session(self)
-        post = create(_db, Post, bot_id=self.id)
+        post, is_new = create(_db, Post, bot_id=self.id)
         post.content = content
         post.date = datetime.datetime.utcnow()
-        return pose
+        return post
             
         
 class Post(Base):
