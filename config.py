@@ -1,7 +1,11 @@
 from nose.tools import set_trace
 import os
+import sys
 import logging
-from model import production_session
+from model import (
+    production_session,
+    Bot,
+)
 logging.getLogger().setLevel(logging.INFO)
 stderr_handler = logging.StreamHandler()
 logging.getLogger().addHandler(stderr_handler)
@@ -30,6 +34,16 @@ class Configuration(object):
         database_path = os.path.join(directory, 'botbuddy.sqlite')
         _db = production_session(database_path)
         bots = []
+        package_init = os.path.join(directory, '__init__.py')
+        if not os.path.exists(package_init):
+            log.warn(
+                "%s does not exist; creating it so I can treat %s as a package.",
+                package_init, directory
+            )
+            open(package_init, 'w').close()
+        if not directory in sys.path:
+            logging.info("Adding %s to sys.path" % directory)
+            sys.path.append(directory)
         for f in os.listdir(directory):
             bot_directory = os.path.join(directory, f)
             if os.path.isdir(bot_directory):
@@ -45,6 +59,6 @@ class Configuration(object):
                         can_load = False
                         break
                 if can_load:
-                    bot = Bot.from_directory(_db, directory)
+                    bot = Bot.from_directory(_db, bot_directory)
         return Configuration(_db, bots)
                 

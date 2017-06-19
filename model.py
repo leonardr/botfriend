@@ -1,3 +1,7 @@
+import importlib
+import os
+import sys
+from nose.tools import set_trace
 from sqlalchemy import (
     create_engine,
     Column,
@@ -13,6 +17,32 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+
+def get_one_or_create(db, model, create_method='',
+                      create_method_kwargs=None,
+                      **kwargs):
+    """Get a single model object. If it doesn't exist, create it."""
+    one = get_one(db, model, **kwargs)
+    if one:
+        return one, False
+    else:
+        __transaction = db.begin_nested()
+        try:
+            # These kwargs are supported by get_one() but not by create().
+            get_one_keys = ['on_multiple', 'constraint']
+            for key in get_one_keys:
+                if key in kwargs:
+                    del kwargs[key]
+            obj = create(db, model, create_method, create_method_kwargs, **kwargs)
+            __transaction.commit()
+            return obj
+        except IntegrityError, e:
+            logging.info(
+                "INTEGRITY ERROR on %r %r, %r: %r", model, create_method_kwargs, 
+                kwargs, e)
+            __transaction.rollback()
+            return db.query(model).filter_by(**kwargs).one(), False
 
 
 def production_session(filename):
@@ -41,18 +71,23 @@ class Bot(Base):
     def log(self):
         return logging.getLogger("Bot %s" % self.name)
 
-    @property
-    def config(self):
-        if not hasattr(self, '_config'):
-            self._load_config()
-        return self._config
+    @classmethod
+    def from_directory(self, _db, directory):
+        """Load bot code from `directory`, and find or create the
+        corresponding Bot object.
 
-    def _load_config(self):
-        """Load YAML config from the `{name}/config.yaml` file.
-
-        Also imports the appropriate module.
+        Note that the parent of `directory` must be in sys.path
         """
-        
+        path, module = os.path.split(directory)
+        bot_module = importlib.import_module(module)
+        bot_class = getattr(bot_module, "Bot", None)
+        if not bot_class:
+            raise Exception(
+                "Loaded module %s but could not find a class called Bot inside." % bot_module
+            )
+
+        set_trace()
+    
     def post(self):
         now = datetime.datetime.utcnow()
         if self.next_post_time and now < self.next_post_time:
