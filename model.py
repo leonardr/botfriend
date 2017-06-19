@@ -164,42 +164,42 @@ class Post(Base):
         Integer, ForeignKey('bots.id'), index=True, nullable=False
     )
 
-    # The time the post was, or is supposed to be, delivered.
+    # The time the post was, or is supposed to be, published.
     date = Column(DateTime)
 
     # The original content of the post. This may need to be cut down
-    # for specific delivery mechanisms, but that's okay -- we know how
+    # for specific publication mechanisms, but that's okay -- we know how
     # to do that automatically.
     content = Column(String)
     
-    deliveries = relationship('Delivery', backref='post')
+    publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
 
 
-class Delivery(Base):
-    """A record that a post was delivered to a specific service,
+class Publication(Base):
+    """A record that a post was publishedo n a specific service,
     or at least that the attempt was made.
     """
-    __tablename__ = 'deliveries'
+    __tablename__ = 'publications'
     id = Column(Integer, primary_key=True)
     post_id = Column(
         Integer, ForeignKey('posts.id'), index=True, nullable=False
     )
 
-    # The service we delivered this post to.
+    # The service we published this post to.
     service = Column(String)
 
     # The service uses this ID to refer to the post.
     # (e.g. Twitter assigns the post an ID when it becomes a tweet).
     external_id = Column(String, index=True)
     
-    # The first time we tried to deliver this post.
+    # The first time we tried to publish this post.
     first_attempt = Column(DateTime)
 
-    # The most recent time we tried to deliver this post.
+    # The most recent time we tried to publish this post.
     most_recent_attempt = Column(DateTime)
 
-    # The reason, if any, we couldn't deliver this post.
+    # The reason, if any, we couldn't publish this post.
     error = Column(String)
     
 

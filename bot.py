@@ -31,3 +31,14 @@ class TextGeneratorBot(Bot):
 
     def generate_text(self):
         raise NotImplementedError()
+
+
+class Publisher(object):
+
+    """A way of publishing the output of a bot."""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    def publish(self, post):
+        """Publish the content of the given Post object."""

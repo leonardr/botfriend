@@ -3,8 +3,10 @@ frequency:
     - mean: 150
     - stdev: 30
 twitter:
-    -   token: "1234567-abcdefg1234567"
-    -   secret: "ABCDEFabcdef123456789ABCDEF"
+    -   consumer_key: "aBcDeF1234"
+    -   consumer_secret: "BCDEFabcdef012345"
+    -   access_token: "1234567-abcdefg1234567"
+    -   access_token_secret: "ABCDEFabcdef123456789ABCDEF"
 mastodon:
     -   token: ""
     -   secret: ""
