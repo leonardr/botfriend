@@ -86,7 +86,7 @@ def get_one_or_create(db, model, create_method='',
 
 def production_session(filename):
     """Get a database connection to the SQLite database at `filename`."""
-    engine = create_engine('sqlite:///%s' % filename, echo=True)
+    engine = create_engine('sqlite:///%s' % filename, echo=False)
     Base.metadata.create_all(engine)
     connection = engine.connect()
     session = Session(connection)
