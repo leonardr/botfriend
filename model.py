@@ -149,7 +149,9 @@ class BotModel(Base):
         now = datetime.datetime.utcnow()
         if self.next_post_time and now < self.next_post_time:
             self.log.info("Not posting until %s" % self.next_post_time)
-
+        post = model.implementation.new_post()
+        model.implementation.publish(post)
+            
     def create_post(self, content):
         _db = Session.object_session(self)
         post, is_new = create(_db, Post, bot_id=self.id)
@@ -176,9 +178,14 @@ class Post(Base):
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
 
+    def publish(self):
+        """Publish this Post to every service registered with the bot."""
+        for publisher in bot.publishers:
+            set_trace()
+        
 
 class Publication(Base):
-    """A record that a post was publishedo n a specific service,
+    """A record that a post was published to a specific service,
     or at least that the attempt was made.
     """
     __tablename__ = 'publications'

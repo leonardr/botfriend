@@ -1,3 +1,4 @@
+import importlib
 from nose.tools import set_trace
 from model import Post
 
@@ -22,22 +23,30 @@ class Bot(object):
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
         self.publishers = [
-            Publisher.from_config(self, publisher, config)
-            for publisher, config in publishers.items()
+            Publisher.from_config(self, module, config)
+            for module in publishers
         ]
         
-    def run(self):
+    def new_post(self):
         """Come up with something cool.
 
         :return: A Post.
         """
         raise NotImplementedError()
 
+    def publish(self, post):
+        """Push a Post to every publisher.
+
+        :yield: a sequence of Publications.
+        """
+        for publisher in self.publishers:
+            publication = publisher.publish(post)
+            yield publication
 
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """
-    def run(self):
+    def new_post(self):
         content = self.generate_text()
         return self.model.create_post(content)
 
@@ -50,9 +59,17 @@ class Publisher(object):
     """A way of publishing the output of a bot."""
 
     @classmethod
-    def from_config(self, bot, module_name, config):
+    def from_config(cls, bot, module, full_config):
+        [config] = full_config.get('publish', {}).get(module, [{}])
+        
+        publisher_module = importlib.import_module("publish." + module)
+        publisher_class = getattr(publisher_module, "Publisher", None)
+        if not publisher_class:
+            raise Exception(
+                "Loaded module %s but could not find a class called Publisher inside." % bot_module
+            )
         set_trace()
-        return publisher
+        return publisher_class(bot, full_config=full_config, **config)
         
     def __init__(self, bot):
         self.bot = bot
