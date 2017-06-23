@@ -5,11 +5,16 @@ from bot import Publisher
 
 class TwitterPublisher(Publisher):
     def __init__(
-            self, bot, consumer_key, consumer_secret, access_token,
-            access_token_secret, **kwargs
+            self, bot, full_config, kwargs
     ):
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-        auth.set_access_token(access_token, access_token_secret)
+        for key in ['consumer_key', 'consumer_secret', 'access_token',
+                    'access_token_secret']:
+            if not key in kwargs:
+                raise ValueError(
+                    "Missing required Twitter configuration key %s" % key
+                )
+        auth = tweepy.OAuthHandler(kwargs['consumer_key'], kwargs['consumer_secret'])
+        auth.set_access_token(kwargs['access_token'], kwargs['access_token_secret'])
         self.api = tweepy.API(auth)
         
     def twitter_safe(self, content):

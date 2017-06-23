@@ -86,7 +86,12 @@ class Publisher(object):
 
     @classmethod
     def from_config(cls, bot, module, full_config):
-        [config] = full_config.get('publish', {}).get(module, [{}])
+        publish_config = full_config.get('publish', {})
+        module_config = publish_config.get(module)
+        if not module_config:
+            module_config = {}
+        else:
+            [module_config] = module_config
         
         publisher_module = importlib.import_module("publish." + module)
         publisher_class = getattr(publisher_module, "Publisher", None)
@@ -94,7 +99,7 @@ class Publisher(object):
             raise Exception(
                 "Loaded module %s but could not find a class called Publisher inside." % bot_module
             )
-        publisher = publisher_class(bot, full_config=full_config, **config)
+        publisher = publisher_class(bot, full_config, module_config)
         publisher.service = module
         return publisher
     

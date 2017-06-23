@@ -216,9 +216,7 @@ class Publication(Base):
             if self.most_recent_attempt != self.first_attempt:
                 msg += " (since %s)" % self.first_attempt
         else:
-            msg = "Success" % (
-                self.service, self.most_recent_attempt
-            )
+            msg = "Success"
         attempt = self.most_recent_attempt.strftime("%Y-%m-%d %H:%M")
         return "%s | %s | %s" % (attempt, self.service, msg)
         

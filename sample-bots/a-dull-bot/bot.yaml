@@ -1,0 +1,8 @@
+name: "A Dull Bot"
+frequency: 60
+publish:
+    twitter:
+        -   consumer_key: ""
+            consumer_secret: ""
+            access_token: ""
+            access_token_secret: ""
