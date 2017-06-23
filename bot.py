@@ -64,13 +64,18 @@ class Bot(object):
             publications.append(publication)
         return publications
 
+    def schedule_next_post(self):
+        """Assume a post just happened and schedule .next_post_time 
+        appropriately.
+        """
+    
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """
     def new_post(self):
         content = self.generate_text()
         return self.model.create_post(content)
-
+        
     def generate_text(self):
         raise NotImplementedError()
 
