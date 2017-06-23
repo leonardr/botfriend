@@ -180,8 +180,7 @@ class Post(Base):
 
     def publish(self):
         """Publish this Post to every service registered with the bot."""
-        for publisher in bot.publishers:
-            set_trace()
+        self.bot.implementation.publish(self)
         
 
 class Publication(Base):
@@ -207,9 +206,23 @@ class Publication(Base):
     # The most recent time we tried to publish this post.
     most_recent_attempt = Column(DateTime)
 
-    # The reason, if any, we couldn't publish this post.
+    # The reason, if any, we couldn't publish this post. If this
+    # is None, it is assumed the post was successfully published.
     error = Column(String)
-    
+
+    def report_attempt(self, error=None):
+        "Report a (possibly successful) attempt to publish this post."
+        now = datetime.datetime.utcnow()
+        if not first_attempt:
+            self.first_attempt = now
+        self.most_recent_attempt = now
+        self.error = error
+
+    def report_success(self):
+        self.report_attempt(error=None)
+        
+    def report_failure(self, error="Unknown error."):
+        self.report_attempt(error)
 
 class Attachment(Base):
     """A file (usually a binary image) associated with a post."""
