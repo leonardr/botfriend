@@ -1,3 +1,6 @@
 [submodule "olipy"]
 	path = olipy
 	url = git://github.com/leonardr/olipy
+[submodule "corpora"]
+	path = corpora
+	url = https://github.com/dariusk/corpora
