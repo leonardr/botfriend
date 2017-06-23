@@ -180,7 +180,7 @@ class Post(Base):
 
     def publish(self):
         """Publish this Post to every service registered with the bot."""
-        self.bot.implementation.publish(self)
+        return self.bot.implementation.publish(self)
         
 
 class Publication(Base):
@@ -212,15 +212,15 @@ class Publication(Base):
 
     def display(self):
         if self.error:
-            msg = "Error posting to %s at %s: %s (first attempt %s)" % (
-                self.service, self.most_recent_attempt, self.error,
-                self.first_attempt
-            )
+            msg = self.error
+            if self.most_recent_attempt != self.first_attempt:
+                msg += " (since %s)" % self.first_attempt
         else:
-            msg = "Posted to %s at %s" % (
+            msg = "Success" % (
                 self.service, self.most_recent_attempt
             )
-        return msg
+        attempt = self.most_recent_attempt.strftime("%Y-%m-%d %H:%M")
+        return "%s | %s | %s" % (attempt, self.service, msg)
         
     def report_attempt(self, error=None):
         "Report a (possibly successful) attempt to publish this post."
@@ -235,7 +235,7 @@ class Publication(Base):
         
     def report_failure(self, error="Unknown error."):
         if isinstance(error, Exception):
-            error = error.message
+            error = str(error.message)
         self.report_attempt(error)
 
 class Attachment(Base):

@@ -58,7 +58,7 @@ class Bot(object):
                 continue
             try:
                 publisher.publish(post, publication)
-            except tweepy.error.TweepError, e:
+            except Exception, e:
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
