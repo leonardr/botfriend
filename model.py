@@ -210,10 +210,22 @@ class Publication(Base):
     # is None, it is assumed the post was successfully published.
     error = Column(String)
 
+    def display(self):
+        if self.error:
+            msg = "Error posting to %s at %s: %s (first attempt %s)" % (
+                self.service, self.most_recent_attempt, self.error,
+                self.first_attempt
+            )
+        else:
+            msg = "Posted to %s at %s" % (
+                self.service, self.most_recent_attempt
+            )
+        return msg
+        
     def report_attempt(self, error=None):
         "Report a (possibly successful) attempt to publish this post."
         now = datetime.datetime.utcnow()
-        if not first_attempt:
+        if not self.first_attempt:
             self.first_attempt = now
         self.most_recent_attempt = now
         self.error = error
@@ -222,6 +234,8 @@ class Publication(Base):
         self.report_attempt(error=None)
         
     def report_failure(self, error="Unknown error."):
+        if isinstance(error, Exception):
+            error = error.message
         self.report_attempt(error)
 
 class Attachment(Base):

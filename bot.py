@@ -54,12 +54,13 @@ class Bot(object):
             if not is_new and not publication.error:
                 # There was a previous, successful attempt to publish
                 # this Post. Skip this Publisher.
+
                 continue
             try:
                 publisher.publish(post, publication)
-            except Exception, e:
-                set_trace()
-                publication.report_error("Uncaught exception: %s" % e.message)
+            except tweepy.error.TweepError, e:
+                message = repr(e.message)
+                publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
         return publications
 
