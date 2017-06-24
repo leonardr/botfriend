@@ -48,7 +48,7 @@ class Bot(object):
     def new_post(self):
         """Come up with something cool.
 
-        :return: A Post.
+        :return: One or more Posts.
         """
         raise NotImplementedError()
 

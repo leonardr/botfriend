@@ -105,6 +105,10 @@ class BotModel(Base):
     # If this is set, the bot will not post anything until this time.
     next_post_time = Column(DateTime)
 
+    # The bot's implementation may store anything it wants in this field
+    # to keep track of state between posts.
+    state = Column(String)
+    
     posts = relationship('Post', backref='bot', uselist=False,)
     
     @property
