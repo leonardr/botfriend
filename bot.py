@@ -1,4 +1,5 @@
 import importlib
+import datetime
 from nose.tools import set_trace
 from model import (
     get_one_or_create,
@@ -12,8 +13,8 @@ class Bot(object):
     """Bot implements the creative part of a bot.
 
     This is as distinct from BotModel in model.py, which implements
-    the part that deals with managing the archive and delivering the
-    creative output to various services.
+    the part that deals with scheduling posts, managing the archive,
+    and delivering the creative output to various services.
     """
 
     @property
@@ -79,7 +80,24 @@ class Bot(object):
         """Assume a post just happened and schedule .next_post_time 
         appropriately.
         """
-    
+        self.next_post_time = self.calculate_next_post_time()
+
+    def calculate_next_post_time(self):
+        if not self.frequency:
+            # There should be another post the next time the script is run.
+            return None
+        how_long = Nonw
+        if any(isinstance(self.frequency, x) for x in (int, float)):
+            # There should be another post in this number of minutes.
+            how_long = self.frequency
+        elif 'mean' in self.frequency:
+            # There should be another post in a random number of minutes
+            # determined by 'mean' and 'stdev'.
+            mean = int(self.frequency['mean'])
+            stdev = int(self.frequency.get('stdev', mean/5.0))
+            how_long = random.gauss(mean, stdev)
+        return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
+        
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """
