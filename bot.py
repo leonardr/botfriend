@@ -20,9 +20,10 @@ class Bot(object):
     def log(self):
         return self.model.log
     
-    def __init__(self, model, config):
+    def __init__(self, model, module_name, config):
         self._db = Session.object_session(model)
         self.model = model
+        self.module_name = module_name
         self.name = self.model.name
         self.config = config
         publishers = self.config.get('publish', {})

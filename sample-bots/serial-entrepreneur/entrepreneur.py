@@ -1,8 +1,9 @@
 import os
 import json
 import random
-from olipy.english import us_states
 from olipy.randomness import WanderingMonsterTable
+from olipy.corpus import Corpus
+us_states = Corpus.load("us_states")
 
 class Grammar(object):
 
@@ -39,14 +40,14 @@ class NounPhraseGrammar(Grammar):
         choices = {}
         means = {}
         dir = os.path.split(__file__)[0]
-        for name, filename, mean in (
-                ('abstract', 'abstract_nouns.txt', 0.20),
-                ('concrete', 'concrete_nouns.txt', None),
-                ('adjectival', 'adjectival_nouns.txt', 0.20),
-                ('adjective', 'adjectives.txt', 0.20)
+        for name, corpus_name, mean in (
+                ('abstract', 'abstract_nouns', 0.20),
+                ('concrete', 'scribblenauts_words', None),
+                ('adjectival', 'adjectival_nouns', 0.20),
+                ('adjective', 'adjectives', 0.20)
         ):
-            path = os.path.join(dir, 'data', filename)
-            choices[name] = [x.strip() for x in open(path)]
+             
+            choices[name] = Corpus.load(corpus_name)
             means[name] = mean
         super(NounPhraseGrammar, self).__init__(choices, means)
 

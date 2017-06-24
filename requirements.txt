@@ -3,3 +3,4 @@ sqlalchemy
 pyyaml
 nose
 tweepy
+TextBlob
