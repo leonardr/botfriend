@@ -26,6 +26,7 @@ class Bot(object):
         self.module_name = module_name
         self.name = self.model.name
         self.config = config
+        self.frequency = self._extract_from_config(config, 'frequency')
         publishers = self.config.get('publish', {})
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
@@ -33,7 +34,16 @@ class Bot(object):
             Publisher.from_config(self, module, config)
             for module in publishers
         ]
-        
+
+    def _extract_from_config(self, config, key):
+        value = config.get(key, None)
+        if (value
+            and isinstance(value, list)
+            and len(value) == 1 and isinstance(value[0], dict)
+        ):
+            return value[0]
+        return value
+    
     def new_post(self):
         """Come up with something cool.
 

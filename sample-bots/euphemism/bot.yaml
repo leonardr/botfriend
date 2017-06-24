@@ -1,0 +1,4 @@
+name: "Euphemism Bot"
+frequency:
+    - mean: 480
+      stdev: 60
