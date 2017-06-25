@@ -154,33 +154,60 @@ class BotModel(Base):
         """Find the next unpublished post.
         
         The Post must have no Publications.
-        It must have a `date` before the current time.
+
+        If it has a `date`, the date must be before the current time.
         """
         _db = Session.object_session(self)
         now = datetime.datetime.utcnow()
         next_post = _db.query(Post).filter(
             Post.bot==self).outerjoin(
-                Post.publications).filter(Publication.id==None)
-        next_post = next_post.filter(
-                    Post.date <= now).limit(1).all()
+                Post.publications).filter(
+                    Publication.id==None)
+        not_future = or_(Post.publish_at <= now, Post.publish_at == None)
+        next_post = next_post.filter(not_future).order_by(
+            Post.publish_at.asc(), Post.created.desc()).limit(1).all()
         if next_post:
             return next_post[0]
         return None
     
-    def post(self):
+    def next_post(self):
+        """Find or create a Post that's ready to be published, but don't
+        publish it.
+        
+        :return: A Post, or None if there are no unpublished posts and the bot
+        doesn't want to create a new one.
+        """
         now = datetime.datetime.utcnow()
+        unpublished = self.next_unpublished_post
+        if unpublished:
+            return unpublished
+
+        # Maybe we should create a new one.
         if self.next_post_time and now < self.next_post_time:
+            # Nope.
             self.log.info("Not posting until %s" % self.next_post_time)
-        post = model.implementation.new_post()
-        model.implementation.publish(post)
             
-    def create_post(self, content):
+        model.implementation.new_post()
+
+        # Don't automatically use the new post -- it might not be
+        # publishable. If it is publishable, it'll show up here.
+        return self.next_unpublished_post
+            
+    def create_post(self, content, publish_at=None):
+        """Turn a string of content into a Post."""
         _db = Session.object_session(self)
         post, is_new = create(_db, Post, bot=self)
         post.content = content
-        post.date = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow()
+        post.created = now
+        post.publish_at = publish_at or now
         return post
-            
+
+    def schedule_next_post(self, last_post):
+        """Set .next_post_time. create_post() will not be called again until
+        this time.
+        """
+        self.next_post_time = None
         
 class Post(Base):
     __tablename__ = 'posts'
@@ -189,8 +216,11 @@ class Post(Base):
         Integer, ForeignKey('bots.id'), index=True, nullable=False
     )
 
-    # The time the post was, or is supposed to be, published.
-    date = Column(DateTime)
+    # The time the post was created.
+    created = Column(DateTime)
+    
+    # The time the post was/is supposed to be published.
+    publish_at = Column(DateTime)
 
     # The original content of the post. This may need to be cut down
     # for specific publication mechanisms, but that's okay -- we know how
@@ -201,7 +231,16 @@ class Post(Base):
     attachments = relationship('Attachment', backref='post')
     
     def publish(self):
-        """Publish this Post to every service registered with the bot."""
+        """Publish this Post to every service registered with the bot.
+
+        :return: A list of Publications.
+        """
+        now = datetime.datetime.utcnow()
+        if self.publish_at and self.publish_at >= now:
+            logging.warn(
+                "Not publishing %s until %s", self.content, self.publish_at
+            )
+            return []
         return self.bot.implementation.publish(self)
         
 

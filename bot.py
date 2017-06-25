@@ -63,7 +63,7 @@ class Bot(object):
             # We made a single post.
             posts = [posts]
         elif isinstance(posts, basestring):
-            # We a single string post.
+            # We made a single string, which will become a Post.
             posts = [self.model.create_post(posts)]
         return posts
 
