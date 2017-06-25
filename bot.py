@@ -45,13 +45,37 @@ class Bot(object):
             return value[0]
         return value
     
-    def new_post(self):
-        """Come up with something cool.
+    def next_post(self):
+        """Find the next unpublished Post, or create a new one.
 
-        :return: One or more Posts.
+        :return: A list of Posts.
+        """
+        post = self.model.next_unpublished_post
+        if post:
+            return post
+
+        # Create a new one
+        posts = self.new_post()
+        if not posts:
+            # We didn't do any work.
+            posts = []
+        if isinstance(posts, Post):
+            # We made a single post.
+            posts = [posts]
+        elif isinstance(posts, basestring):
+            # We a single string post.
+            posts = [self.model.create_post(posts)]
+        return posts
+
+    def new_post(self):
+        """Create a brand new Post.
+        
+        :return: A string (which will be converted into a Post),
+        a Post, or a list of Posts.
         """
         raise NotImplementedError()
-
+    
+    
     def publish(self, post):
         """Push a Post to every publisher.
 
@@ -102,8 +126,11 @@ class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """
     def new_post(self):
-        content = self.generate_text()
-        return self.model.create_post(content)
+        """Create a brand new Post.
+
+        :return: Some text.
+        """
+        return self.generate_text()
         
     def generate_text(self):
         raise NotImplementedError()

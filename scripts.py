@@ -56,7 +56,7 @@ class PostScript(BotScript):
         return parser
     
     def process_bot(self, bot_model):
-        posts = bot_model.implementation.new_post()
+        posts = bot_model.implementation.next_post()
         if isinstance(posts, Post):
             posts = [posts]
         if self.args.dry_run:

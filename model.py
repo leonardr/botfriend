@@ -150,17 +150,22 @@ class BotModel(Base):
         return bot_model
 
     @property
-    def next_post(self):
-        """Find the next unposted Post.
+    def next_unpublished_post(self):
+        """Find the next unpublished post.
         
-        The Post must have no Deliveries.
+        The Post must have no Publications.
         It must have a `date` before the current time.
         """
-        _db = Session.object_session()
+        _db = Session.object_session(self)
         now = datetime.datetime.utcnow()
-        self._db.query(Post).filter(
-            Post.bot==self).outerjoin(Post.deliveries).join(
-                Delivery.id==None).filter(Post.date <= now)
+        next_post = _db.query(Post).filter(
+            Post.bot==self).outerjoin(
+                Post.publications).filter(Publication.id==None)
+        next_post = next_post.filter(
+                    Post.date <= now).limit(1).all()
+        if next_post:
+            return next_post[0]
+        return None
     
     def post(self):
         now = datetime.datetime.utcnow()
