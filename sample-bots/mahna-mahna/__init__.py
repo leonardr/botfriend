@@ -28,7 +28,7 @@ class MahnaMahna(Bot):
         posts = []
         workday = self.next_workday
         for i, hour in enumerate([9, 11, 13, 15, 16, 17]):
-            post_at = workday.replace(hour=hour)
+            publish_at = workday.replace(hour=hour)
             if i < 2:
                 mahna = "Mahna mahna."
                 output = pad(mahna, len(mahna)+10)
@@ -46,10 +46,14 @@ class MahnaMahna(Bot):
                 if random.randint(0,1) == 1:
                     output += "\n" + sg.scat(5).capitalize() + "..."
             post, is_new = get_one_or_create(
-                self._db, Post, bot=self.model, date=post_at
+                self._db, Post, bot=self.model, publish_at=publish_at
             )
             post.content = output
             posts.append(post)
+
+        # Don't ask me again until an hour after the bot is done with
+        # these posts.
+        self.model.next_post_time = publish_at + datetime.timedelta(hours=1)
         return posts
             
 Bot = MahnaMahna

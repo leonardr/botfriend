@@ -150,25 +150,35 @@ class BotModel(Base):
         return bot_model
 
     @property
-    def next_unpublished_post(self):
-        """Find the next unpublished post.
-        
-        The Post must have no Publications.
+    def next_unpublished_posts(self):
+        """Find the next post (or posts) that needs to be published.
 
-        If it has a `date`, the date must be before the current time.
+        :return: A list of Posts.
+        
+        Only Posts with no Publications are considered.
+
+        If there are any Posts with `publish_at` before the current time,
+        all such Posts are returned.
+
+        If not, the oldest Post with `publish_at` not set is chosen.
+
+        If there are no Posts with `publish_at` not set, an empty list
+        is returned.
         """
         _db = Session.object_session(self)
         now = datetime.datetime.utcnow()
-        next_post = _db.query(Post).filter(
+        base_query = _db.query(Post).filter(
             Post.bot==self).outerjoin(
                 Post.publications).filter(
                     Publication.id==None)
-        not_future = or_(Post.publish_at <= now, Post.publish_at == None)
-        next_post = next_post.filter(not_future).order_by(
-            Post.publish_at.asc(), Post.created.desc()).limit(1).all()
-        if next_post:
-            return next_post[0]
-        return None
+        past_due = base_query.filter(Post.publish_at <= now).order_by(
+            Post.publish_at.asc()).all()
+        if past_due:
+            return past_due
+        
+        next_in_line = base_query.filter(Post.publish_at == None).order_by(
+            Post.created.asc()).limit(1).all()
+        return next_in_line
     
     def next_post(self):
         """Find or create a Post that's ready to be published, but don't
@@ -178,20 +188,20 @@ class BotModel(Base):
         doesn't want to create a new one.
         """
         now = datetime.datetime.utcnow()
-        unpublished = self.next_unpublished_post
+        unpublished = self.next_unpublished_posts
         if unpublished:
             return unpublished
 
-        # Maybe we should create a new one.
+        # Maybe we should create a new post.
         if self.next_post_time and now < self.next_post_time:
             # Nope.
             self.log.info("Not posting until %s" % self.next_post_time)
             
-        model.implementation.new_post()
+        new_posts = model.implementation.new_post()
 
-        # Don't automatically use the new post -- it might not be
-        # publishable. If it is publishable, it'll show up here.
-        return self.next_unpublished_post
+        # Don't automatically use the new posts. It might not be time to publish
+        # all of them. This will find the publishable ones.
+        return self.next_unpublished_posts
             
     def create_post(self, content, publish_at=None):
         """Turn a string of content into a Post."""
@@ -203,11 +213,12 @@ class BotModel(Base):
         post.publish_at = publish_at or now
         return post
 
-    def schedule_next_post(self, last_post):
+    def schedule_next_post(self, last_posts):
         """Set .next_post_time. create_post() will not be called again until
         this time.
         """
-        self.next_post_time = None
+        # By default, do nothing; create_post() may be called every time
+        # there are no unpublished posts.
         
 class Post(Base):
     __tablename__ = 'posts'
