@@ -1,6 +1,8 @@
 from nose.tools import set_trace
 from argparse import ArgumentParser
 from config import Configuration
+from model import Post
+
 
 class Script(object):
     pass
@@ -54,16 +56,21 @@ class PostScript(BotScript):
         return parser
     
     def process_bot(self, bot_model):
-        post = bot_model.implementation.new_post()
+        posts = bot_model.implementation.new_post()
+        if isinstance(posts, Post):
+            posts = [posts]
         if self.args.dry_run:
             print bot_model.name
-            print post.content
+            for post in posts:
+                print post.content
             print "-" * 80
             return
+
+        # We're doing this for real.
         for publication in post.publish():
             print publication.display()
             bot_model.schedule_next_post(self, post)
-        self.config._db.commit()        
+        self.config._db.commit()
     
 
 

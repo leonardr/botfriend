@@ -1,9 +1,11 @@
 from olipy.markov import MarkovGenerator
+import re
+import random
 
 class ScatGenerator(MarkovGenerator):
 
     # My transcription of Mahna Mahna's scat.
-    MAHNA_MAHNA_SCAT = "\n".split("""Mahna mahna mahna ma nanamanah miti mitiah mah ma 
+    MAHNA_MAHNA_SCAT = """Mahna mahna mahna ma nanamanah miti mitiah mah ma 
 Mahna muh muh nuh nah nuh nuh nuh
 Ina nina nina nah nih bah nuh nah
 Eehna ehh
@@ -39,7 +41,7 @@ Beeh bip bibi
 Deet dah deety ditty dah
 Bip bih bahda bah
 Yeep yah nah nih nah
-Yeep bah bap bih bah""")
+Yeep bah bap bih bah""".split("\n")
     
     VOWELS = re.compile("([aeiouy]+)")
 
@@ -70,3 +72,7 @@ Yeep bah bap bih bah""")
         while len(scat) > length and ' ' in scat:
             scat = scat[:scat.rindex(' ')]
         return scat
+    
+if __name__ == '__main__':
+    ge = ScatGenerator()
+    print ge.scat(50)

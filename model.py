@@ -109,7 +109,7 @@ class BotModel(Base):
     # to keep track of state between posts.
     state = Column(String)
     
-    posts = relationship('Post', backref='bot', uselist=False,)
+    posts = relationship('Post', backref='bot')
     
     @property
     def log(self):
@@ -149,6 +149,19 @@ class BotModel(Base):
         bot_model.implementation = bot_implementation
         return bot_model
 
+    @property
+    def next_post(self):
+        """Find the next unposted Post.
+        
+        The Post must have no Deliveries.
+        It must have a `date` before the current time.
+        """
+        _db = Session.object_session()
+        now = datetime.datetime.utcnow()
+        self._db.query(Post).filter(
+            Post.bot==self).outerjoin(Post.deliveries).join(
+                Delivery.id==None).filter(Post.date <= now)
+    
     def post(self):
         now = datetime.datetime.utcnow()
         if self.next_post_time and now < self.next_post_time:
@@ -158,7 +171,7 @@ class BotModel(Base):
             
     def create_post(self, content):
         _db = Session.object_session(self)
-        post, is_new = create(_db, Post, bot_id=self.id)
+        post, is_new = create(_db, Post, bot=self)
         post.content = content
         post.date = datetime.datetime.utcnow()
         return post
@@ -181,7 +194,7 @@ class Post(Base):
     
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
-
+    
     def publish(self):
         """Publish this Post to every service registered with the bot."""
         return self.bot.implementation.publish(self)

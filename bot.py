@@ -86,7 +86,7 @@ class Bot(object):
         if not self.frequency:
             # There should be another post the next time the script is run.
             return None
-        how_long = Nonw
+        how_long = None
         if any(isinstance(self.frequency, x) for x in (int, float)):
             # There should be another post in this number of minutes.
             how_long = self.frequency

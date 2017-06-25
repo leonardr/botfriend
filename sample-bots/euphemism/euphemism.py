@@ -284,7 +284,7 @@ class Quote(WanderingMonsterTable):
             Quote.rare, Quote.very_rare)
 
     def make(self, cls):
-        return (" ".join(cls().fill(random.choice(cls.patterns)))).encode("utf8")
+        return " ".join(cls().fill(random.choice(cls.patterns)))
 
     def choice(self):
         wanking = self.make(Wanking)
