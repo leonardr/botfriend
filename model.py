@@ -17,6 +17,7 @@ from sqlalchemy.exc import (
     IntegrityError
 )
 from sqlalchemy.orm import (
+    backref,
     relationship,
 )
 from sqlalchemy.orm.exc import (
@@ -151,7 +152,8 @@ class BotModel(Base):
 
     @property
     def next_unpublished_posts(self):
-        """Find the next post (or posts) that needs to be published.
+        """Find the already existing Post (or Posts) next in line to be
+        published.
 
         :return: A list of Posts.
         
@@ -180,12 +182,11 @@ class BotModel(Base):
             Post.created.asc()).limit(1).all()
         return next_in_line
     
-    def next_post(self):
-        """Find or create a Post that's ready to be published, but don't
-        publish it.
+    def next_posts(self):
+        """Find or create one or more Posts that are ready to be published.
+        Don't publish it.
         
-        :return: A Post, or None if there are no unpublished posts and the bot
-        doesn't want to create a new one.
+        :return: A list of Posts, possibly empty.
         """
         now = datetime.datetime.utcnow()
         unpublished = self.next_unpublished_posts
@@ -197,28 +198,32 @@ class BotModel(Base):
             # Nope.
             self.log.info("Not posting until %s" % self.next_post_time)
             
-        new_posts = model.implementation.new_post()
-
+        new_posts = self.new_posts()
+        
         # Don't automatically use the new posts. It might not be time to publish
         # all of them. This will find the publishable ones.
         return self.next_unpublished_posts
-            
-    def create_post(self, content, publish_at=None):
-        """Turn a string of content into a Post."""
-        _db = Session.object_session(self)
-        post, is_new = create(_db, Post, bot=self)
-        post.content = content
-        now = datetime.datetime.utcnow()
-        post.created = now
-        post.publish_at = publish_at or now
-        return post
 
-    def schedule_next_post(self, last_posts):
-        """Set .next_post_time. create_post() will not be called again until
-        this time.
+    def new_posts(self):
+        """Create one or more brand new posts.
+
+        This will call Bot.schedule_next_post to set the next time more
+        posts should be scheduled.
+        
+        :return: The new Posts, in a (possibly empty) list.
         """
-        # By default, do nothing; create_post() may be called every time
-        # there are no unpublished posts.
+        new_posts = self.implementation.new_post()
+        if not new_posts:
+            new_posts = []
+        elif isinstance(new_posts, basestring):
+            new_posts = [Post.from_content(self, new_posts)]
+        elif isinstance(new_posts, Post):
+            new_posts = [new_posts]
+        self.next_post_time = self.implementation.schedule_next_post(
+            new_posts
+        )
+        return new_posts
+
         
 class Post(Base):
     __tablename__ = 'posts'
@@ -237,10 +242,33 @@ class Post(Base):
     # for specific publication mechanisms, but that's okay -- we know how
     # to do that automatically.
     content = Column(String)
+
+    # A Post may be a reply to another botfriend post.
+    reply_to_id = Column(
+        Integer, ForeignKey('posts.id'), index=True, nullable=True
+    )
+
+    # Or it might be a reply to another post on some other service.
+    reply_to_foreign_id = Column(String, index=True)
+    
+    replies = relationship(
+        "Post", backref=backref("reply_to", remote_side=[id])
+    )
     
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
-    
+
+    @classmethod
+    def from_content(cls, bot, content, publish_at=None):
+        """Turn a string of content into a Post."""
+        _db = Session.object_session(bot)
+        post, is_new = create(_db, Post, bot=bot)
+        post.content = content
+        now = datetime.datetime.utcnow()
+        post.created = now
+        post.publish_at = publish_at or now
+        return post
+                
     def publish(self):
         """Publish this Post to every service registered with the bot.
 

@@ -1,5 +1,6 @@
 import importlib
 import datetime
+import random
 from nose.tools import set_trace
 from model import (
     get_one_or_create,
@@ -100,17 +101,51 @@ class Bot(object):
             publications.append(publication)
         return publications
 
-    def schedule_next_post(self):
-        """Assume a post just happened and schedule .next_post_time 
-        appropriately.
-        """
-        self.next_post_time = self.calculate_next_post_time()
+    def schedule_next_post(self, last_posts):
+        """Determine the best value for BotModel.next_post_time, given that
+        `last_posts` were just created.
 
-    def calculate_next_post_time(self):
-        if not self.frequency:
-            # There should be another post the next time the script is run.
-            return None
+        BotModel.new_posts() sets BotModel.next_post_time when it
+        creates posts, and ensures that new_posts() will not be called
+        again until after that time.
+
+        :param last_posts: A list of Posts, the most recent to be
+        created.
+        """
+        # In general, we will not start coming up with new posts again
+        # until all the posts that were just created have reached their
+        # publication time.
+        #
+        # However, some bots may have additional configuration that
+        # says when a post should happen.
+        #
+        # We pick the later of the two times.
+        latest_published = self.latest_publication_time(last_posts)
+        scheduled = self.scheduled_next_publication_time()
+        if scheduled and latest_published:
+            return max(scheduled, latest_published)
+        elif scheduled:
+            return scheduled
+        else:
+            return latest_published
+
+    def latest_publication_time(self, last_posts):
+        """The last .publish_at time in the given list of Posts."""
+        latest = None
+        for p in last_posts:
+            if not latest or (p.publish_at and p.publish_at > latest):
+                latest = p.publish_at
+
+        return latest
+
+    def scheduled_next_publication_time(self):
+        """Assuming that a post happened now, see when the bot configuration
+        says the next post should happen.
+        """
         how_long = None
+        if not self.frequency:
+            # The next post should happen immediately.
+            return None
         if any(isinstance(self.frequency, x) for x in (int, float)):
             # There should be another post in this number of minutes.
             how_long = self.frequency
@@ -121,7 +156,8 @@ class Bot(object):
             stdev = int(self.frequency.get('stdev', mean/5.0))
             how_long = random.gauss(mean, stdev)
         return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
-        
+
+
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """

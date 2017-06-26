@@ -56,7 +56,7 @@ class PostScript(BotScript):
         return parser
     
     def process_bot(self, bot_model):
-        posts = bot_model.next_unpublished_posts
+        posts = bot_model.next_posts()
         if self.args.dry_run:
             print bot_model.name
             for post in posts:
@@ -68,7 +68,6 @@ class PostScript(BotScript):
         for post in posts:
             for publication in post.publish():
                 print publication.display()
-        bot_model.schedule_next_post(posts)
         self.config._db.commit()
     
 # Show all unpublished posts
