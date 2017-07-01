@@ -209,7 +209,8 @@ class BotModel(Base):
             self.log.info("Not posting until %s" % (
                 self.next_post_time.strftime(TIME_FORMAT)
             ))
-            
+            return []
+        
         new_posts = self.new_posts()
         
         # Don't automatically use the new posts. It might not be time to publish
