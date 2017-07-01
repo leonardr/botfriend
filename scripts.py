@@ -67,7 +67,7 @@ class PostScript(BotScript):
         # We're doing this for real.
         for post in posts:
             for publication in post.publish():
-                print publication.display()
+                publication.post.bot.log.info(publication.display())
         self.config._db.commit()
     
 # Show all unpublished posts

@@ -5,10 +5,14 @@ import logging
 from model import (
     production_session,
     BotModel,
+    TIME_FORMAT,
 )
-logging.getLogger().setLevel(logging.INFO)
-stderr_handler = logging.StreamHandler()
-logging.getLogger().addHandler(stderr_handler)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="LOG %(asctime)s | %(name)s | %(message)s",
+    datefmt=TIME_FORMAT,
+)
 
 
 class Configuration(object):

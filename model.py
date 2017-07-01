@@ -27,8 +27,9 @@ from sqlalchemy.orm.exc import (
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
+TIME_FORMAT = "%Y-%m-%d %H:%M"
 
+Base = declarative_base()
 
 def create(db, model, create_method='',
            create_method_kwargs=None,
@@ -114,8 +115,8 @@ class BotModel(Base):
     
     @property
     def log(self):
-        return logging.getLogger("Bot %s" % self.name)
-
+        return logging.getLogger(self.name)
+   
     @classmethod
     def from_directory(self, _db, directory):
         """Load bot code from `directory`, and find or create the
@@ -196,8 +197,8 @@ class BotModel(Base):
         # Maybe we should create a new post.
         if self.next_post_time and now < self.next_post_time:
             # Nope.
-            self.log.info("%s | Not posting until %s" % (
-                self.name, self.next_post_time
+            self.log.info("Not posting until %s" % (
+                self.next_post_time.strftime(TIME_FORMAT)
             ))
             
         new_posts = self.new_posts()
@@ -270,7 +271,15 @@ class Post(Base):
         post.created = now
         post.publish_at = publish_at or now
         return post
-                
+
+    @property
+    def content_snippet(self):
+        "A small string of content suitable for logging."
+        if self.content:
+            return self.content[:20]
+        else:
+            return "[no textual content]"
+    
     def publish(self):
         """Publish this Post to every service registered with the bot.
 
@@ -279,7 +288,8 @@ class Post(Base):
         now = datetime.datetime.utcnow()
         if self.publish_at and self.publish_at >= now:
             logging.warn(
-                "Not publishing %s until %s", self.content, self.publish_at
+                "Not publishing %s until %s", self.content,
+                self.publish_at.strftime(self.TIME_FORMAT)
             )
             return []
         return self.bot.implementation.publish(self)
@@ -318,9 +328,8 @@ class Publication(Base):
             if self.most_recent_attempt != self.first_attempt:
                 msg += " (since %s)" % self.first_attempt
         else:
-            msg = "Success"
-        attempt = self.most_recent_attempt.strftime("%Y-%m-%d %H:%M")
-        return "%s | %s | %s | %s" % (self.post.bot.name, attempt, self.service, msg)
+            msg = "Published %s" % self.most_recent_attempt.strftime(TIME_FORMAT)
+        return "%s | %s | %s " % (self.service, msg, self.post.content_snippet)
         
     def report_attempt(self, error=None):
         "Report a (possibly successful) attempt to publish this post."
