@@ -14,7 +14,10 @@ class FileOutputPublisher(Publisher):
         if not filename.startswith(os.path.sep):
             filename = os.path.join(bot.directory, filename)
         self.path = filename
-
+        dir, ignore = os.path.split(self.path)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        
     def publish(self, post, publication):
         output = post.publish_at.strftime("%Y-%m-%d %H:%M:%S")
         output = output + " | " + post.content.encode("utf8") + "\n"

@@ -27,7 +27,16 @@ from sqlalchemy.orm.exc import (
 from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.declarative import declarative_base
 
+
 TIME_FORMAT = "%Y-%m-%d %H:%M"
+
+def _now():
+    """The current time.
+
+    I've moved this into a function so I can test out whether
+    local time or UTC is better for this purpose.
+    """
+    return datetime.datetime.now()
 
 Base = declarative_base()
 
@@ -169,7 +178,7 @@ class BotModel(Base):
         is returned.
         """
         _db = Session.object_session(self)
-        now = datetime.datetime.utcnow()
+        now = _now()
         base_query = _db.query(Post).filter(
             Post.bot==self).outerjoin(
                 Post.publications).filter(
@@ -189,7 +198,7 @@ class BotModel(Base):
         
         :return: A list of Posts, possibly empty.
         """
-        now = datetime.datetime.utcnow()
+        now = _now()
         unpublished = self.next_unpublished_posts
         if unpublished:
             return unpublished
@@ -267,7 +276,7 @@ class Post(Base):
         _db = Session.object_session(bot)
         post, is_new = create(_db, Post, bot=bot)
         post.content = content
-        now = datetime.datetime.utcnow()
+        now = _now()
         post.created = now
         post.publish_at = publish_at or now
         return post
@@ -285,7 +294,7 @@ class Post(Base):
 
         :return: A list of Publications.
         """
-        now = datetime.datetime.utcnow()
+        now = _now()
         if self.publish_at and self.publish_at >= now:
             logging.warn(
                 "Not publishing %s until %s", self.content,
@@ -333,7 +342,7 @@ class Publication(Base):
         
     def report_attempt(self, error=None):
         "Report a (possibly successful) attempt to publish this post."
-        now = datetime.datetime.utcnow()
+        now = _now()
         if not self.first_attempt:
             self.first_attempt = now
         self.most_recent_attempt = now

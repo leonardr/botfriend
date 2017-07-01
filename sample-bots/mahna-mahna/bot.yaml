@@ -1,4 +1,4 @@
 name: "Mahna Mahna"
 publish:
     file:
-      filename: "mahna.log"
+      filename: "../mahna-mahna.log"

@@ -4,4 +4,4 @@ frequency:
     stdev: 60
 publish:
     file:
-      filename: "entrepreneur.log"
+      filename: "../entrepreneur.log"
