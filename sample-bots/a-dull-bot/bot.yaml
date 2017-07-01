@@ -1,2 +1,5 @@
 name: "A Dull Bot"
 frequency: 60
+publish:
+    file:
+      filename: "a-dull-bot.log"

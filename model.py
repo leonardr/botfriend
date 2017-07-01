@@ -146,7 +146,7 @@ class BotModel(Base):
                 bot_config
             )
         bot_model, is_new = get_one_or_create(_db, BotModel, name=name)
-        bot_implementation = bot_class(bot_model, module, config)
+        bot_implementation = bot_class(bot_model, directory, config)
         bot_model.implementation = bot_implementation
         return bot_model
 

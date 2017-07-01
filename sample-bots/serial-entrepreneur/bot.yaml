@@ -1,4 +1,7 @@
 name: "Serial Entrepreneur"
 frequency:
-    - mean: 150
-      stdev: 30
+    mean: 150
+    stdev: 30
+publish:
+    file:
+      filename: "entrepreneur.log"

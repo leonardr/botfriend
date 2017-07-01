@@ -1,4 +1,7 @@
 name: "Euphemism Bot"
 frequency:
-    - mean: 480
-      stdev: 60
+    mean: 480
+    stdev: 60
+publish:
+    file:
+      filename: "entrepreneur.log"

@@ -1,5 +1,6 @@
 import importlib
 import datetime
+import os
 import random
 from nose.tools import set_trace
 from model import (
@@ -22,11 +23,19 @@ class Bot(object):
     def log(self):
         return self.model.log
     
-    def __init__(self, model, module_name, config):
+    def __init__(self, model, directory, config):
+        """
+        :param modle: A `Bot` object.
+        :param directory: The directory from which the bot code was
+            loaded.
+        :param config: A dictionary containing bot-specific configuration
+            from bot.yaml in `directory.`
+        """
         self._db = Session.object_session(model)
         self.model = model
-        self.module_name = module_name
         self.name = self.model.name
+        self.base_directory = os.path.split(directory)[0]
+        self.directory = directory
         self.config = config
         self.frequency = self._extract_from_config(config, 'frequency')
         publishers = self.config.get('publish', {})
@@ -180,10 +189,6 @@ class Publisher(object):
     def from_config(cls, bot, module, full_config):
         publish_config = full_config.get('publish', {})
         module_config = publish_config.get(module)
-        if not module_config:
-            module_config = {}
-        else:
-            [module_config] = module_config
         
         publisher_module = importlib.import_module("publish." + module)
         publisher_class = getattr(publisher_module, "Publisher", None)
