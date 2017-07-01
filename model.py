@@ -196,7 +196,9 @@ class BotModel(Base):
         # Maybe we should create a new post.
         if self.next_post_time and now < self.next_post_time:
             # Nope.
-            self.log.info("Not posting until %s" % self.next_post_time)
+            self.log.info("%s | Not posting until %s" % (
+                self.name, self.next_post_time
+            ))
             
         new_posts = self.new_posts()
         
@@ -318,7 +320,7 @@ class Publication(Base):
         else:
             msg = "Success"
         attempt = self.most_recent_attempt.strftime("%Y-%m-%d %H:%M")
-        return "%s | %s | %s" % (attempt, self.service, msg)
+        return "%s | %s | %s | %s" % (self.post.bot.name, attempt, self.service, msg)
         
     def report_attempt(self, error=None):
         "Report a (possibly successful) attempt to publish this post."
