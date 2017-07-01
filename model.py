@@ -237,6 +237,17 @@ class BotModel(Base):
         )
         return new_posts
 
+    @property
+    def backlog(self):
+        """All posts in the backlog, in the order they will be posted."""
+        _db = Session.object_session(self)
+        qu = _db.query(Post).outerjoin(Post.publications).filter(
+            Post.bot==self).filter(
+                Publication.id==None).order_by(
+                    Post.publish_at.asc(), Post.id.asc()
+                )
+        return qu
+        
         
 class Post(Base):
     __tablename__ = 'posts'

@@ -1,7 +1,10 @@
 from nose.tools import set_trace
 from argparse import ArgumentParser
 from config import Configuration
-from model import Post
+from model import (
+    Post,
+    TIME_FORMAT,
+)
 
 
 class Script(object):
@@ -69,6 +72,42 @@ class PostScript(BotScript):
             for publication in post.publish():
                 publication.post.bot.log.info(publication.display())
         self.config._db.commit()
-    
-# Show all unpublished posts
-# Load unpublished posts from a file.
+
+
+class BacklogScript(BotScript):
+    """Show the backlog for a bot."""
+
+    @classmethod
+    def parser(cls):
+        parser = BotScript.parser()
+        parser.add_argument(
+            "--limit",
+            help="Limit the number of backlog items shown.",
+            type=int,
+            default=None
+        )
+        return parser
+
+    def process_bot(self, bot_model):
+        backlog = bot_model.backlog
+        count = backlog.count()
+        if self.args.limit:
+            max_i = self.args.limit - 1
+        else:
+            max_i = None
+        if count:
+            bot_model.log.info("%d items in backlog" % count)
+            for i, post in enumerate(bot_model.backlog):
+                if max_i is not None and i > max_i:
+                    break
+                if post.publish_at:
+                    when_post = post.publish_at.strftime(TIME_FORMAT)
+                elif i == 0:
+                    when_post = bot_model.next_post_time.strftime(TIME_FORMAT)
+                else:
+                    when_post = "Unscheduled"
+                bot_model.log.info("%s | %s" % (when_post, post.content))
+        else:
+            bot_model.log.info("No backlog")
+        
+# Load backlog from a file.
