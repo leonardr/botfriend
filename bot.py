@@ -34,7 +34,7 @@ class Bot(object):
         self._db = Session.object_session(model)
         self.model = model
         self.name = self.model.name
-        self.base_directory = os.path.split(directory)[0]
+        self.base_directory, self.module_name = os.path.split(directory)
         self.directory = directory
         self.config = config
         self.frequency = self._extract_from_config(config, 'frequency')
@@ -84,7 +84,19 @@ class Bot(object):
         a Post, or a list of Posts.
         """
         raise NotImplementedError()
-    
+
+    def import_post(self, content):
+        """Import a piece of content from some external source into
+        a Post.
+        
+        :content: The input to the post creation process.  By default,
+        we treat this as the literal content of a Post object that
+        will be posted according to the bot's internal schedule.
+
+        :return: A Post.
+        """
+        post = Post.from_content(self, content, publish_at=Post.NO_VALUE)
+        return post
     
     def publish(self, post):
         """Push a Post to every publisher.

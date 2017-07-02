@@ -281,16 +281,26 @@ class Post(Base):
     
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
-
+    
     @classmethod
-    def from_content(cls, bot, content, publish_at=None):
-        """Turn a string of content into a Post."""
+    def from_content(cls, bot, content, publish_at=None, reuse_existing=True):
+        """Turn a string of content into a Post.
+
+        :param reuse_existing: If a Post already exists with this content,
+        return it rather than creating a new one.
+        """
         _db = Session.object_session(bot)
-        post, is_new = create(_db, Post, bot=bot)
-        post.content = content
+        if reuse_existing:
+            post, is_new = get_one_or_create(
+                _db, Post, bot=bot, on_multiple='interchangeable'
+            )
+        else:
+            post, is_new = create(_db, Post, bot=bot)
         now = _now()
-        post.created = now
-        post.publish_at = publish_at or now
+        if is_new:
+            post.content = content
+            post.created = now
+            post.publish_at = publish_at
         return post
 
     @property

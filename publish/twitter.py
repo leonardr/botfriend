@@ -3,6 +3,7 @@ from nose.tools import set_trace
 import tweepy
 from bot import Publisher
 
+
 class TwitterPublisher(Publisher):
     def __init__(
             self, bot, full_config, kwargs
@@ -18,7 +19,9 @@ class TwitterPublisher(Publisher):
         self.api = tweepy.API(auth)
         
     def twitter_safe(self, content):
-        # TODO: do unicode normalization
+        content = unicode(content)
+        content = unicodedata.normalize('NFC', content)
+        content = content.encode("utf8")
         # TODO: replace initial D., M. etc.
         return content[:140]
         

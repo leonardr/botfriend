@@ -1,0 +1,5 @@
+name: "Deathbot 3000"
+frequency: 480
+publish:
+    file:
+      filename: "../roller-derby.log"
