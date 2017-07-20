@@ -292,7 +292,8 @@ class Post(Base):
         _db = Session.object_session(bot)
         if reuse_existing:
             post, is_new = get_one_or_create(
-                _db, Post, bot=bot, on_multiple='interchangeable'
+                _db, Post, bot=bot, on_multiple='interchangeable',
+                content=content
             )
         else:
             post, is_new = create(_db, Post, bot=bot)
@@ -301,7 +302,7 @@ class Post(Base):
             post.content = content
             post.created = now
             post.publish_at = publish_at
-        return post
+        return post, is_new
 
     @property
     def content_snippet(self):

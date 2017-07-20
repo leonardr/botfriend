@@ -95,7 +95,9 @@ class Bot(object):
 
         :return: A Post.
         """
-        post = Post.from_content(self, content, publish_at=Post.NO_VALUE)
+        post, is_new = Post.from_content(
+            self, content, publish_at=Post.NO_VALUE
+        )
         return post
     
     def publish(self, post):

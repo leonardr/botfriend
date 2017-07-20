@@ -104,7 +104,7 @@ class BacklogScript(BotScript):
         parser = BotScript.parser()
         parser.add_argument(
             "--limit",
-            help="Limit the number of backlog items.",
+            help="Limit the number of backlog items shown.",
             type=int,
             default=None
         )
@@ -159,8 +159,12 @@ class BacklogLoadScript(SingleBotScript):
         else:
             fh = sys.stdin
         for item in fh.readlines():
-            post = bot_model.implementation.import_post(item.strip())
-            a += 1
+            post, is_new = bot_model.implementation.import_post(item.strip())
+            if is_new:
+                bot_model.log.info("Loaded: %r", post.content)
+            else:
+                bot_model.log.info("Already exists: %r", post.content)
+                a += 1
             if self.args.limit and a >= self.args.limit:
                 return
             
