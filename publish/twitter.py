@@ -1,4 +1,7 @@
+# encoding: utf-8
 """Twitter delivery mechanism for botfriend."""
+import re
+import unicodedata
 from nose.tools import set_trace
 import tweepy
 from bot import Publisher
@@ -17,13 +20,9 @@ class TwitterPublisher(Publisher):
         auth = tweepy.OAuthHandler(kwargs['consumer_key'], kwargs['consumer_secret'])
         auth.set_access_token(kwargs['access_token'], kwargs['access_token_secret'])
         self.api = tweepy.API(auth)
-        
+
     def twitter_safe(self, content):
-        content = unicode(content)
-        content = unicodedata.normalize('NFC', content)
-        content = content.encode("utf8")
-        # TODO: replace initial D., M. etc.
-        return content[:140]
+        return _twitter_safe(content)
         
     def publish(self, post, publication):
         content = self.twitter_safe(post.content)
@@ -34,5 +33,16 @@ class TwitterPublisher(Publisher):
             publication.report_success()
         except tweepy.error.TweepError, e:
             publication.report_failure(e)
-        
+
+def _twitter_safe(content):
+    """Turn a string into something that won't get rejected by Twitter."""
+    content = unicode(content)
+    content = unicodedata.normalize('NFC', content)
+    for bad, replace in ('D', u'𝙳'), ('M', u'𝙼'):
+        if any(content.startswith(x) for x in (bad + ' ', bad + '.')):
+            content = re.compile("^%s" % bad).sub(replace, content)
+            content = content.encode("utf8")
+    return content[:140]
+
 Publisher = TwitterPublisher
+
