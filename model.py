@@ -229,7 +229,8 @@ class BotModel(Base):
         if not new_posts:
             new_posts = []
         elif isinstance(new_posts, basestring):
-            new_posts = [Post.from_content(self, new_posts)]
+            new_post, ignore = Post.from_content(self, new_posts)
+            new_posts = [new_post]
         elif isinstance(new_posts, Post):
             new_posts = [new_posts]
         self.next_post_time = self.implementation.schedule_next_post(
