@@ -78,9 +78,16 @@ class PostScript(BotScript):
             help="Show what would be posted, but don't post it or commit to the database.",
             action='store_true'
         )
+        parser.add_argument(
+            '--force',
+            help="Post even if the scheduler would not normally post now.",
+            action='store_true'
+        )
         return parser
     
     def process_bot(self, bot_model):
+        if self.args.force:
+            bot_model.next_post_time = None
         posts = bot_model.next_posts()
         if self.args.dry_run:
             print bot_model.name

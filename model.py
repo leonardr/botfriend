@@ -191,7 +191,7 @@ class BotModel(Base):
         next_in_line = base_query.filter(Post.publish_at == None).order_by(
             Post.created.asc()).limit(1).all()
         return next_in_line
-    
+
     def next_posts(self):
         """Find or create one or more Posts that are ready to be published.
         Don't publish it.

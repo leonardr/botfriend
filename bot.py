@@ -203,14 +203,37 @@ class Publisher(object):
     def from_config(cls, bot, module, full_config):
         publish_config = full_config.get('publish', {})
         module_config = publish_config.get(module)
-        
-        publisher_module = importlib.import_module("publish." + module)
+
+        # Try both publish.foo and publish._foo, in case the module
+        # needs to import a package called 'foo' from elsewhere (see
+        # _mastodon.py for an example.)
+        publisher_module = None
+        names = ('publish.' + module, 'publish._' + module)
+        for module_name in names:
+            try:
+                publisher_module = importlib.import_module(module_name)
+                break
+            except ImportError, e:
+                pass
+        if not publisher_module:
+            raise ImportError(
+                "Could not import publisher for %s; tried %s" % (
+                    module, ", ".join(names)
+                )
+            )
         publisher_class = getattr(publisher_module, "Publisher", None)
         if not publisher_class:
             raise Exception(
                 "Loaded module %s but could not find a class called Publisher inside." % bot_module
             )
-        publisher = publisher_class(bot, full_config, module_config)
+        try:
+            publisher = publisher_class(bot, full_config, module_config)
+        except Exception, e:
+            raise Exception(
+                "Could not import %s publisher for %s: %s" % (
+                    module_name, bot.name, e.message
+                )
+            )
         publisher.service = module
         return publisher
     

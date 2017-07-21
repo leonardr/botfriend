@@ -5,6 +5,7 @@ Useful mainly for testing.
 import os
 from bot import Publisher
 from nose.tools import set_trace
+from model import _now
 
 class FileOutputPublisher(Publisher):
     def __init__(
@@ -19,7 +20,8 @@ class FileOutputPublisher(Publisher):
             os.makedirs(dir)
         
     def publish(self, post, publication):
-        output = post.publish_at.strftime("%Y-%m-%d %H:%M:%S")
+        publish_at = post.publish_at or _now()
+        output = publish_at.strftime("%Y-%m-%d %H:%M:%S")
         output = output + " | " + post.content.encode("utf8") + "\n"
         with open(self.path, 'a') as out:
             out.write(output)

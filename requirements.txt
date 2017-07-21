@@ -4,3 +4,4 @@ pyyaml
 nose
 tweepy
 TextBlob
+Mastodon.py
