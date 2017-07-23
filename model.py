@@ -266,8 +266,9 @@ class BotModel(Base):
             posted_after = now - datetime.timedelta(days=posted_after)
         _db = Session.object_session(self)
         qu = _db.query(Post).join(Post.publications).filter(
-            Post.bot==self).filter(Post.publish_at >= posted_after).filter(
-                Post.publish_at < now)
+            Post.bot==self).filter(Publication.most_recent_attempt >= posted_after).filter(
+                Publication.most_recent_attempt < now).filter(Publication.error==None).distinct(
+                    Post.id)
         return qu
 
     

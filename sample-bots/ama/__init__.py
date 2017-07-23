@@ -71,6 +71,15 @@ class IAMAExtractor(object):
                 text.replace("I am", "I'm"),
                 query.replace("I am", "I'm"))
 
+    @classmethod
+    def has_bad_end(cls, s):
+        """We don't want an AMA to end in what appears to be the middle of a sentence."""
+        s = s.lower()
+        for i in (' a', 'the', 'an'):
+            if s.endswith(i+"."):
+                return True
+        return False
+
 
 class StateManager(object):
     """Manage the internal state of IAMABot."""
@@ -154,12 +163,12 @@ class StateManager(object):
         possibilities = []
         for item in self.potentials:
             content = item['content']
-            lower = content.lower()
-            if lower in recently_used_posts:
+            iama = item['iama'].lower()
+            if any([iama in x for x in recently_used_posts]):
                 continue
-            words = set(word for word, tag in TextBlob(lower).tags)
+            words = set(word for word, tag in TextBlob(content.lower()).tags)
             if recently_seen_words.intersection(words):
-                self.log.info("%s has recently seen word, ignoring.", content)
+                self.log.info("Ignoring due to recently seen word: '%s'", content)
                 continue
             
             for i in range(item['score']):
@@ -168,13 +177,6 @@ class StateManager(object):
                 possibilities.append(item)
         return random.choice(possibilities)
 
-    @classmethod
-    def has_bad_end(cls, s):
-        s = s.lower()
-        for i in ('a', 'the', 'an'):
-            if s.endswith(i+"."):
-                return True
-        return False
 
 class IAmABot(TextGeneratorBot):
 
@@ -215,7 +217,7 @@ class IAmABot(TextGeneratorBot):
     def generate_text(self):        
         # We don't want to exactly repeat a post created in the past year.
         recent_posts = [x.content.lower() for x in self.model.recent_posts(365)]
-
+        
         # We don't want to reuse a significant word in a post we created
         # in the past week.
         recent_words = self.recently_used_words
@@ -226,7 +228,7 @@ class IAmABot(TextGeneratorBot):
             print "Choice", choice
             ama = choice['iama'] + " AMA" + random.choice('.. !')
             ama = ama.strip()
-            if len(ama) > 140 or "\n" in ama or self.state_manager.has_bad_end(
+            if len(ama) > 140 or "\n" in ama or IAMAExtractor.has_bad_end(
                     ama
             ):
                 ama = None
