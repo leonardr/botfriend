@@ -1,0 +1,11 @@
+name: "Best of RHP"
+frequency: 30
+retweet-user: realhumanpraise
+publish:
+    twitter:
+        consumer_key: "abcd"
+        consumer_secret: "1234"
+        access_token: "1234-efgh"
+        access_token_secret: "zyxwvut-jiklm"
+    file:
+        filename: "best-of-rhp.txt"

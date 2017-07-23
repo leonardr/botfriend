@@ -1,5 +1,6 @@
 import importlib
 import datetime
+import json
 import os
 import random
 from nose.tools import set_trace
@@ -306,3 +307,58 @@ class Publisher(object):
            from a previous publication attempt.
         """
         raise NotImplementedError()
+
+
+class RetweetBot(Bot):
+    """Instead of posting new text, this Twitter-specific bot looks at
+    the tweets posted from some other account since the last time it
+    ran, and retweets the most popular one.
+    """
+    # We arbitrarily count retweets for twice as much as favorites.
+    RETWEET_COEFFICIENT = 2
+    
+    def __init__(self, model, directory, config):
+        super(RetweetBot, self).__init__(model, directory, config)
+        self.retweet_user = config['retweet-user']
+        for publisher in list(self.publishers):
+            if publisher.service == 'twitter':
+                self.twitter = publisher.api
+                # We don't actually want to publish anything to Twitter,
+                # we just need the Twitter client for something else.
+                self.publishers.remove(publisher)
+                break
+        else:
+            raise ValueError("No Twitter publisher configured, cannot continue.")
+
+    def score(self, tweet):
+        """Calculate a semi-arbitrary score for this tweet."""
+        return (
+            tweet.retweet_count*self.RETWEET_COEFFICIENT
+        ) + tweet.favorite_count
+        
+    def new_post(self):
+        """Retweet someone else's post and store it locally.
+        """
+        kwargs = dict(screen_name=self.retweet_user, count=200)
+        max_id = self.model.json_state
+        if max_id:
+            kwargs['since_id'] = max_id
+        timeline = self.twitter.user_timeline(**kwargs)
+        max_id = None
+        most_popular = None
+        for tweet in timeline:
+            if not max_id or tweet.id > max_id:
+                max_id = tweet.id
+            if not most_popular or self.score(tweet) > most_popular:
+                most_popular = tweet
+        if self.score(most_popular) == 0:
+            # Just pick one rather than always choosing the most recent.
+            most_popular = random.choice(timeline)
+        self.twitter.retweet(most_popular.id)
+        self.model.state = json.dumps(max_id)
+
+        # Return the text of the tweet we retweeted, so that it can be stored
+        # in the database and published through other publishers, such as a
+        # local log.
+        return most_popular.text
+
