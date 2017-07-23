@@ -119,6 +119,9 @@ class BotModel(Base):
     # The bot's implementation may store anything it wants in this field
     # to keep track of state between posts.
     state = Column(String)
+
+    # The last time update_state() was called.
+    last_state_update_time = Column(DateTime)
     
     posts = relationship('Post', backref='bot')
     
@@ -225,6 +228,7 @@ class BotModel(Base):
         
         :return: The new Posts, in a (possibly empty) list.
         """
+        self.check_and_update_state()
         new_posts = self.implementation.new_post()
         if not new_posts:
             new_posts = []
@@ -248,8 +252,25 @@ class BotModel(Base):
                     Post.publish_at.asc(), Post.id.asc()
                 )
         return qu
-        
-        
+
+    def recent_posts(self, posted_after):
+        """Find recently published posts.
+
+        This can be used to ensure that a bot doesn't repeat itself.
+
+        :param posted_after: Either a datetime or a number of days before
+        the present.
+        """
+        now = _now()
+        if isinstance(posted_after, int):
+            posted_after = now - datetime.timedelta(days=posted_after)
+
+        qu = _db.query(Post).join(Post.publications).filter(
+            Post.bot==self).filter(Post.publish_at >= posted_after).filter(
+                Post.publish_at < now)
+        return qu
+
+    
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)

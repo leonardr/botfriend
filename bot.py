@@ -38,6 +38,7 @@ class Bot(object):
         self.directory = directory
         self.config = config
         self.frequency = self._extract_from_config(config, 'frequency')
+        self.state_update_frequency = config.get( 'state_update_frequency', None)
         publishers = self.config.get('publish', {})
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
@@ -45,7 +46,7 @@ class Bot(object):
             Publisher.from_config(self, module, config)
             for module in publishers
         ]
-
+        
     def _extract_from_config(self, config, key):
         value = config.get(key, None)
         if (value
@@ -54,7 +55,7 @@ class Bot(object):
         ):
             return value[0]
         return value
-    
+
     def next_post(self):
         """Find the next unpublished Post, or create a new one.
 
@@ -64,6 +65,9 @@ class Bot(object):
         if post:
             return post
 
+        # We need to create a new post. Make sure state is up to date.
+        self.check_and_update_state()
+        
         # Create a new one
         posts = self.new_post()
         if not posts:
@@ -77,6 +81,30 @@ class Bot(object):
             posts = [self.model.create_post(posts)]
         return posts
 
+    def check_and_update_state(self):
+        """Update the bot's internal state, assuming it needs to be updated."""
+        if self.state_needs_update():
+            self.update_state()
+            self.model.last_state_update_time = _now()
+
+    def state_needs_update(self):
+        """Does this bot's internal state need to be updated?"""
+        if self.state_update_frequency is None:
+            # This bot doesn't update state on a schedule.
+            return False
+        update_at = now + datetime.timedelta(
+            minutes=self.state_update_frequency
+        )
+        last_update = self.model.last_state_update_time
+        return not last_update  or last_update > now()
+
+    def update_state(self):
+        """Update a bot's internal state.
+
+        By default, does nothing.
+        """
+        pass
+        
     def new_post(self):
         """Create a brand new Post.
         

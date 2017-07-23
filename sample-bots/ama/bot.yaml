@@ -1,0 +1,8 @@
+name: "AMA Bot"
+frequency:
+    mean: 240
+    stdev: 45
+state_update_frequency: 86400
+publish:
+    file:
+        filename: "ama.txt"
