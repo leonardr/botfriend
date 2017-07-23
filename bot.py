@@ -216,6 +216,17 @@ class Bot(object):
             how_long = random.gauss(mean, stdev)
         return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
 
+    def stress_test(self, rounds):
+        """Perform a stress test of the bot's generative capabilities.
+
+        Your implementation of this method should not have any side effects.
+        It should take the current state of the bot and generate `rounds`
+        appropriate posts.
+
+        This method is provided for your convenience in testing; you do not
+        have to implement it.
+        """
+        return
 
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
@@ -231,6 +242,10 @@ class TextGeneratorBot(Bot):
         
     def generate_text(self):
         raise NotImplementedError()
+
+    def stress_test(self, rounds):
+        for i in range(rounds):
+            print self.generate_text()
 
 
 class Publisher(object):

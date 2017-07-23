@@ -110,7 +110,7 @@ class StateShowScript(BotScript):
         last_update = bot_model.last_state_update_time
         print "State for %s (last update %s)" % (bot_model.name, last_update)
         print bot_model.state
-
+        
 
 class StateRefreshScript(BotScript):
     """Refresh the internal state for a bot."""
@@ -121,6 +121,24 @@ class StateRefreshScript(BotScript):
             bot_model.name, bot_model.last_state_update_time
         )
         print bot_model.state
+
+
+class StressTestScript(BotScript):
+    """Stress-test a bot's generative capabilities without posting anything."""
+
+    @classmethod
+    def parser(cls):
+        parser = BotScript.parser()
+        parser.add_argument(
+            '--rounds',
+            help="Run the bot's generator this many times. (Default is 10,000)",
+            type=int,
+            default=10000
+        )
+        return parser
+
+    def process_bot(self, bot_model):
+        bot_model.implementation.stress_test(self.args.rounds)
 
         
 class BacklogScript(BotScript):

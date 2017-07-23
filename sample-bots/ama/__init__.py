@@ -211,7 +211,6 @@ class IAmABot(TextGeneratorBot):
 
     def update_state(self):
         self.state_manager.update()
-        set_trace()
         self.model.state = json.dumps(self.state_manager.potentials)
             
     def generate_text(self):        

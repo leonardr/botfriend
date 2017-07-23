@@ -2,6 +2,7 @@
 import datetime
 import importlib
 import logging
+import json
 import os
 import sys
 import yaml
@@ -270,6 +271,13 @@ class BotModel(Base):
                 Publication.most_recent_attempt < now).filter(Publication.error==None).distinct(
                     Post.id)
         return qu
+
+    @property
+    def json_state(self):
+        """Try to interpret .state as a JSON object."""
+        if not self.state:
+            return self.state
+        return json.loads(self.state)
 
     
 class Post(Base):

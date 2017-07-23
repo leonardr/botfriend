@@ -1,0 +1,532 @@
+Longland flour
+Longland grass
+acacia
+acorn
+adamantine
+alabaster
+alder
+alder cone
+alfalfa
+almond
+almond wood
+aluminum
+alunite
+andesite
+anhydrite
+apple
+apple wood
+apricot
+apricot wood
+armor
+arrow
+arrow bamboo
+artichoke
+artichoke heart
+ash
+ash glaze
+asparagus
+avocado
+avocado wood
+axe blade
+ball
+ballista arrow
+bambara groundnut pod
+banana
+barley
+basalt
+battle axe
+bauxite
+bayberry
+bayberry wood
+bentgrass
+bilberry
+billon
+birch
+biscuit
+bismuth
+bismuth bronze
+bismuthinite
+bitter melon
+bitter orange
+bitter orange wood
+bitter vetch
+bituminous coal
+black bronze
+black sand
+black-cap
+blackberry
+blade weed
+bloated tuber
+blood amaranth
+blood thorn
+blowdart
+blowgun
+blue sedge
+blueberry
+bolt
+boning knife
+book binding
+bookcase
+borax
+bow
+bowl
+braies
+brass
+breastplate
+brick
+brimstone
+bronze
+bubble bulb
+buckler
+buckwheat
+cabbage
+cacao pod
+cacao wood
+calcareous ooze
+calcite
+candlenut
+cap
+cape
+caper berry
+carambola
+carpetgrass
+carving fork
+carving knife
+cashew wood
+cassava
+cassiterite
+cattail
+cauldron
+cave moss
+cave wheat
+cedar
+celery
+chalk
+chausse
+cherry
+cherry wood
+chert
+chestnut
+chicory
+chromite
+cinnabar
+citron
+citron wood
+clay
+clay loam
+claystone
+cloak
+cloudberry
+coat
+cobaltite
+coconut
+coconut palm
+coffee wood
+common reed
+conglomerate
+copper
+copper nugget
+corkscrew
+cotton
+cotton plant
+cotton seed
+cottongrass
+cottonseed oil soap
+cranberry
+crossbow
+cryolite
+cucumber
+custard-apple
+custard-apple wood
+dacite
+dagger
+dallisgrass
+date
+date palm
+date palm frond blade
+date palm wood
+desert lime
+desert lime wood
+dimple cup
+dimple dye
+diorite
+disc
+dog's tooth grass
+dolomite
+downy grass
+dress
+dropseed grass
+drum
+durian
+durian wood
+dwarven sugar
+dwarven wheat flour
+earthenware
+eggplant
+electrum
+elephant-head amaranth
+emerald dye
+face veil
+feather wood
+fescue grass
+field sedge
+fine pewter
+finger lime
+finger lime wood
+finger millet
+fire clay
+fisher berry
+flail
+flax
+flax seed
+floor fungus
+flute
+fonio
+foxtail millet
+fungiwood
+gabbro
+galena
+garlic bulb
+garnierite
+ginkgo seed
+ginkgo wood
+glove
+glumprong
+gneiss
+gnomeblight
+goblin-cap
+gold
+gold dust
+gold nugget
+golden bamboo
+grama
+granite
+grape
+graphite
+great axe
+greaves
+guava
+guava wood
+gypsum
+gypsum plaster
+hair grass
+halberd
+hard wheat
+harp
+hazel nut
+hazel wood
+head veil
+headscarf
+hedge bamboo
+helm
+hematite
+hemp
+hemp paper
+hemp slurry
+hempseed oil soap
+hide root
+high boot
+highwood
+hive
+honeycomb
+hood
+horn silver
+hornblende
+horned melon
+ilmenite
+iron
+jet
+jug
+jute
+kaniwa
+kaolinite
+kapok
+kenaf
+kimberlite
+knotgrass
+kobold bulb
+kumquat
+kumquat wood
+ladle
+larch
+larch needle
+larch pollen cone
+larch seed cone
+lay pewter
+lead
+leek
+leggings
+lesser yam
+lettuce
+lignite
+lime
+lime wood
+limestone
+limonite
+linen
+linen paper
+linen slurry
+linseed oil soap
+loam
+loamy sand
+loincloth
+long sword
+long yam
+low boot
+lychee
+lychee wood
+macadamia nut
+macadamia wood
+mace
+magnetite
+mahogany
+mail shirt
+maize
+malachite
+mango
+mango wood
+mangrove
+maple
+marble
+marcasite
+marsh thistle
+mask
+maul
+meadow-grass
+meadowsweet
+meat cleaver
+mica
+microcline
+milk of lime
+minecart
+mini-forge
+mitten
+morningstar
+mortar
+mountain avens
+muck root
+mudstone
+mung bean
+muskmelon
+native aluminum
+native copper
+native gold
+native platinum
+native silver
+needle grass
+nest box
+nether-cap
+nickel
+nickel silver
+oak
+oat
+obsidian
+olive
+olive oil soap
+olive wood
+olivine
+onion
+orange
+orange wood
+orpiment
+orthoclase
+papaya
+papaya wood
+papyrus
+paradise nut wood
+parsnip
+passion fruit
+pea pod
+peach
+peach wood
+peanut
+pear
+pear wood
+pearl millet
+peat
+pebble plant
+pecan
+pecan wood
+pelagic clay
+pendant amaranth
+pepper
+periclase
+persimmon
+persimmon wood
+pestle
+petrified wood
+phyllite
+piccolo
+pick
+pig iron
+pig tail
+pike
+pine
+pine needle
+pineapple
+pitchblende
+platinum
+platinum nugget
+plum
+plum wood
+plump helmet
+pomegranate
+pomegranate wood
+pomelo
+pomelo wood
+porcelain
+pot
+pouch
+prickle berry
+puddingstone
+purple amaranth
+purple moor grass
+purple yam
+puzzlebox
+pyrolusite
+quarry bush
+quartzite
+quicklime
+quinoa
+quire
+radish
+rambutan
+rambutan wood
+ramie
+raspberry
+rat weed
+raw adamantine
+realgar
+red sand
+red spinach
+redroot dye
+reedgrass
+rhubarb
+rhyolite
+rice
+roast
+robe
+rock nut
+rock nut paste
+rock nut press cake
+rock nut soap
+rock salt
+rope reed
+rose gold
+round lime
+round lime wood
+rubber wood
+rutile
+rye
+ryegrass
+saguaro
+saltpeter
+sand
+sand pear
+sand pear wood
+sandal
+sandstone
+sandy clay
+sandy clay loam
+sandy loam
+satinspar
+satintail
+sawgrass
+schist
+scimitar
+scourge
+scroll
+scroll rollers
+selenite
+serpentine
+shale
+shield
+shirt
+shoe
+short sword
+siliceous ooze
+silt
+silt loam
+siltstone
+silty clay
+silty clay loam
+silver
+silver nugget
+single-grain wheat
+skirt
+slade
+slate
+slicing knife
+sliver barb
+sliver dye
+sock
+soft wheat
+sorghum
+soybean
+spear
+spelt
+sphalerite
+spike
+spinach
+squash
+staring eyeball
+steel
+stepladder
+sterling silver
+stibnite
+stoneware
+strawberry
+string bean
+sun berry
+sweet pod
+sweet potato
+sylvite
+talc
+taro
+tea tree capsule
+tea wood
+teff
+tetrahedrite
+thong
+tin
+tin glaze
+toga
+tomatillo
+tomato
+tower-cap
+toy axe
+toy boat
+toy hammer
+training axe
+training spear
+training sword
+trifle pewter
+trousers
+trumpet
+tunic
+tunnel tube
+turban
+turnip
+two-grain wheat
+two-handed sword
+valley herb
+velvet grass
+vest
+walnut
+walnut wood
+war hammer
+watermelon
+wheelbarrow
+whip
+whip vine
+whip vine flour
+white millet
+white mountain heather
+white sand
+white yam
+willow
+winter melon
+wormy tendril
+yellow sand
+zinc
+zoysia

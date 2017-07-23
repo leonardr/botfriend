@@ -1,0 +1,19 @@
+Various lists of materials for the Anniversary Materials bot. These
+are not in data/more-corpora/ because the appeal is so limited.
+
+dwarf_fortress.txt - Materials and items found in Dwarf Fortress.
+Source: http://www.bay12games.com/dwarves/
+
+gutenberg.txt - Materials found by searching Project Gutenberg books
+for the same queries ("made of", etc.) used to find materials on
+Twitter.
+
+minecraft.txt - Materials and objects found in Minecraft (as of 1.12).
+
+moma.txt - Materials used in artworks in MoMA's collection.
+Source: https://github.com/MuseumofModernArt/collection
+
+real_life.txt - Materials for real life anniversaries. Unlike the
+other files, this file is used to _restrict_ the output of the bot so
+that it doesn't say that e.g. the 12th anniversary is for gold.
+
