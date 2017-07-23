@@ -28,7 +28,7 @@ class Configuration(object):
         self.bots = bots
 
     @classmethod
-    def from_directory(cls, directory):
+    def from_directory(cls, directory, consider_only=None):
         """Load database and configuration from a directory on disk.
 
         The database is kept in `botfriend.sqlite` and bots are found
@@ -65,6 +65,11 @@ class Configuration(object):
                         break
                 if can_load:
                     botmodel = BotModel.from_directory(_db, bot_directory)
+                    if consider_only and (
+                            botmodel.name not in consider_only
+                            and f not in consider_only
+                    ):
+                        continue
                     if botmodel.name in seen_names:
                         raise Exception(
                             "Two different bots are configured with the same name. (%s)" % botmodel.name

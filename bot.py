@@ -7,6 +7,7 @@ from model import (
     get_one_or_create,
     Post,
     Publication,
+    _now,
 )
 from sqlalchemy.orm.session import Session
 
@@ -61,12 +62,11 @@ class Bot(object):
 
         :return: A list of Posts.
         """
+        # Make sure state is up to date.
+        self.check_and_update_state()        
         post = self.model.next_unpublished_post
         if post:
             return post
-
-        # We need to create a new post. Make sure state is up to date.
-        self.check_and_update_state()
         
         # Create a new one
         posts = self.new_post()
@@ -81,22 +81,30 @@ class Bot(object):
             posts = [self.model.create_post(posts)]
         return posts
 
-    def check_and_update_state(self):
+    def check_and_update_state(self, force=False):
         """Update the bot's internal state, assuming it needs to be updated."""
-        if self.state_needs_update():
-            self.update_state()
+        if force or self.state_needs_update:
+            result = self.update_state()
+            if result and isinstance(result, basestring):
+                self.model.state = result
             self.model.last_state_update_time = _now()
+            _db = Session.object_session(self.model)
+            _db.commit()
+            return True
+        return False
 
+    @property
     def state_needs_update(self):
         """Does this bot's internal state need to be updated?"""
         if self.state_update_frequency is None:
             # This bot doesn't update state on a schedule.
             return False
+        now = _now()
         update_at = now + datetime.timedelta(
             minutes=self.state_update_frequency
         )
         last_update = self.model.last_state_update_time
-        return not last_update  or last_update > now()
+        return not last_update  or last_update > now
 
     def update_state(self):
         """Update a bot's internal state.
@@ -217,6 +225,8 @@ class TextGeneratorBot(Bot):
 
         :return: Some text.
         """
+        # Make sure state is up to date.
+        self.check_and_update_state()
         return self.generate_text()
         
     def generate_text(self):

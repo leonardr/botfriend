@@ -1,3 +1,4 @@
+# encoding: utf-8
 import datetime
 import importlib
 import logging
@@ -228,7 +229,6 @@ class BotModel(Base):
         
         :return: The new Posts, in a (possibly empty) list.
         """
-        self.check_and_update_state()
         new_posts = self.implementation.new_post()
         if not new_posts:
             new_posts = []
@@ -264,7 +264,7 @@ class BotModel(Base):
         now = _now()
         if isinstance(posted_after, int):
             posted_after = now - datetime.timedelta(days=posted_after)
-
+        _db = Session.object_session(self)
         qu = _db.query(Post).join(Post.publications).filter(
             Post.bot==self).filter(Post.publish_at >= posted_after).filter(
                 Post.publish_at < now)
@@ -330,7 +330,7 @@ class Post(Base):
     def content_snippet(self):
         "A small string of content suitable for logging."
         if self.content:
-            return self.content[:20]
+            return self.content[:20] + u"…"
         else:
             return "[no textual content]"
     

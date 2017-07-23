@@ -33,7 +33,7 @@ class BotScript(Script):
     def __init__(self):
         parser = self.parser()
         self.args = parser.parse_args()
-        self.config = Configuration.from_directory(self.args.config)
+        self.config = Configuration.from_directory(self.args.config, self.args.bot)
 
     def run(self):
         for model in self.config.bots:
@@ -103,6 +103,26 @@ class PostScript(BotScript):
         self.config._db.commit()
 
 
+class StateShowScript(BotScript):
+    """Show the internal state for a bot."""
+
+    def process_bot(self, bot_model):
+        last_update = bot_model.last_state_update_time
+        print "State for %s (last update %s)" % (bot_model.name, last_update)
+        print bot_model.state
+
+
+class StateRefreshScript(BotScript):
+    """Refresh the internal state for a bot."""
+
+    def process_bot(self, bot_model):
+        bot_model.implementation.check_and_update_state(force=True)
+        print "State for %s (last update %s)" % (
+            bot_model.name, bot_model.last_state_update_time
+        )
+        print bot_model.state
+
+        
 class BacklogScript(BotScript):
     """Show the backlog for a bot."""
 
