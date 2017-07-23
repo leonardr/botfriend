@@ -1,0 +1,13 @@
+name: "AMA Bot"
+frequency:
+    mean: 240
+    stdev: 45
+state_update_frequency: 60
+publish:
+    twitter:
+        consumer_key: "hijk"
+        consumer_secret: "defg"
+        access_token: "123-abc"
+        access_token_secret: "zyxwvut"
+    file:
+        filename: "ama.txt"
