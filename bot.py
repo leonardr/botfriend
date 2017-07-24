@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import random
+import requests
 from nose.tools import set_trace
 from model import (
     get_one_or_create,
@@ -21,6 +22,12 @@ class Bot(object):
     and delivering the creative output to various services.
     """
 
+    # A good generic time format.
+    TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+    # The time format used by HTTP (UTC only)
+    HTTP_TIME_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
+    
     @property
     def log(self):
         return self.model.log
@@ -308,6 +315,46 @@ class Publisher(object):
         """
         raise NotImplementedError()
 
+
+class ScraperBot(Bot):
+    """This bot downloads a resource via HTTP and extracts dated posts from 
+    it.
+
+    The bot's state contains the last update time, for use in making
+    HTTP conditional requests.
+    """
+    
+    def new_post(self):
+        headers = self.headers
+        response = requests.get(self.url, headers=headers)
+        if response.status_code == 304: # Not Modified
+            return
+        utcnow = datetime.datetime.utcnow()
+        now = _now()
+        new_last_update_time = None
+        posts = []
+        for post in self.scrape(response):
+            if not isinstance(post, Post):
+                post, ignore = Post.from_content(
+                    bot=self.model, content=post, publish_at=now
+                )
+            posts.append(post)
+        self.model.last_state_update_time = utcnow
+        return posts
+        
+    @property
+    def headers(self):
+        headers = {}
+        if self.model.last_state_update_time:
+            headers['If-Modified-Since'] = self.model.last_state_update_time.strftime(
+                self.HTTP_TIME_FORMAT
+            )
+        return headers
+        
+    @property
+    def url(self):
+        raise NotImplementedError()
+    
 
 class RetweetBot(Bot):
     """Instead of posting new text, this Twitter-specific bot looks at

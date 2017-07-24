@@ -215,8 +215,8 @@ class BotModel(Base):
                 self.next_post_time.strftime(TIME_FORMAT)
             ))
             return []
-        
-        new_posts = self.new_posts()
+
+        new_posts = list(self.new_posts())
         
         # Don't automatically use the new posts. It might not be time to publish
         # all of them. This will find the publishable ones.

@@ -88,6 +88,16 @@ class PostScript(BotScript):
     def process_bot(self, bot_model):
         if self.args.force:
             bot_model.next_post_time = None
+
+            # Start from scratch without any state.
+            #from model import Session
+            #_db = Session.object_session(bot_model)
+            #for i in _db.query(Post).filter(Post.bot==bot_model):
+            #print "Deleting %s" % i.content
+            #_db.delete(i)
+            bot_model.state = None
+            bot_model.last_state_update_time = None
+            #_db.commit()
         posts = bot_model.next_posts()
         if self.args.dry_run:
             print bot_model.name

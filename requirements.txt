@@ -5,3 +5,5 @@ nose
 tweepy
 TextBlob
 Mastodon.py
+requests
+beautifulsoup4
