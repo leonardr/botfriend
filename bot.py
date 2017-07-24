@@ -323,6 +323,15 @@ class ScraperBot(Bot):
     The bot's state contains the last update time, for use in making
     HTTP conditional requests.
     """
+
+    def __init__(self, model, directory, config):
+        super(ScraperBot, self).__init__(model, directory, config)
+        if 'url' in config:
+            self._url = config['url']
+        
+    @property
+    def url(self):
+        return self._url
     
     def new_post(self):
         headers = self.headers
