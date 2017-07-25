@@ -1,0 +1,10 @@
+name: "Ingsoc Party Slogans"
+frequency:
+    mean: 1080
+    stdev: 120
+publish:
+ twitter:
+  consumer_key: "abcd"
+  consumer_secret: "efgh"
+  access_token: "1234-abcd"
+  access_token_secret: "zxwtuv"
