@@ -4,6 +4,9 @@ import csv
 import json
 import re
 from bot import ScraperBot
+from model import (
+    Post,
+)
 
 class LinkRelationBot(ScraperBot):
 
@@ -24,18 +27,16 @@ class LinkRelationBot(ScraperBot):
         data = self.to_dict(StringIO(response.content))
 
         # Grab the list of link relations we've already learned about.
-        state = set(self.model.json_state or [])
+        posts = []
         for name, (description, ref, notes) in sorted(data.items()):
             if name == 'Relation Name':
                 # Not a real link relation.
                 continue
-            if name in state:
-                # We already know about this one.
-                continue
-            # This one's new.
-            yield self.format(name, description, ref, notes)
-            state.add(name)
-        self.model.state = json.dumps(sorted(state))
+            post, is_new = Post.for_external_key(self, name)
+            if is_new:
+                post.content = self.format(name, description, ref, notes)
+                posts.append(post)
+        return posts
 
     def format(self, name, description, ref, notes):
         description = description.decode("utf8")

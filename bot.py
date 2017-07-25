@@ -1,3 +1,4 @@
+# encoding: utf-8
 import importlib
 import datetime
 import json
@@ -334,6 +335,7 @@ class ScraperBot(Bot):
         return self._url
     
     def new_post(self):
+        """Scrape the site and get a number of new Posts out of it."""
         headers = self.headers
         response = requests.get(self.url, headers=headers)
         if response.status_code == 304: # Not Modified
@@ -345,8 +347,10 @@ class ScraperBot(Bot):
         for post in self.scrape(response):
             if not isinstance(post, Post):
                 post, ignore = Post.from_content(
-                    bot=self.model, content=post, publish_at=now
+                    bot=self.model, content=post
                 )
+            if not post.publish_at:
+                post.publish_at = now
             posts.append(post)
         self.model.last_state_update_time = utcnow
         return posts
@@ -359,12 +363,42 @@ class ScraperBot(Bot):
                 self.HTTP_TIME_FORMAT
             )
         return headers
-        
-    @property
-    def url(self):
-        raise NotImplementedError()
-    
 
+
+class RSSScraperBot(ScraperBot):
+    """Scrapes an RSS or Atom feed and creates a Post for each item."""
+
+    TWEET_TEMPLATE = u"‘%(title)s’: %(link)s"
+    
+    def scrape(self, response):
+        import feedparser
+        feed = feedparser.parse(response.content)
+        feed_data = self.prepare_feed(feed)
+        entries = []
+        for entry in feed['entries']:
+            obj = self.parse_entry(feed_data, entry)
+            if obj:
+                entries.append(obj)
+        return entries
+
+    def prepare_feed(self, feed):
+        """Derive any common information from the feed.
+
+        This object will be passed into every parse_entry call.
+
+        By default, returns the feed itself.
+        """
+        return feed
+
+    def parse_entry(self, feed_data, entry):
+        """Turn an entry into a Post."""
+        id = entry['id']
+        post, is_new = Post.for_external_key(self, id)
+        if is_new:
+            post.content = self.TWEET_TEMPLATE % entry
+            return post
+        
+    
 class RetweetBot(Bot):
     """Instead of posting new text, this Twitter-specific bot looks at
     the tweets posted from some other account since the last time it

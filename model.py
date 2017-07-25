@@ -305,6 +305,14 @@ class Post(Base):
 
     # Or it might be a reply to another post on some other service.
     reply_to_foreign_id = Column(String, index=True)
+
+    # A Post may have some item of state associated with it.
+    state = Column(String, index=True)
+
+    # A Post may also have some small piece _unique_ state associated
+    # with it. This is useful when a Post corresponds to a unique
+    # piece of data obtained from some other source.
+    external_key = Column(String, index=True, unique=True, nullable=True)
     
     replies = relationship(
         "Post", backref=backref("reply_to", remote_side=[id])
@@ -312,6 +320,16 @@ class Post(Base):
     
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
+
+    @classmethod
+    def for_external_key(cls, bot, key):
+        """Find or create the Post  with the given external key.
+        """
+        from bot import Bot
+        if isinstance(bot, Bot):
+            bot = bot.model
+        _db = Session.object_session(bot)
+        return get_one_or_create(_db, Post, bot=bot, external_key=key)
     
     @classmethod
     def from_content(cls, bot, content, publish_at=None, reuse_existing=True):

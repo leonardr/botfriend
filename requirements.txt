@@ -7,3 +7,4 @@ TextBlob
 Mastodon.py
 requests
 beautifulsoup4
+feedparser

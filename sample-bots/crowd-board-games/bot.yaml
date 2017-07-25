@@ -1,0 +1,6 @@
+name: "Crowd Board Games"
+frequency: 60
+url: "http://www.kicktraq.com/categories/games/tabletop%20games/latest.rss"
+publish:
+    file:
+      filename: "crowd-board-games.txt"
