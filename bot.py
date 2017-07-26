@@ -35,7 +35,7 @@ class Bot(object):
     
     def __init__(self, model, directory, config):
         """
-        :param modle: A `Bot` object.
+        :param model: A `Bot` object.
         :param directory: The directory from which the bot code was
             loaded.
         :param config: A dictionary containing bot-specific configuration
