@@ -9,6 +9,7 @@ import yaml
 from nose.tools import set_trace
 from sqlalchemy import (
     create_engine,
+    Binary,
     Column,
     Integer,
     String,
@@ -360,7 +361,36 @@ class Post(Base):
             return self.content[:20] + u"…"
         else:
             return "[no textual content]"
-    
+
+    def attach(self, media_type=None, filename=None, content=None):
+        if not filename and not content:            
+            raise ValueError(
+                "Either filename or content must be provided."
+            )
+        if filename and content:
+            raise ValueError(
+                "At most one of filename and content must be provided."
+            )
+        _db = Session.object_session(self)
+        if filename:
+            # Reject a file that doesn't exist.
+            if hasattr(self.bot.implementation, 'local_path'):
+                local_path = self.bot.implementation.local_path(filename)
+                if not os.path.exists(local_path):
+                    raise ValueError(
+                        "%s does not exist on disk." % local_path
+                    )
+                
+            attachment, is_new = get_one_or_create(
+                _db, Attachment, post=self, filename=filename
+            )
+            attachment.media_type = media_type
+        elif content:
+            attachment = create(
+                _db, Attachment, post=self, media_type=media_type,
+                content=content
+            )
+        
     def publish(self):
         """Publish this Post to every service registered with the bot.
 
@@ -437,8 +467,12 @@ class Attachment(Base):
         Integer, ForeignKey('posts.id'), index=True, nullable=False
     )
 
-    # The filename is relative to the bot directory. For some bots,
-    # images are placed in the appropriate spot ahead of time.  For
-    # others, images are generated as posting time and archived in
-    # these paths.
+    # The media type of the attachment.
+    media_type = Column(String)
+    
+    # You may store the file on disk and track it with its filename,
+    # relative to the bot's directory.
     filename = Column(String, index=True)
+   
+    # You can store the attachment directly in the database instead.
+    content = Column(Binary)
