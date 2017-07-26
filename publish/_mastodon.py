@@ -25,12 +25,20 @@ class MastodonPublisher(Publisher):
         )
 
     def publish(self, post, publication):
-        # If attachments the code looks something like this:
-        # media = http://mastodon.media_post("image.png")
-        # mastodon.status_post(slogan, media_ids=[media['id']])
+        media_ids = []
+        for attachment in post.attachments:
+            if attachment.filename:
+                arguments = dict(media_file=attachment.filename)
+            else:
+                arguments = dict(media_file=attachment.contents,
+                                 mime_type=attachment.media_type)
+            media = self.instance.media_post(**arguments)
+            media_ids.append(media['id'])
         try:
             content = self.mastodon_safe(post.content)
-            response = self.instance.toot(content)
+            response = self.instance.status_post(
+                content, media_ids=media_ids, sensitive=post.sensitive
+            )
             publication.report_success()
         except Exception, e:
             set_trace()

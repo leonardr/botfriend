@@ -10,6 +10,7 @@ from nose.tools import set_trace
 from sqlalchemy import (
     create_engine,
     Binary,
+    Boolean,
     Column,
     Integer,
     String,
@@ -299,6 +300,9 @@ class Post(Base):
     # to do that automatically.
     content = Column(String)
 
+    # A post may be marked as containing sensitive material.
+    sensitive = Column(Boolean)
+    
     # A Post may be a reply to another botfriend post.
     reply_to_id = Column(
         Integer, ForeignKey('posts.id'), index=True, nullable=True
@@ -371,16 +375,20 @@ class Post(Base):
             raise ValueError(
                 "At most one of filename and content must be provided."
             )
+        if content and not media_type:
+            raise ValueError(
+                "Media type must be provided along with content."
+            )
         _db = Session.object_session(self)
         if filename:
             # Reject a file that doesn't exist.
-            if hasattr(self.bot.implementation, 'local_path'):
-                local_path = self.bot.implementation.local_path(filename)
-                if not os.path.exists(local_path):
-                    raise ValueError(
-                        "%s does not exist on disk." % local_path
-                    )
-                
+            if not os.path.exists(filename):
+                if hasattr(self.bot.implementation, 'local_path'):
+                    filename = self.bot.implementation.local_path(filename)
+            if not os.path.exists(filename):
+                raise ValueError(
+                    "%s does not exist on disk." % filename
+                )
             attachment, is_new = get_one_or_create(
                 _db, Attachment, post=self, filename=filename
             )
