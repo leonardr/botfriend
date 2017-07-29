@@ -18,7 +18,12 @@ class FileOutputPublisher(Publisher):
         dir, ignore = os.path.split(self.path)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        
+
+    def self_test(self):
+        dir, ignore = os.path.split(self.path)
+        if not os.path.exists(dir):
+            raise IOError("Destination directory %s does not exist." % dir)
+            
     def publish(self, post, publication):
         publish_at = post.publish_at or _now()
         output = publish_at.strftime("%Y-%m-%d %H:%M:%S")

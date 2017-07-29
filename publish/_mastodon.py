@@ -17,20 +17,23 @@ class MastodonPublisher(Publisher):
                 break
         if not url:
             url = "https://mastodon.social"
-        self.instance = Mastodon(
+        self.api = Mastodon(
             client_id = instance['client_id'],
             client_secret = instance['client_secret'],
             access_token = instance['access_token'],
             api_base_url = url
         )
 
+    def self_test(self):
+        self.api.timeline(limit=1)
+        
     def publish(self, post, publication):
         # If attachments the code looks something like this:
         # media = http://mastodon.media_post("image.png")
         # mastodon.status_post(slogan, media_ids=[media['id']])
         try:
             content = self.mastodon_safe(post.content)
-            response = self.instance.toot(content)
+            response = self.api.toot(content)
             publication.report_success()
         except Exception, e:
             set_trace()

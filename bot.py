@@ -265,7 +265,7 @@ class Publisher(object):
     def from_config(cls, bot, module, full_config):
         publish_config = full_config.get('publish', {})
         module_config = publish_config.get(module)
-
+        
         # Try both publish.foo and publish._foo, in case the module
         # needs to import a package called 'foo' from elsewhere (see
         # _mastodon.py for an example.)

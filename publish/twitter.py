@@ -21,6 +21,10 @@ class TwitterPublisher(Publisher):
         auth.set_access_token(kwargs['access_token'], kwargs['access_token_secret'])
         self.api = tweepy.API(auth)
 
+    def self_test(self):
+        # Do something that will raise an exception if the credentials are invalid.
+        self.api.home_timeline(count=1)
+        
     def twitter_safe(self, content):
         return _twitter_safe(content)
         

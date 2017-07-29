@@ -150,6 +150,18 @@ class StressTestScript(BotScript):
     def process_bot(self, bot_model):
         bot_model.implementation.stress_test(self.args.rounds)
 
+class PublisherTestScript(BotScript):
+    """Verify  that a bot's publishers are functioning without posting anything."""
+
+    def process_bot(self, bot_model):
+        for publisher in bot_model.implementation.publishers:
+            try:
+                result = publisher.self_test() or ""
+                print "GOOD %s %s %s" % (bot_model.name, publisher.service, result)
+            except Exception, e:
+                print "FAIL %s %s: %s" % (
+                    bot_model.name, publisher.service, e
+                )        
         
 class BacklogScript(BotScript):
     """Show the backlog for a bot."""
