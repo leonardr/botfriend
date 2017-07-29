@@ -4,8 +4,9 @@ import re
 import unicodedata
 from nose.tools import set_trace
 import tweepy
+import logging
 from bot import Publisher
-
+logging.getLogger("tweepy.binder").setLevel(logging.WARN)
 
 class TwitterPublisher(Publisher):
     def __init__(
@@ -23,7 +24,9 @@ class TwitterPublisher(Publisher):
 
     def self_test(self):
         # Do something that will raise an exception if the credentials are invalid.
-        self.api.home_timeline(count=1)
+        # Return a string that will let the user know if they somehow gave
+        # credentials to the wrong account.
+        return self.api.me().screen_name
         
     def twitter_safe(self, content):
         return _twitter_safe(content)

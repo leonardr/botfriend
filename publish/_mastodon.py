@@ -25,7 +25,10 @@ class MastodonPublisher(Publisher):
         )
 
     def self_test(self):
-        self.api.timeline(limit=1)
+        # Do something that will raise an exception if the credentials are invalid.
+        # Return a string that will let the user know if they somehow gave
+        # credentials to the wrong account.
+        return self.api.account_verify_credentials()['username']
         
     def publish(self, post, publication):
         # If attachments the code looks something like this:
