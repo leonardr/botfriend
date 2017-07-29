@@ -33,10 +33,23 @@ class TwitterPublisher(Publisher):
         
     def publish(self, post, publication):
         content = self.twitter_safe(post.content)
-        # TODO: update_with_media would go here if there were attachments
-        # on the Post.
+        arguments = dict(status=content)
+        if post.attachments:
+            # Looks like we can only add one attachment?
+            # TODO: Try to find one we know is an image, since
+            # only images are allowed.
+            set_trace()
+            attachment = post.attachments[0]
+            method = self.api.update_with_media
+            if attachment.filename:
+                arguments = dict(filename=attachment.filename)
+            else:
+                arguments = dict(file=StringIO(attachment.content))
+        else:
+            # Just a regular tweet.
+            method = self.api.update_status
         try:
-            response = self.api.update_status(content)
+            response = method(**arguments)
             publication.report_success()
         except tweepy.error.TweepError, e:
             publication.report_failure(e)
