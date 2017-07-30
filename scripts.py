@@ -1,6 +1,7 @@
 from nose.tools import set_trace
 from argparse import ArgumentParser
 import sys
+import time
 
 from config import Configuration
 from model import (
@@ -238,5 +239,17 @@ class BacklogLoadScript(SingleBotScript):
                 a += 1
             if self.args.limit and a >= self.args.limit:
                 return
-            
-# Load backlog from a file.
+
+
+class BacklogClearScript(SingleBotScript):
+
+    def process_bot(self, bot_model):
+        backlog = list(bot_model.backlog)
+        if not backlog:
+            # Nothing to do
+            return
+        bot_model.log.warn("About to clear backlog for %s." % bot_model.name)
+        bot_model.log.warn("Sleeping for 5 seconds to give you a chance to Ctrl-C.")
+        time.sleep(1)
+        for post in backlog:
+            self.config._db.delete(post)
