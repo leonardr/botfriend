@@ -2,6 +2,16 @@ from nose.tools import set_trace
 import os
 import sys
 import logging
+import yaml
+from yaml import Loader, SafeLoader
+
+def construct_yaml_str(self, node):
+    # Override the default string handling function 
+    # to always return unicode objects
+    return self.construct_scalar(node)
+Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+
 from model import (
     production_session,
     BotModel,
@@ -33,6 +43,8 @@ class Configuration(object):
 
         The database is kept in `botfriend.sqlite` and bots are found
         in subdirectories.
+
+        Default configuration settings can be kept in {directory}/default.yaml
         """
         log = logging.getLogger("Loading configuration from %s" % directory)
         database_path = os.path.join(directory, 'botfriend.sqlite')
@@ -49,6 +61,9 @@ class Configuration(object):
         if not directory in sys.path:
             logging.info("Adding %s to sys.path" % directory)
             sys.path.append(directory)
+        default_path = os.path.join(directory, "default.yaml")
+        if os.path.exists(default_path):
+            defaults = yaml.load(open(default_path))
         for f in os.listdir(directory):
             bot_directory = os.path.join(directory, f)
             if os.path.isdir(bot_directory):
@@ -64,7 +79,7 @@ class Configuration(object):
                         can_load = False
                         break
                 if can_load:
-                    botmodel = BotModel.from_directory(_db, bot_directory)
+                    botmodel = BotModel.from_directory(_db, bot_directory, defaults)
                     if consider_only and (
                             botmodel.name not in consider_only
                             and f not in consider_only

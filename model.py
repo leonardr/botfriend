@@ -43,6 +43,7 @@ def _now():
     return datetime.datetime.now()
 
 Base = declarative_base()
+        
 
 def create(db, model, create_method='',
            create_method_kwargs=None,
@@ -134,11 +135,14 @@ class BotModel(Base):
         return logging.getLogger(self.name)
    
     @classmethod
-    def from_directory(self, _db, directory):
+    def from_directory(self, _db, directory, defaults=None):
         """Load bot code from `directory`, and find or create the
         corresponding BotModel object.
 
         Note that the parent of `directory` must be in sys.path
+
+        :param defaults: A set of default configuration items that can
+        fill in when the bot configuration is missing something.
 
         :return: A Bot object with a reference to the appropriate
         BotModel.
@@ -156,6 +160,33 @@ class BotModel(Base):
                 "Bot config file %s not found." % bot_config_file
             )
         config = yaml.load(open(bot_config_file))
+
+        # If any key is present in the default bot configuration but
+        # missing here, fill in the value.
+        for k, v in defaults.items():
+            if k == 'publish':
+                # Handled separately, below.
+                continue
+            if not k in config:
+                config[k] = v
+
+        # Fill in missing publisher configuration if the bot has that
+        # publisher enabled.
+        if 'publish' in defaults:
+            bot_publishers = config.get('publish')
+            if bot_publishers:
+                # This bot has publishers whose configuration may be incomplete.
+                for publisher, default_publisher_config in defaults['publish'].items():
+                    publisher_config = bot_publishers.get(publisher)
+                    if not publisher_config:
+                        # The bot config does not use this publisher. Don't fill in its
+                        # configuration, that will make it look like the bot _does_ use this
+                        # publisher and the configuration is incomplete.
+                        continue
+                    for k, v in default_publisher_config.items():
+                        if not k in publisher_config:
+                            publisher_config[k] = v
+            
         name = config.get('name')
         if not name:
             raise Exception(
