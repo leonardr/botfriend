@@ -70,8 +70,38 @@ class SingleBotScript(BotScript):
             required=True
         )
         return parser
-    
 
+
+class DashboardScript(BotScript):
+    """Display the current status of one or more bots."""
+    def process_bot(self, bot_model):
+        backlog = bot_model.backlog
+        count = backlog.count()
+        next_post_time = None
+        if count:
+            if count == 1:
+                item = "item"
+            else:
+                item = "items"
+            bot_model.log.info("%d %s in backlog" % (count, item))
+            next_item = backlog.limit(1).one()
+            bot_model.log.info(
+                "Next up: %s" % next_item.content
+            )
+            next_post_time = next_item.publish_at
+        else:
+            if bot_model.next_post_time:
+                next_post_time = bot_model.next_post_time
+        if next_post_time:
+            bot_model.log.info(
+                "Next post at %s" % next_post_time.strftime(TIME_FORMAT)
+            )
+        else:
+            bot_model.log.info(
+                "Next post not scheduled."
+            )
+
+            
 class PostScript(BotScript):
     """Create a new post for one or all bots."""
 
@@ -190,7 +220,11 @@ class BacklogScript(BotScript):
         else:
             max_i = None
         if count:
-            bot_model.log.info("%d items in backlog" % count)
+            if count == 1:
+                item = "item"
+            else:
+                item = "items"
+            bot_model.log.info("%d %s in backlog" % (count, item))
             for i, post in enumerate(bot_model.backlog):
                 if max_i is not None and i > max_i:
                     break
