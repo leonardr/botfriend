@@ -41,7 +41,11 @@ class BotScript(Script):
                 # We're processing specific bots, and this one isn't
                 # mentioned.
                 continue
-            self.process_bot(model)
+            try:
+                self.process_bot(model)
+            except Exception, e:
+                # Don't let this crash the whole script.
+                model.implementation.log.error(e.message, exc_info=e)
         self.config._db.commit()
         
     def process_bot(self, bot_model):

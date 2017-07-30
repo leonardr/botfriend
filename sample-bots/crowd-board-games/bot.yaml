@@ -1,5 +1,5 @@
 name: "Crowd Board Games"
-frequency: 60
+schedule: 60
 url: "http://www.kicktraq.com/categories/games/tabletop%20games/latest.rss"
 publish:
     file:

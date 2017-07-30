@@ -1,13 +1,8 @@
 name: "Anniversary Materials"
-frequency:
+schedule:
     mean: 420
     stdev: 60
-state_update_frequency: 1440
+state_update_schedule: 1440
 publish:
-    twitter:
-        consumer_key: "abcd"
-        consumer_secret: "efgh"
-        access_token: "1234-abcd"
-        access_token_secret: "zyxwvut-abcdefg"
     file:
         filename: "anniversary.txt"

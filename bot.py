@@ -47,8 +47,8 @@ class Bot(object):
         self.base_directory, self.module_name = os.path.split(directory)
         self.directory = directory
         self.config = config
-        self.frequency = self._extract_from_config(config, 'frequency')
-        self.state_update_frequency = config.get( 'state_update_frequency', None)
+        self.schedul = self._extract_from_config(config, 'schedule')
+        self.state_update_schedule = config.get( 'state_update_schedule', None)
         publishers = self.config.get('publish', {})
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
@@ -105,12 +105,12 @@ class Bot(object):
     @property
     def state_needs_update(self):
         """Does this bot's internal state need to be updated?"""
-        if self.state_update_frequency is None:
+        if self.state_update_schedule is None:
             # This bot doesn't update state on a schedule.
             return False
         now = _now()
         update_at = now + datetime.timedelta(
-            minutes=self.state_update_frequency
+            minutes=self.state_update_schedule
         )
         last_update = self.model.last_state_update_time
         return not last_update  or last_update > now
@@ -211,17 +211,17 @@ class Bot(object):
         says the next post should happen.
         """
         how_long = None
-        if not self.frequency:
+        if not self.schedule:
             # The next post should happen immediately.
             return None
-        if any(isinstance(self.frequency, x) for x in (int, float)):
+        if any(isinstance(self.schedule, x) for x in (int, float)):
             # There should be another post in this number of minutes.
-            how_long = self.frequency
-        elif 'mean' in self.frequency:
+            how_long = self.schedule
+        elif 'mean' in self.schedule:
             # There should be another post in a random number of minutes
             # determined by 'mean' and 'stdev'.
-            mean = int(self.frequency['mean'])
-            stdev = int(self.frequency.get('stdev', mean/5.0))
+            mean = int(self.schedule['mean'])
+            stdev = int(self.schedule.get('stdev', mean/5.0))
             how_long = random.gauss(mean, stdev)
         return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
 

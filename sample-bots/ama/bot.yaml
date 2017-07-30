@@ -1,5 +1,5 @@
 name: "AMA Bot"
-frequency:
+schedule:
     mean: 240
     stdev: 45
 state_update_frequency: 60

@@ -1,5 +1,5 @@
 name: "Link Relations"
-frequency: 1440
+schedule: 1440
 publish:
     file:
       filename: "link-relations.txt"

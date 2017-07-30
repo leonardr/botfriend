@@ -1,5 +1,5 @@
 name: "Deathbot 3000"
-frequency: 480
+schedule: 480
 publish:
     file:
-      filename: "../roller-derby.log"
+      filename: "roller-derby.txt"
