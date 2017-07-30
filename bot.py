@@ -47,7 +47,7 @@ class Bot(object):
         self.base_directory, self.module_name = os.path.split(directory)
         self.directory = directory
         self.config = config
-        self.schedul = self._extract_from_config(config, 'schedule')
+        self.schedule = self._extract_from_config(config, 'schedule')
         self.state_update_schedule = config.get( 'state_update_schedule', None)
         publishers = self.config.get('publish', {})
         if not publishers:
