@@ -71,10 +71,69 @@ class SingleBotScript(BotScript):
         )
         return parser
 
+class RepublicationScript(BotScript):
+    """Attempt to publish already created posts that failed in their
+    delivery.
+    """
+    @classmethod
+    def parser(cls):
+        parser = BotScript.parser()
+        parser.add_argument(
+            "--limit",
+            help="Limit the number of posts to republish per bot.",
+            type=int,
+            default=1
+        )
+        return parser
+    
+    def process_bot(self, bot_model):
+        undelivered = bot_model.undeliverable_posts().limit(self.args.limit)
+        for post in undelivered:
+            for publication in post.publications:
+                if not publication.error:
+                    continue
+                # Find the publisher responsible for this
+                matches  = [x for x in bot_model.implementation.publishers
+                            if x.service == publication.service]
+                if not matches:
+                    # This bot doesn't use this publisher anymore.
+                    continue
+                [publisher] = matches
+                bot_model.log.info(
+                    "Attempting to republish to %s: %s" % (
+                        publication.service,
+                        post.content
+                    )
+                )
+                publisher.publish(post, publication)
+                if publication.error:
+                    bot_model.log.info("Failure: %s" % publication.error)
+                else:
+                    bot_model.log.info("Success!")
+
 
 class DashboardScript(BotScript):
     """Display the current status of one or more bots."""
     def process_bot(self, bot_model):
+
+        recent = bot_model.recent_posts().limit(1).all()
+        if not recent:
+            bot_model.log.info("Has never posted.")
+        else:
+            [recent] = recent
+            bot_model.log.info("Most recent post: %s" % recent.content)
+            for publication in recent.publications:
+                if publication.error:
+                    bot_model.log.info(
+                        "%s ERROR: %s" % (publication.service, publication.error)
+                    )
+                else:
+                    bot_model.log.info(
+                        "%s posted at %s" % (publication.service,
+                                             publication.most_recent_attempt
+                        )
+                    )
+        
         backlog = bot_model.backlog
         count = backlog.count()
         next_post_time = None

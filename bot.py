@@ -164,6 +164,7 @@ class Bot(object):
             try:
                 publisher.publish(post, publication)
             except Exception, e:
+                set_trace()
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)

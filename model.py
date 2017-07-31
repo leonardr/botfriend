@@ -286,8 +286,8 @@ class BotModel(Base):
                     Post.publish_at.asc(), Post.id.asc()
                 )
         return qu
-
-    def recent_posts(self, posted_after):
+    
+    def recent_posts(self, posted_after=None, require_success=True):
         """Find recently published posts.
 
         This can be used to ensure that a bot doesn't repeat itself.
@@ -300,11 +300,28 @@ class BotModel(Base):
             posted_after = now - datetime.timedelta(days=posted_after)
         _db = Session.object_session(self)
         qu = _db.query(Post).join(Post.publications).filter(
-            Post.bot==self).filter(Publication.most_recent_attempt >= posted_after).filter(
-                Publication.most_recent_attempt < now).filter(Publication.error==None).distinct(
-                    Post.id)
+            Post.bot==self).filter(Publication.most_recent_attempt < now)
+        if require_success:
+            qu = qu.filter(Publication.error==None)
+        if posted_after:
+            qu = qu.filter(
+                Publication.most_recent_attempt >= posted_after).distinct(
+                    Post.id
+                )
+        qu = qu.order_by(Publication.most_recent_attempt.desc())
         return qu
 
+    def undeliverable_posts(self):
+        """Find posts that had errrors when we tried to publish them to one or
+        more publications.
+        """
+        _db = Session.object_session(self)
+        return _db.query(Post).join(Post.publications).filter(
+            Post.bot==self).filter(Publication.error != None).order_by(
+                Publication.most_recent_attempt.asc()
+            )
+                
+    
     @property
     def json_state(self):
         """Try to interpret .state as a JSON object."""
