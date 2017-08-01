@@ -5,6 +5,7 @@ import time
 
 from config import Configuration
 from model import (
+    InvalidPost,
     Post,
     TIME_FORMAT,
 )
@@ -44,8 +45,12 @@ class BotScript(Script):
                 continue
             try:
                 self.process_bot(model)
+            except InvalidPost, e:
+                # This _should_ crash the whole script -- we don't
+                # want to commit invalid posts to the database.
+                raise e
             except Exception, e:
-                # Don't let this crash the whole script.
+                # Don't let a 'normal' error crash the whole script.
                 model.implementation.log.error(e.message, exc_info=e)
         self.config._db.commit()
         

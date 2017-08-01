@@ -32,6 +32,11 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.declarative import declarative_base
 
 
+class InvalidPost(Exception):
+    """There was a problem creating a Post which implies that any
+    Post objects created are invalid.
+    """
+
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 
 def _now():
@@ -254,7 +259,7 @@ class BotModel(Base):
             return []
 
         new_posts = list(self.new_posts())
-        
+            
         # Don't automatically use the new posts. It might not be time to publish
         # all of them. This will find the publishable ones.
         return self.next_unpublished_posts
@@ -267,7 +272,15 @@ class BotModel(Base):
         
         :return: The new Posts, in a (possibly empty) list.
         """
+        now = _now()
         new_posts = self.implementation.new_post()
+        for post in new_posts:
+            if post.publish_at < now:
+                raise InvalidPost(
+                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
+                        post.content.encode("ascii", errors="replace"), post.publish_at
+                    )
+                )
         if not new_posts:
             new_posts = []
         elif isinstance(new_posts, basestring):
