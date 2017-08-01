@@ -338,11 +338,18 @@ class BacklogClearScript(SingleBotScript):
 
     def process_bot(self, bot_model):
         backlog = list(bot_model.backlog)
-        if not backlog:
-            # Nothing to do
-            return
-        bot_model.log.warn("About to clear backlog for %s." % bot_model.name)
-        bot_model.log.warn("Sleeping for 5 seconds to give you a chance to Ctrl-C.")
-        time.sleep(1)
-        for post in backlog:
-            self.config._db.delete(post)
+        if backlog:
+            bot_model.log.warn("About to clear backlog for %s.", bot_model.name)
+            bot_model.log.warn("Sleeping for 2 seconds to give you a chance to Ctrl-C.")
+            time.sleep(2)
+            for post in backlog:
+                self.config._db.delete(post)
+
+        # Also reset the next post time.
+        bot_model.next_post_time = bot_model.implementation.schedule_next_post(
+            []
+        )
+        if bot_model.next_post_time:
+            bot_model.log.info("Next post at %s", bot_model.next_post_time)
+        else:
+            bot_model.log.info("Ready to post.")

@@ -248,7 +248,7 @@ class BotModel(Base):
         # Maybe we should create a new post.
         if self.next_post_time and now < self.next_post_time:
             # Nope.
-            self.log.info("Not posting until %s" % (
+            self.log.info("Not making new posts until %s" % (
                 self.next_post_time.strftime(TIME_FORMAT)
             ))
             return []
