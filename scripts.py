@@ -136,7 +136,7 @@ class DashboardScript(BotScript):
         
         backlog = bot_model.backlog
         count = backlog.count()
-        next_post_time = None
+        next_post_time = bot_model.next_post_time
         if count:
             if count == 1:
                 item = "item"
@@ -147,7 +147,7 @@ class DashboardScript(BotScript):
             bot_model.log.info(
                 "Next up: %s" % next_item.content
             )
-            next_post_time = next_item.publish_at
+            next_post_time = next_item.publish_at or bot_model.next_post_time
         else:
             if bot_model.next_post_time:
                 next_post_time = bot_model.next_post_time
@@ -327,9 +327,9 @@ class BacklogLoadScript(SingleBotScript):
             post, is_new = bot_model.implementation.import_post(item.strip())
             if is_new:
                 bot_model.log.info("Loaded: %r", post.content)
+                a += 1
             else:
                 bot_model.log.info("Already exists: %r", post.content)
-                a += 1
             if self.args.limit and a >= self.args.limit:
                 return
 

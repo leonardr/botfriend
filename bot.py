@@ -138,12 +138,11 @@ class Bot(object):
         we treat this as the literal content of a Post object that
         will be posted according to the bot's internal schedule.
 
-        :return: A Post.
+        :return: A 2-tuple (Post, is_new).
         """
-        post, is_new = Post.from_content(
-            self, content, publish_at=Post.NO_VALUE
-        )
-        return post
+        if isinstance(content, basestring):
+            content = content.decode("utf8")
+        return Post.from_content(self.model, content)
     
     def publish(self, post):
         """Push a Post to every publisher.
@@ -164,10 +163,10 @@ class Bot(object):
             try:
                 publisher.publish(post, publication)
             except Exception, e:
-                set_trace()
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
+        self.model.next_post_time = self.schedule_next_post([post])
         return publications
 
     def schedule_next_post(self, last_posts):

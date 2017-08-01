@@ -225,6 +225,10 @@ class BotModel(Base):
             Post.publish_at.asc()).all()
         if past_due:
             return past_due
+
+        if self.next_post_time and self.next_post_time > now:
+            # We should not be publishing anything at the moment.
+            return []
         
         next_in_line = base_query.filter(Post.publish_at == None).order_by(
             Post.created.asc()).limit(1).all()
@@ -451,6 +455,8 @@ class Post(Base):
         """Publish this Post to every service registered with the bot.
 
         :return: A list of Publications.
+
+        TODO: This seems redundant with Bot.publish
         """
         now = _now()
         if self.publish_at and self.publish_at >= now:
@@ -459,7 +465,14 @@ class Post(Base):
                 self.publish_at.strftime(self.TIME_FORMAT)
             )
             return []
-        return self.bot.implementation.publish(self)
+        result = self.bot.implementation.publish(self)
+
+        # If necessary, update the next scheduled post time.
+        self.next_post_time = self.bot.implementation.schedule_next_post(
+            [self]
+        )
+        return result
+
         
 
 class Publication(Base):
