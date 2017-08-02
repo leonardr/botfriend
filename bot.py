@@ -223,7 +223,7 @@ class Bot(object):
             mean = int(self.schedule['mean'])
             stdev = int(self.schedule.get('stdev', mean/5.0))
             how_long = random.gauss(mean, stdev)
-        return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
+        return _now() + datetime.timedelta(minutes=how_long)
 
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -256,6 +256,30 @@ class TextGeneratorBot(Bot):
         for i in range(rounds):
             print self.generate_text()
 
+
+class StateListBot(Bot):
+    """A bot that keeps a queue of things to post as a JSON-encoded list
+    in its .state.
+    """
+    
+    def new_post(self):
+        """Pull a Post off of the list kept in .state"""
+        no_more_state = Exception("No more state to use as posts")
+        if not self.model.state:
+            raise no_more_state
+        posts = self.model.json_state
+        if not posts:
+            raise no_more_state
+        new_posts = posts[0]
+        remaining_posts = posts[1:]
+        self.model.update_state(json.dumps(remaining_posts))
+        return new_post
+
+    def stress_test(self, rounds):
+        posts = self.model.json_state
+        for i in range(rounds):
+            print posts[i].encode("utf8")
+    
 
 class Publisher(object):
 

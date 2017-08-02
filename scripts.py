@@ -221,6 +221,13 @@ class StateShowScript(BotScript):
         print bot_model.state
         
 
+class StateSetScript(BotScript):
+    """Set the internal state for a bot."""
+    def process_bot(self, bot_model):
+        bot_model.update_state(sys.stdin.read())
+        print bot_model.state
+
+
 class StateRefreshScript(BotScript):
     """Refresh the internal state for a bot."""
 
