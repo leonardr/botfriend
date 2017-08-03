@@ -95,7 +95,7 @@ class Bot(object):
         if force or self.state_needs_update:
             result = self.update_state()
             if result and isinstance(result, basestring):
-                self.model.state = result
+                self.set_state(result)
             self.model.last_state_update_time = _now()
             _db = Session.object_session(self.model)
             _db.commit()
@@ -121,7 +121,11 @@ class Bot(object):
         By default, does nothing.
         """
         pass
-        
+
+    def set_state(self, value):
+        """Set a bot's internal state to a specific value."""
+        self.model.set_state(value)
+    
     def new_post(self):
         """Create a brand new Post.
         
@@ -272,9 +276,29 @@ class StateListBot(Bot):
             raise no_more_state
         new_posts = posts[0]
         remaining_posts = posts[1:]
-        self.model.update_state(json.dumps(remaining_posts))
+        self.model.set_state(json.dumps(remaining_posts))
         return new_post
 
+    def set_state(self, value):
+        """We're setting the state to a specific value, probably
+        as the result of running a script for just this purpose.
+        """
+        if isinstance(value, basestring):
+            # This might be a JSON list, or it might be a
+            # newline-delimited list.
+            try:
+                as_json = json.loads(value)
+                # If that didn't raise an exception, we're good.
+                # Leave it alone.
+            except ValueError, e:
+                # We got a newline-delimited list. Convert it to a
+                # JSON list.
+                if not isinstance(value, unicode):
+                    value = value.decode("utf8")
+                value = [x for x in value.split("\n") if x.strip()]
+                value = json.dumps(value)
+        self.model.set_state(value)
+    
     def stress_test(self, rounds):
         posts = self.model.json_state
         for i in range(rounds):

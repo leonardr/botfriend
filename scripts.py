@@ -221,10 +221,26 @@ class StateShowScript(BotScript):
         print bot_model.state
         
 
-class StateSetScript(BotScript):
+class StateSetScript(SingleBotScript):
     """Set the internal state for a bot."""
+
+    @classmethod
+    def parser(cls):
+        parser = SingleBotScript.parser()
+        parser.add_argument(
+            "--file",
+            help="Load from this file instead of standard input.",
+            default=None
+        )
+        return parser
+    
     def process_bot(self, bot_model):
-        bot_model.update_state(sys.stdin.read())
+        if self.args.file:
+            fh = open(self.args.file)
+        else:
+            fh = sys.stdin
+        data = fh.read()
+        bot_model.implementation.set_state(data)
         print bot_model.state
 
 

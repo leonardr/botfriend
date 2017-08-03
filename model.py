@@ -346,9 +346,9 @@ class BotModel(Base):
             return self.state
         return json.loads(self.state)
 
-    def update_state(self, new_value):
+    def set_state(self, new_value):
         self.state = new_value
-        self.last_state_update_time = datetime.datetime.utcnow()
+        self.last_state_update_time = _now()
     
 class Post(Base):
     __tablename__ = 'posts'
