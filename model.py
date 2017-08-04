@@ -45,7 +45,8 @@ def _now():
     I've moved this into a function so I can test out whether
     local time or UTC is better for this purpose.
     """
-    return datetime.datetime.now()
+    #return datetime.datetime.now()
+    return datetime.datetime.utcnow()
 
 Base = declarative_base()
         
@@ -274,13 +275,6 @@ class BotModel(Base):
         """
         now = _now()
         new_posts = self.implementation.new_post()
-        for post in new_posts:
-            if post.publish_at < now:
-                raise InvalidPost(
-                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
-                        post.content.encode("ascii", errors="replace"), post.publish_at
-                    )
-                )
         if not new_posts:
             new_posts = []
         elif isinstance(new_posts, basestring):
@@ -288,6 +282,14 @@ class BotModel(Base):
             new_posts = [new_post]
         elif isinstance(new_posts, Post):
             new_posts = [new_posts]
+        
+        for post in new_posts:
+            if post.publish_at and post.publish_at < now:
+                raise InvalidPost(
+                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
+                        post.content.encode("ascii", errors="replace"), post.publish_at
+                    )
+                )
         self.next_post_time = self.implementation.schedule_next_post(
             new_posts
         )
