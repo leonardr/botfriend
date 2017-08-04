@@ -246,7 +246,7 @@ class StateSetScript(SingleBotScript):
             fh = open(self.args.file)
         else:
             fh = sys.stdin
-        data = fh.read()
+        data = fh.read().decode("utf8")
         bot_model.implementation.set_state(data)
         print bot_model.state
 
