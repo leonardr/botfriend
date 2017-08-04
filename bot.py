@@ -269,12 +269,13 @@ class StateListBot(Bot):
     def new_post(self):
         """Pull a Post off of the list kept in .state"""
         no_more_state = Exception("No more state to use as posts")
+
         if not self.model.state:
             raise no_more_state
         posts = self.model.json_state
         if not posts:
             raise no_more_state
-        new_posts = posts[0]
+        new_post = posts[0]
         remaining_posts = posts[1:]
         self.model.set_state(json.dumps(remaining_posts))
         return new_post
@@ -298,7 +299,7 @@ class StateListBot(Bot):
                 value = [x for x in value.split("\n") if x.strip()]
                 value = json.dumps(value)
         self.model.set_state(value)
-    
+        
     def stress_test(self, rounds):
         posts = self.model.json_state
         for i in range(rounds):
