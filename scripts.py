@@ -5,6 +5,7 @@ import time
 
 from config import Configuration
 from model import (
+    _now,
     InvalidPost,
     Post,
     TIME_FORMAT,
@@ -121,6 +122,7 @@ class DashboardScript(BotScript):
     """Display the current status of one or more bots."""
     def process_bot(self, bot_model):
 
+        now = _now()
         recent = bot_model.recent_posts().limit(1).all()
         if not recent:
             bot_model.log.info("Has never posted.")
@@ -134,8 +136,10 @@ class DashboardScript(BotScript):
                     )
                 else:
                     bot_model.log.info(
-                        "%s posted at %s" % (publication.service,
-                                             publication.most_recent_attempt
+                        "%s posted %dm ago (%s)" % (
+                            publication.service,
+                            (now-publication.most_recent_attempt).total_seconds()/60,
+                            publication.most_recent_attempt,
                         )
                     )
         
@@ -157,8 +161,11 @@ class DashboardScript(BotScript):
             if bot_model.next_post_time:
                 next_post_time = bot_model.next_post_time
         if next_post_time:
+            minutes = (next_post_time-now).total_seconds()/60
             bot_model.log.info(
-                "Next post at %s" % next_post_time.strftime(TIME_FORMAT)
+                "Next post in %dm (%s)" % (
+                    minutes, next_post_time.strftime(TIME_FORMAT)
+                )
             )
         else:
             bot_model.log.info(
