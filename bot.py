@@ -165,7 +165,7 @@ class Bot(object):
 
                 continue
             try:
-                publisher.publish(post, publication)
+                self.post_to_publisher(publisher, post, publication)
             except Exception, e:
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
@@ -173,6 +173,9 @@ class Bot(object):
         self.model.next_post_time = self.schedule_next_post([post])
         return publications
 
+    def post_to_publisher(self, publisher, post, publication):
+        return publisher.publish(post, publication)
+    
     def schedule_next_post(self, last_posts):
         """Determine the best value for BotModel.next_post_time, given that
         `last_posts` were just created.
