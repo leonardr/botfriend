@@ -164,19 +164,20 @@ class TestBotModel(DatabaseTest):
 
 
     def test_backlog(self):
-        # Any JSONable object can be stored as Bot.backlog.
-        backlog = [1,2,3]
-        self.bot.json_backlog = backlog
+        # Any list full of JSONable objects can be stored as
+        # BotModel.backlog.
+        eq_([], self.bot.backlog)
+        backlog = [1234]
+        self.bot.backlog = backlog
+        eq_(json.dumps(backlog), self.bot._backlog)
+        eq_(backlog, self.bot.backlog)
 
-        eq_(backlog, self.bot.json_backlog)
-        eq_(json.dumps(backlog), self.bot.backlog)
-
-        # You can also just store some random string as Bot.backlog, but
-        # then you can't use Bot.json_backlog.
-        self.bot.backlog = "Not JSON"
-        assert_raises(ValueError, lambda: self.bot.json_backlog)
-        
+        # You can't store some random JSONable object as Bot.backlog,
+        # it has to be a list.
         def set():
-            self.bot.json_backlog = object()
-        assert_raises(TypeError, set)
-        
+            self.bot.backlog = "Not a list"
+        assert_raises(ValueError, set)
+
+        # BotModel.pop_backlog removes one item from the backlog.
+        eq_(1234, self.bot.pop_backlog())
+        eq_([], self.bot.backlog)

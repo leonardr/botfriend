@@ -87,25 +87,27 @@ class Bot(object):
             return []
 
         # Look in the backlog for an object we can convert into a post.
-        backlog = self.model.json_backlog
-        if backlog:
-            obj = backlog[0]
-            remainder = backlog[1:]
-            self.model.json_backlog = remainder
-            post = self.create_post(obj)
-        
-        # Create a new post
-        posts = self.new_post()
+        posts = self.model.pop_backlog()
+        if not posts:
+            # Create a new post
+            posts = self.new_post()
         
         if not posts:
-            # We didn't do any work.
+            # We didn't do any work. Return immediately so as not to
+            # update BotModel.next_post_time
             return []
         if isinstance(posts, Post):
-            # We made a single post.
+            # We made a single Post.
             posts = [posts]
-        elif isinstance(posts, basestring):
-            # We made a single string, which will become a Post.
-            posts = [self.create_post(posts)]
+        elif (isinstance(posts, list)
+              and all(isinstance(x, Post) for x in posts)):
+            # We made a number of Posts.
+            pass
+        else:
+            # We found an object that should be turned into a Post.
+            posts = self.object_to_post(posts)
+            if isinstance(posts, Post):
+                posts = [posts]
 
         self.model.next_post_time = self.schedule_next_post()
         return posts
@@ -113,15 +115,16 @@ class Bot(object):
     def new_post(self):
         """Create a new post for immediate publication.
 
-        :return: A Post, a string (which will be converted into a
-        Post), or a list of Posts (all of which will be published
-        immediately).
+        :return: A Post, a list of Posts (all of which will be
+        published immediately), or some other object such as a string
+        (which will be passed into object_for_post for conversion into
+        a post).
         """
         raise NotImplementedError()
 
     def object_to_post(self, obj):
-        """Turn an object (probably a string), retrieved from backlog or from 
-        new_post(), into a Post object.
+        """Turn an object retrieved from backlog or from new_post(), into a
+        Post object.
 
         The default implementation assumes `obj` is a string.
         """

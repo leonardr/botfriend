@@ -136,7 +136,7 @@ class BotModel(Base):
 
     # The bot's implementation may store a backlog of unscheduled
     # posts in this field.
-    backlog = Column(String)
+    _backlog = Column(String, name='backlog')
     
     # The bot's implementation may store anything it wants in this field
     # to keep track of state between posts.
@@ -333,15 +333,37 @@ class BotModel(Base):
         self.last_state_update_time = _now()
         
     @hybrid_property
-    def json_backlog(self):
-        """Try to interpret .backlog as a JSON object."""
-        if not self.backlog:
-            return self.backlog
-        return json.loads(self.backlog)
+    def backlog(self):
+        """Parse the bot's backlog as a JSON list."""
+        if not self._backlog:
+            return []
+        return json.loads(self._backlog)
 
-    @json_backlog.setter
-    def set_json_backlog(self, backlog):
-        self.backlog = json.dumps(backlog)
+    @backlog.setter
+    def set_backlog(self, backlog):
+        """Set the given list as the bot's backlog.
+
+        :param backlog: A list that can be converted into JSON.
+        """
+        if not isinstance(backlog, list):
+            raise ValueError(
+                "Backlog must be a list (got %s)" % type(backlog)
+            )
+        self._backlog = json.dumps(backlog)
+        
+    def pop_backlog(self):
+        """Pop one item off the backlog.
+
+        :return: None, if there is no backlog; otherwise, backlog
+        item. Probably a string, but depending on the bot, it could be
+        any JSONable item.
+        """
+        backlog = self.backlog
+        if not backlog:
+            return None
+        obj = backlog[0]
+        self.backlog = backlog[1:]
+        return obj
 
 
 class Post(Base):
@@ -522,6 +544,7 @@ class Publication(Base):
         if isinstance(error, Exception):
             error = str(error.message)
         self.report_attempt(error)
+
 
 class Attachment(Base):
     """A file (usually a binary image) associated with a post."""
