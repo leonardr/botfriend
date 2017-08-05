@@ -121,6 +121,10 @@ class BotModel(Base):
     # If this is set, the bot will not post anything until this time.
     next_post_time = Column(DateTime)
 
+    # The bot's implementation may store a backlog of unscheduled
+    # posts in this field.
+    backlog = Column(String)
+    
     # The bot's implementation may store anything it wants in this field
     # to keep track of state between posts.
     state = Column(String)
