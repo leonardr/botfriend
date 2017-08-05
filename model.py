@@ -244,36 +244,6 @@ class BotModel(Base):
             Post.created.asc()).limit(1).all()
         return next_in_line
 
-    def new_posts(self):
-        """Create one or more brand new posts.
-
-        This will call Bot.schedule_next_post to set the next time more
-        posts should be scheduled.
-        
-        :return: The new Posts, in a (possibly empty) list.
-        """
-        now = _now()
-        new_posts = self.implementation.new_post()
-        if not new_posts:
-            new_posts = []
-        elif isinstance(new_posts, basestring):
-            new_post, ignore = Post.from_content(self, new_posts)
-            new_posts = [new_post]
-        elif isinstance(new_posts, Post):
-            new_posts = [new_posts]
-        
-        for post in new_posts:
-            if post.publish_at and post.publish_at < now:
-                raise InvalidPost(
-                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
-                        post.content.encode("ascii", errors="replace"), post.publish_at
-                    )
-                )
-        self.next_post_time = self.implementation.schedule_next_post(
-            new_posts
-        )
-        return new_posts
-
     @property
     def scheduled(self):
         """All scheduled posts, in the order they will be posted."""
@@ -317,16 +287,23 @@ class BotModel(Base):
         return _db.query(Post).join(Post.publications).filter(
             Post.bot==self).filter(Publication.error != None).order_by(
                 Publication.most_recent_attempt.asc()
-            )
-                
+            )                
     
-    @property
+    @hybrid_property
     def json_state(self):
         """Try to interpret .state as a JSON object."""
         if not self.state:
             return self.state
         return json.loads(self.state)
 
+    @json_state.setter
+    def set_json_state(self, state):
+        self.set_state(json.dumps(state))
+
+    def set_state(self, new_value):
+        self.state = new_value
+        self.last_state_update_time = _now()
+        
     @hybrid_property
     def json_backlog(self):
         """Try to interpret .backlog as a JSON object."""
@@ -338,18 +315,7 @@ class BotModel(Base):
     def set_json_backlog(self, backlog):
         self.backlog = json.dumps(backlog)
 
-    def backlog_items(self, data):
-        """Convert an input string into a list of backlog items.
 
-        The default behavior is to treat each line as an individual
-        backlog item.
-        """
-        return data.split("\n")
-
-    def set_state(self, new_value):
-        self.state = new_value
-        self.last_state_update_time = _now()
-    
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)
@@ -430,7 +396,9 @@ class Post(Base):
     def content_snippet(self):
         "A small string of content suitable for logging."
         if self.content:
-            return self.content[:20] + u"…"
+            if len(content > 20):
+                return self.content[:20] + u"…"
+            return self.content
         else:
             return "[no textual content]"
 

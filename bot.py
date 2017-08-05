@@ -86,13 +86,13 @@ class Bot(object):
             # It's not time to create a new post yet.
             return []
 
-        # Look in the backlog for a post
+        # Look in the backlog for an object we can convert into a post.
         backlog = self.model.json_backlog
         if backlog:
-            post = backlog[0]
+            obj = backlog[0]
             remainder = backlog[1:]
             self.model.json_backlog = remainder
-            post = self.create_post(post)
+            post = self.create_post(obj)
         
         # Create a new post
         posts = self.new_post()
@@ -109,7 +109,7 @@ class Bot(object):
 
         self.model.next_post_time = self.schedule_next_post()
         return posts
-
+    
     def new_post(self):
         """Create a new post for immediate publication.
 
@@ -187,22 +187,22 @@ class Bot(object):
     def extend_backlog(self, data):
         """Add data to a bot's backlog."""
         backlog = self.model.json_backlog
-        items = self.model.backlog_items(data)
+        items = self.backlog_items(data)
         backlog.extend(items)
         self.model.json_backlog = backlog
+
+    def backlog_items(self, data):
+        """Convert an input string into a list of backlog items.
+
+        The default behavior is to treat each line as an individual
+        backlog item.
+        """
+        return data.split("\n")
         
     def clear_backlog(self):
         """Clear a bot's backlog."""
         self.model.backlog = None
         
-    def new_post(self):
-        """Create a brand new Post.
-        
-        :return: A string (which will be converted into a Post),
-        a Post, or a list of Posts.
-        """
-        raise NotImplementedError()
-
     # Methods dealing with scheduling posts.
     
     def schedule_posts(self):
@@ -217,7 +217,15 @@ class Bot(object):
         :return: A list of newly scheduled Posts.
 
         """
-        return []
+        scheduled = self._schedule_posts()
+        for post in scheduled:
+            if post.publish_at and post.publish_at < now:
+                raise InvalidPost(
+                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
+                        post.content.encode("ascii", errors="replace"), post.publish_at
+                    )
+                )
+        retun scheduled
 
     def schedule_next_post(self):
         """Assuming that a post was just created, see when the bot configuration
