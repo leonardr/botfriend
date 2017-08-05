@@ -60,13 +60,15 @@ class DatabaseTest(object):
         return bot
 
     def _post(self, botmodel=None, content=None, publish_at=None,
-              reuse_existing=True):
+              reuse_existing=True, published=False):
         botmodel = botmodel or self._botmodel()
         content = content or self._str
         post, is_new = Post.from_content(
             bot=botmodel, content=content, publish_at=publish_at,
             reuse_existing=reuse_existing
         )
+        if published:
+            self._publication(botmodel, post)
         return post
 
     def _publication(self, botmodel=None, post=None, service=None,

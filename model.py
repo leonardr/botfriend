@@ -252,7 +252,11 @@ class BotModel(Base):
 
     @property
     def scheduled(self):
-        """All scheduled posts, in the order they will be posted."""
+        """All scheduled posts, in the order they will be posted.
+
+        Posts with a specific schedule time will show up before posts
+        without a schedule time.
+        """
         _db = Session.object_session(self)
 
         base_query = _db.query(Post).outerjoin(Post.publications).filter(
@@ -291,7 +295,7 @@ class BotModel(Base):
             qu = qu.filter(Publication.error==None)
         if posted_after:
             qu = qu.filter(
-                Publication.most_recent_attempt >= posted_after).distinct(
+                Publication.most_recent_attempt > posted_after).distinct(
                     Post.id
                 )
         qu = qu.order_by(Publication.most_recent_attempt.desc())
