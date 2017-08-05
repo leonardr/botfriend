@@ -262,22 +262,30 @@ class TextGeneratorBot(Bot):
 
 
 class StateListBot(Bot):
-    """A bot that keeps a queue of things to post as a JSON-encoded list
+    """A bot that keeps a backlog of things to post as a JSON-encoded list
     in its .state.
     """
     
     def new_post(self):
         """Pull a Post off of the list kept in .state"""
-        no_more_state = Exception("No more state to use as posts")
+        no_more_backlog = Exception("State contains no more backlog")
 
         if not self.model.state:
-            raise no_more_state
-        posts = self.model.json_state
-        if not posts:
-            raise no_more_state
-        new_post = posts[0]
-        remaining_posts = posts[1:]
-        self.model.set_state(json.dumps(remaining_posts))
+            raise no_more_backlog
+        data = self.model.json_state
+        if isinstance(data, dict):
+            backlog = data['backlog']
+        else:
+            backlog = data
+        if not backlog:
+            raise no_more_backlog
+        new_post = backlog[0]
+        remaining_posts = backlog[1:]
+        if isinstance(data, dict):
+            data['backlog'] = remaining_posts
+        else:
+            data = remaining_posts
+        self.model.set_state(json.dumps(data))
         return new_post
 
     def set_state(self, value):
@@ -291,13 +299,15 @@ class StateListBot(Bot):
                 as_json = json.loads(value)
                 # If that didn't raise an exception, we're good.
                 # Leave it alone.
+                if isinstance(as_json, list):
+                    as_json = dict(backlog=as_json)
             except ValueError, e:
                 # We got a newline-delimited list. Convert it to a
                 # JSON list.
                 if not isinstance(value, unicode):
                     value = value.decode("utf8")
                 value = [x for x in value.split("\n") if x.strip()]
-                value = json.dumps(value)
+                value = json.dumps(dict(backlog=value))
         self.model.set_state(value)
         
     def stress_test(self, rounds):

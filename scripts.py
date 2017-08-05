@@ -193,7 +193,7 @@ class PostScript(BotScript):
     
     def process_bot(self, bot_model):
         if self.args.force:
-            bot_model.next_post_time = None
+            bot_model.next_post_time = _now()
         posts = bot_model.next_posts()
         if self.args.dry_run:
             print bot_model.name
