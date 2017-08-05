@@ -85,6 +85,8 @@ class DatabaseTest(object):
         )
         if success:
             publication.report_success()
+            if post.publish_at:
+                publication.first_attempt = publication.most_recent_attempt = post.publish_at
         return publication
 
     

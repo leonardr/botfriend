@@ -277,25 +277,25 @@ class BotModel(Base):
         
         return with_publish_time.all() + without_publish_time.all()
     
-    def recent_posts(self, posted_after=None, require_success=True):
+    def recent_posts(self, published_after=None, require_success=True):
         """Find recently published posts.
 
         This can be used to ensure that a bot doesn't repeat itself.
 
-        :param posted_after: Either a datetime or a number of days before
+        :param published_after: Either a datetime or a number of days before
         the present.
         """
         now = _now()
-        if isinstance(posted_after, int):
-            posted_after = now - datetime.timedelta(days=posted_after)
+        if isinstance(published_after, int):
+            published_after = now - datetime.timedelta(days=published_after)
         _db = Session.object_session(self)
         qu = _db.query(Post).join(Post.publications).filter(
             Post.bot==self).filter(Publication.most_recent_attempt < now)
         if require_success:
             qu = qu.filter(Publication.error==None)
-        if posted_after:
+        if published_after:
             qu = qu.filter(
-                Publication.most_recent_attempt > posted_after).distinct(
+                Publication.most_recent_attempt > published_after).distinct(
                     Post.id
                 )
         qu = qu.order_by(Publication.most_recent_attempt.desc())

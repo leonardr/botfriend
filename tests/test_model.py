@@ -74,6 +74,13 @@ class TestBotModel(DatabaseTest):
             self.bot, "posted just now", publish_at=self.now,
             published=True
         )
+        failed_just_now = self._post(
+            self.bot, "failed post just now", publish_at=self.now,
+            published=True
+        )
+        [publication] = failed_just_now.publications
+        publication.report_failure("argh")
+        
         future = self._post(
             self.bot, "will post later", publish_at=self.the_future,
         )
@@ -83,6 +90,18 @@ class TestBotModel(DatabaseTest):
 
         # recent_posts() returns recently published posts in
         # reverse chronological order.
+        #
+        # By default, it does not include posts that could not be
+        # published.
         eq_([present, past], self.bot.recent_posts().all())
 
-        eq_([present], self.bot.recent_posts(posted_after=self.the_past).all())
+        # But you can change that.
+        assert failed_just_now in self.bot.recent_posts(
+            require_success=False).all()
+
+        # You can also limit it to posts published in the recent past.
+        one_hour_ago = self.now - datetime.timedelta(seconds=3600)
+        eq_([present], self.bot.recent_posts(published_after=one_hour_ago).all())
+
+        # posted_after can be either a datetime or a number of days.
+        eq_([present, past], self.bot.recent_posts(published_after=2).all())
