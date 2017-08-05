@@ -64,6 +64,8 @@ class Configuration(object):
         default_path = os.path.join(directory, "default.yaml")
         if os.path.exists(default_path):
             defaults = yaml.load(open(default_path))
+        else:
+            defaults = {}
         for f in os.listdir(directory):
             bot_directory = os.path.join(directory, f)
             if os.path.isdir(bot_directory):

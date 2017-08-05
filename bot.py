@@ -66,30 +66,81 @@ class Bot(object):
             return value[0]
         return value
 
-    def next_post(self):
-        """Find the next unpublished Post, or create a new one.
+    # Methods dealing with creating new posts
+    
+    def postable(self):
+        """Find the Posts that can be published right now, creating a new one
+        if necessary.
 
-        :return: A list of Posts.
+        :return: A list of Posts that should be published right now.
         """
         # Make sure state is up to date.
         self.check_and_update_state()        
-        post = self.model.next_unpublished_post
-        if post:
-            return post
+
+        posts = self.model.ready_scheduled_posts
+        if posts:
+            # One or more scheduled posts need to be published immediately.
+            return posts
+
+        if self.model.next_post_time and self.model.next_post_time < _now():
+            # It's not time to create a new post yet.
+            return []
+
+        # Look in the backlog for a post
+        backlog = self.model.json_backlog
+        if backlog:
+            post = backlog[0]
+            remainder = backlog[1:]
+            self.model.json_backlog = remainder
+            post = self.create_post(post)
         
-        # Create a new one
+        # Create a new post
         posts = self.new_post()
+        
         if not posts:
             # We didn't do any work.
-            posts = []
+            return []
         if isinstance(posts, Post):
             # We made a single post.
             posts = [posts]
         elif isinstance(posts, basestring):
             # We made a single string, which will become a Post.
-            posts = [self.model.create_post(posts)]
+            posts = [self.create_post(posts)]
+
+        self.model.next_post_time = self.schedule_next_post()
         return posts
 
+    def new_post(self):
+        """Create a new post for immediate publication.
+
+        :return: A Post, a string (which will be converted into a
+        Post), or a list of Posts (all of which will be published
+        immediately).
+        """
+        raise NotImplementedError()
+
+    def object_to_post(self, obj):
+        """Turn an object (probably a string), retrieved from backlog or from 
+        new_post(), into a Post object.
+
+        The default implementation assumes `obj` is a string.
+        """
+        return Post.from_content(obj)
+    
+    def stress_test(self, rounds):
+        """Perform a stress test of the bot's generative capabilities.
+
+        Your implementation of this method should not have any side effects.
+        It should take the current state of the bot and generate `rounds`
+        appropriate posts.
+
+        This method is provided for your convenience in testing; you do not
+        have to implement it.
+        """
+        return
+    
+    # Methods dealing with bot state.
+    
     def check_and_update_state(self, force=False):
         """Update the bot's internal state, assuming it needs to be updated."""
         if force or self.state_needs_update:
@@ -125,7 +176,25 @@ class Bot(object):
     def set_state(self, value):
         """Set a bot's internal state to a specific value."""
         self.model.set_state(value)
-    
+
+    # Methods dealing with backlog posts
+        
+    @property
+    def backlog(self):
+        """Return a bot's backlog as a list of strings."""
+        return self.model.json_backlog
+        
+    def extend_backlog(self, data):
+        """Add data to a bot's backlog."""
+        backlog = self.model.json_backlog
+        items = self.model.backlog_items(data)
+        backlog.extend(items)
+        self.model.json_backlog = backlog
+        
+    def clear_backlog(self):
+        """Clear a bot's backlog."""
+        self.model.backlog = None
+        
     def new_post(self):
         """Create a brand new Post.
         
@@ -134,19 +203,42 @@ class Bot(object):
         """
         raise NotImplementedError()
 
-    def import_post(self, content):
-        """Import a piece of content from some external source into
-        a Post.
+    # Methods dealing with scheduling posts.
+    
+    def schedule_posts(self):
+        """Create some number of posts to be published at specific times.
         
-        :content: The input to the post creation process.  By default,
-        we treat this as the literal content of a Post object that
-        will be posted according to the bot's internal schedule.
+        By default, this does nothing. This is an advanced feature for
+        bots like Mahna Mahna that need to post at specific
+        times. Most bots should be able to use the default scheduler,
+        and either generate posts on demand or put posts into
+        Bot.backlog.
 
-        :return: A 2-tuple (Post, is_new).
+        :return: A list of newly scheduled Posts.
+
         """
-        if isinstance(content, basestring):
-            content = content.decode("utf8")
-        return Post.from_content(self.model, content)
+        return []
+
+    def schedule_next_post(self):
+        """Assuming that a post was just created, see when the bot configuration
+        says the next post should be created.
+        """
+        how_long = None
+        if not self.schedule:
+            # The next post should happen immediately.
+            return None
+        if any(isinstance(self.schedule, x) for x in (int, float)):
+            # There should be another post in this number of minutes.
+            how_long = self.schedule
+        elif 'mean' in self.schedule:
+            # There should be another post in a random number of minutes
+            # determined by 'mean' and 'stdev'.
+            mean = int(self.schedule['mean'])
+            stdev = int(self.schedule.get('stdev', mean/5.0))
+            how_long = random.gauss(mean, stdev)
+        return _now() + datetime.timedelta(minutes=how_long)
+
+    # Methods dealing with publishing posts.
     
     def publish(self, post):
         """Push a Post to every publisher.
@@ -170,79 +262,11 @@ class Bot(object):
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
-        self.model.next_post_time = self.schedule_next_post([post])
         return publications
 
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
     
-    def schedule_next_post(self, last_posts):
-        """Determine the best value for BotModel.next_post_time, given that
-        `last_posts` were just created.
-
-        BotModel.new_posts() sets BotModel.next_post_time when it
-        creates posts, and ensures that new_posts() will not be called
-        again until after that time.
-
-        :param last_posts: A list of Posts, the most recent to be
-        created.
-        """
-        # In general, we will not start coming up with new posts again
-        # until all the posts that were just created have reached their
-        # publication time.
-        #
-        # However, some bots may have additional configuration that
-        # says when a post should happen.
-        #
-        # We pick the later of the two times.
-        latest_published = self.latest_publication_time(last_posts)
-        scheduled = self.scheduled_next_publication_time()
-        if scheduled and latest_published:
-            return max(scheduled, latest_published)
-        elif scheduled:
-            return scheduled
-        else:
-            return latest_published
-
-    def latest_publication_time(self, last_posts):
-        """The last .publish_at time in the given list of Posts."""
-        latest = None
-        for p in last_posts:
-            if not latest or (p.publish_at and p.publish_at > latest):
-                latest = p.publish_at
-
-        return latest
-
-    def scheduled_next_publication_time(self):
-        """Assuming that a post happened now, see when the bot configuration
-        says the next post should happen.
-        """
-        how_long = None
-        if not self.schedule:
-            # The next post should happen immediately.
-            return None
-        if any(isinstance(self.schedule, x) for x in (int, float)):
-            # There should be another post in this number of minutes.
-            how_long = self.schedule
-        elif 'mean' in self.schedule:
-            # There should be another post in a random number of minutes
-            # determined by 'mean' and 'stdev'.
-            mean = int(self.schedule['mean'])
-            stdev = int(self.schedule.get('stdev', mean/5.0))
-            how_long = random.gauss(mean, stdev)
-        return _now() + datetime.timedelta(minutes=how_long)
-
-    def stress_test(self, rounds):
-        """Perform a stress test of the bot's generative capabilities.
-
-        Your implementation of this method should not have any side effects.
-        It should take the current state of the bot and generate `rounds`
-        appropriate posts.
-
-        This method is provided for your convenience in testing; you do not
-        have to implement it.
-        """
-        return
 
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
@@ -264,35 +288,28 @@ class TextGeneratorBot(Bot):
             print self.generate_text()
 
 
-class StateListBot(Bot):
-    """A bot that keeps a backlog of things to post as a JSON-encoded list
-    in its .state.
+class JSONBacklogBot(Bot):
+    """A bot that draws its posts from a JSON-encoded list in its
+    .backlog.
     """
     
     def new_post(self):
-        """Pull a Post off of the list kept in .state"""
+        """Pull a Post off of the list kept in .backlog"""
         no_more_backlog = Exception("State contains no more backlog")
 
-        if not self.model.state:
+        if not self.model.backlog:
             raise no_more_backlog
-        data = self.model.json_state
-        if isinstance(data, dict):
-            backlog = data['backlog']
-        else:
-            backlog = data
+        backlog = self.model.json_backlog
+        backlog = data
         if not backlog:
             raise no_more_backlog
         new_post = backlog[0]
         remaining_posts = backlog[1:]
-        if isinstance(data, dict):
-            data['backlog'] = remaining_posts
-        else:
-            data = remaining_posts
-        self.model.set_state(json.dumps(data))
+        self.model.backlog = json.dumps(remaining_posts)
         return new_post
 
-    def set_state(self, value):
-        """We're setting the state to a specific value, probably
+    def set_backlog(self, value):
+        """We're setting the backlog to a specific value, probably
         as the result of running a script for just this purpose.
         """
         if isinstance(value, basestring):
@@ -302,16 +319,14 @@ class StateListBot(Bot):
                 as_json = json.loads(value)
                 # If that didn't raise an exception, we're good.
                 # Leave it alone.
-                if isinstance(as_json, list):
-                    as_json = dict(backlog=as_json)
             except ValueError, e:
                 # We got a newline-delimited list. Convert it to a
                 # JSON list.
                 if not isinstance(value, unicode):
                     value = value.decode("utf8")
                 value = [x for x in value.split("\n") if x.strip()]
-                value = json.dumps(dict(backlog=value))
-        self.model.set_state(value)
+                value = json.dumps(value)
+        self.model.backlog = backlog
         
     def stress_test(self, rounds):
         posts = self.model.json_state

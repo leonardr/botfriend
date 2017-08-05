@@ -370,11 +370,13 @@ class AnniversaryBot(TextGeneratorBot):
         for publisher in self.publishers:
             if publisher.service == 'twitter':
                 twitter = publisher
+                api = twitter.api
                 break
         else:
             self.log.error("No Twitter publisher configured, cannot find materials from Twitter.")
+            api = None
         self.state_manager = StateManager(
-            self.log, twitter.api, self.model.json_state
+            self.log, api, self.model.json_state
         )
 
     def update_state(self):

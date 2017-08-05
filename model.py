@@ -7,6 +7,7 @@ import os
 import sys
 import yaml
 from nose.tools import set_trace
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import (
     create_engine,
     Binary,
@@ -209,9 +210,8 @@ class BotModel(Base):
         return bot_model
 
     @property
-    def next_unpublished_posts(self):
-        """Find the already existing Post (or Posts) next in line to be
-        published.
+    def ready_scheduled_posts(self):
+        """Find all scheduled Posts that should be published now.
 
         :return: A list of Posts.
         
@@ -244,31 +244,6 @@ class BotModel(Base):
             Post.created.asc()).limit(1).all()
         return next_in_line
 
-    def next_posts(self):
-        """Find or create one or more Posts that are ready to be published.
-        Don't publish it.
-        
-        :return: A list of Posts, possibly empty.
-        """
-        now = _now()
-        unpublished = self.next_unpublished_posts
-        if unpublished:
-            return unpublished
-
-        # Maybe we should create a new post.
-        if self.next_post_time and now < self.next_post_time:
-            # Nope.
-            self.log.info("Not making new posts until %s" % (
-                self.next_post_time.strftime(TIME_FORMAT)
-            ))
-            return []
-
-        new_posts = list(self.new_posts())
-            
-        # Don't automatically use the new posts. It might not be time to publish
-        # all of them. This will find the publishable ones.
-        return self.next_unpublished_posts
-
     def new_posts(self):
         """Create one or more brand new posts.
 
@@ -300,8 +275,8 @@ class BotModel(Base):
         return new_posts
 
     @property
-    def backlog(self):
-        """All posts in the backlog, in the order they will be posted."""
+    def scheduled(self):
+        """All scheduled posts, in the order they will be posted."""
         _db = Session.object_session(self)
         qu = _db.query(Post).outerjoin(Post.publications).filter(
             Post.bot==self).filter(
@@ -351,6 +326,25 @@ class BotModel(Base):
         if not self.state:
             return self.state
         return json.loads(self.state)
+
+    @hybrid_property
+    def json_backlog(self):
+        """Try to interpret .backlog as a JSON object."""
+        if not self.backlog:
+            return self.backlog
+        return json.loads(self.backlog)
+
+    @json_backlog.setter
+    def set_json_backlog(self, backlog):
+        self.backlog = json.dumps(backlog)
+
+    def backlog_items(self, data):
+        """Convert an input string into a list of backlog items.
+
+        The default behavior is to treat each line as an individual
+        backlog item.
+        """
+        return data.split("\n")
 
     def set_state(self, new_value):
         self.state = new_value
