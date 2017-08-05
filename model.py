@@ -254,12 +254,24 @@ class BotModel(Base):
     def scheduled(self):
         """All scheduled posts, in the order they will be posted."""
         _db = Session.object_session(self)
-        qu = _db.query(Post).outerjoin(Post.publications).filter(
+
+        base_query = _db.query(Post).outerjoin(Post.publications).filter(
             Post.bot==self).filter(
-                Publication.id==None).order_by(
-                    Post.publish_at.asc(), Post.id.asc()
-                )
-        return qu
+                Publication.id==None)
+
+        # We want all scheduled posts with a specific post time to
+        # show up before scheduled posts with no specific post time.
+        #
+        # Since SQLite doesn't support NULLS LAST, this is the simplest
+        # way to do it.
+        with_publish_time = base_query.filter(
+            Post.publish_at != None).order_by(
+                Post.publish_at.asc(), Post.id.asc()
+            )
+        without_publish_time = base_query.filter(
+            Post.publish_at == None).order_by(Post.id.asc())
+        
+        return with_publish_time.all() + without_publish_time.all()
     
     def recent_posts(self, posted_after=None, require_success=True):
         """Find recently published posts.
@@ -366,6 +378,9 @@ class Post(Base):
     publications = relationship('Publication', backref='post')
     attachments = relationship('Attachment', backref='post')
 
+    def __repr__(self):
+        return "<Post %s: %s>" % (self.id, self.content)
+    
     @classmethod
     def for_external_key(cls, bot, key):
         """Find or create the Post  with the given external key.
