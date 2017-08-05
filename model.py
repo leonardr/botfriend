@@ -434,30 +434,7 @@ class Post(Base):
                 _db, Attachment, post=self, media_type=media_type,
                 content=content
             )
-        
-    def publish(self):
-        """Publish this Post to every service registered with the bot.
 
-        :return: A list of Publications.
-
-        TODO: This seems redundant with Bot.publish
-        """
-        now = _now()
-        if self.publish_at and self.publish_at >= now:
-            logging.warn(
-                "Not publishing %s until %s", self.content,
-                self.publish_at.strftime(self.TIME_FORMAT)
-            )
-            return []
-        result = self.bot.implementation.publish(self)
-
-        # If necessary, update the next scheduled post time.
-        self.next_post_time = self.bot.implementation.schedule_next_post(
-            [self]
-        )
-        return result
-
-        
 
 class Publication(Base):
     """A record that a post was published to a specific service,
@@ -482,6 +459,10 @@ class Publication(Base):
     # The most recent time we tried to publish this post.
     most_recent_attempt = Column(DateTime)
 
+    # The content that was posted to this service, if different from
+    # the content stored in Post.content
+    content = Column(string)
+    
     # The reason, if any, we couldn't publish this post. If this
     # is None, it is assumed the post was successfully published.
     error = Column(String)

@@ -253,16 +253,23 @@ class Bot(object):
 
         :return: a list of Publications.
         """
+        if post.publish_at and self.publish_at >= _now():
+            # This should never happen; the method should not have been
+            # called.
+            logging.warn(
+                "Not publishing %s until %s", post.content,
+                post.publish_at.strftime(self.TIME_FORMAT)
+            )
+            return
+        
         publications = []
         for publisher in self.publishers:
-            publication, is_new = get_one_or_create(
-                self._db, Publication, service=publisher.service,
-                post=post
+            publication, is_new = self.make_publication(
+                publisher, post
             )
             if not is_new and not publication.error:
                 # There was a previous, successful attempt to publish
                 # this Post. Skip this Publisher.
-
                 continue
             try:
                 self.post_to_publisher(publisher, post, publication)
@@ -270,8 +277,22 @@ class Bot(object):
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
+
+        # If necessary, update the next scheduled post time.
+        self.model.next_post_time = self.schedule_next_post()
         return publications
 
+    def make_publication(self, publisher, post):
+        """Create a Publication for this Publisher and this Post.
+        
+        This is your chance to modify the content of the Post for
+        different publishers.
+        """
+        return get_one_or_create(
+                self._db, Publication, service=publisher.service,
+                post=post
+        )
+    
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
     
