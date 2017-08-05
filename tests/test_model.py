@@ -1,5 +1,7 @@
 import datetime
+import json
 from nose.tools import (
+    assert_raises,
     eq_,
     set_trace,
 )
@@ -105,3 +107,76 @@ class TestBotModel(DatabaseTest):
 
         # posted_after can be either a datetime or a number of days.
         eq_([present, past], self.bot.recent_posts(published_after=2).all())
+
+    def test_undeliverable_posts(self):
+        succeeded = self._post(
+            self.bot, "succeeded", publish_at=self.the_past,
+            published=True
+        )
+
+        failed_second = self._post(
+            self.bot, "second to fail", publish_at=self.now,
+            published=True
+        )
+        
+        failed_first = self._post(
+            self.bot, "first to fail", publish_at=self.the_past,
+            published=True
+        )
+
+        [publication] = failed_first.publications
+        publication.report_failure("argh")
+
+        [publication] = failed_second.publications
+        publication.report_failure("argh")
+
+        # undeliverable_posts puts posts earlier in the list if they
+        # failed earlier.
+        eq_([failed_first, failed_second],
+            self.bot.undeliverable_posts.all())
+
+    def test_state(self):
+        eq_(None, self.bot.last_state_update_time)
+        
+        # Any JSONable object can be stored as Bot.json_state.
+        state = [1,2,3]
+        self.bot.json_state = state
+
+        updated_time = self.bot.last_state_update_time
+        assert updated_time != None
+        
+        eq_(state, self.bot.json_state)
+        eq_(json.dumps(state), self.bot.state)
+
+        # You can also just store some random string as Bot.state, but
+        # then you can't use Bot.json_state.
+        self.bot.state = "Not JSON"
+        assert_raises(ValueError, lambda: self.bot.json_state)
+
+        # Bot.last_state_update_time is updated every time you
+        # modify the state.
+        second_updated_time = self.bot.last_state_update_time
+        assert second_updated_time > updated_time
+        
+        def set():
+            self.bot.json_state = object()
+        assert_raises(TypeError, set)
+
+
+    def test_backlog(self):
+        # Any JSONable object can be stored as Bot.backlog.
+        backlog = [1,2,3]
+        self.bot.json_backlog = backlog
+
+        eq_(backlog, self.bot.json_backlog)
+        eq_(json.dumps(backlog), self.bot.backlog)
+
+        # You can also just store some random string as Bot.backlog, but
+        # then you can't use Bot.json_backlog.
+        self.bot.backlog = "Not JSON"
+        assert_raises(ValueError, lambda: self.bot.json_backlog)
+        
+        def set():
+            self.bot.json_backlog = object()
+        assert_raises(TypeError, set)
+        

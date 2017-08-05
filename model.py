@@ -140,7 +140,7 @@ class BotModel(Base):
     
     # The bot's implementation may store anything it wants in this field
     # to keep track of state between posts.
-    state = Column(String)
+    _state = Column(String, name="state")
 
     # The last time update_state() was called.
     last_state_update_time = Column(DateTime)
@@ -301,6 +301,7 @@ class BotModel(Base):
         qu = qu.order_by(Publication.most_recent_attempt.desc())
         return qu
 
+    @property
     def undeliverable_posts(self):
         """Find posts that had errrors when we tried to publish them to one or
         more publications.
@@ -320,10 +321,15 @@ class BotModel(Base):
 
     @json_state.setter
     def set_json_state(self, state):
-        self.set_state(json.dumps(state))
+        self.state = json.dumps(state)
 
+    @hybrid_property
+    def state(self):
+        return self._state
+
+    @state.setter
     def set_state(self, new_value):
-        self.state = new_value
+        self._state = new_value
         self.last_state_update_time = _now()
         
     @hybrid_property

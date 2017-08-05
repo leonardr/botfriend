@@ -93,7 +93,7 @@ class RepublicationScript(BotScript):
         return parser
     
     def process_bot(self, bot_model):
-        undelivered = bot_model.undeliverable_posts().limit(self.args.limit)
+        undelivered = bot_model.undeliverable_posts.limit(self.args.limit)
         for post in undelivered:
             for publication in post.publications:
                 if not publication.error:
