@@ -32,6 +32,11 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.ext.declarative import declarative_base
 
 
+class InvalidPost(Exception):
+    """There was a problem creating a Post which implies that any
+    Post objects created are invalid.
+    """
+
 TIME_FORMAT = "%Y-%m-%d %H:%M"
 
 def _now():
@@ -40,7 +45,8 @@ def _now():
     I've moved this into a function so I can test out whether
     local time or UTC is better for this purpose.
     """
-    return datetime.datetime.now()
+    #return datetime.datetime.now()
+    return datetime.datetime.utcnow()
 
 Base = declarative_base()
         
@@ -229,6 +235,10 @@ class BotModel(Base):
             Post.publish_at.asc()).all()
         if past_due:
             return past_due
+
+        if self.next_post_time and self.next_post_time > now:
+            # We should not be publishing anything at the moment.
+            return []
         
         next_in_line = base_query.filter(Post.publish_at == None).order_by(
             Post.created.asc()).limit(1).all()
@@ -248,13 +258,13 @@ class BotModel(Base):
         # Maybe we should create a new post.
         if self.next_post_time and now < self.next_post_time:
             # Nope.
-            self.log.info("Not posting until %s" % (
+            self.log.info("Not making new posts until %s" % (
                 self.next_post_time.strftime(TIME_FORMAT)
             ))
             return []
 
         new_posts = list(self.new_posts())
-        
+            
         # Don't automatically use the new posts. It might not be time to publish
         # all of them. This will find the publishable ones.
         return self.next_unpublished_posts
@@ -267,6 +277,7 @@ class BotModel(Base):
         
         :return: The new Posts, in a (possibly empty) list.
         """
+        now = _now()
         new_posts = self.implementation.new_post()
         if not new_posts:
             new_posts = []
@@ -275,6 +286,14 @@ class BotModel(Base):
             new_posts = [new_post]
         elif isinstance(new_posts, Post):
             new_posts = [new_posts]
+        
+        for post in new_posts:
+            if post.publish_at and post.publish_at < now:
+                raise InvalidPost(
+                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
+                        post.content.encode("ascii", errors="replace"), post.publish_at
+                    )
+                )
         self.next_post_time = self.implementation.schedule_next_post(
             new_posts
         )
@@ -290,8 +309,8 @@ class BotModel(Base):
                     Post.publish_at.asc(), Post.id.asc()
                 )
         return qu
-
-    def recent_posts(self, posted_after):
+    
+    def recent_posts(self, posted_after=None, require_success=True):
         """Find recently published posts.
 
         This can be used to ensure that a bot doesn't repeat itself.
@@ -304,11 +323,28 @@ class BotModel(Base):
             posted_after = now - datetime.timedelta(days=posted_after)
         _db = Session.object_session(self)
         qu = _db.query(Post).join(Post.publications).filter(
-            Post.bot==self).filter(Publication.most_recent_attempt >= posted_after).filter(
-                Publication.most_recent_attempt < now).filter(Publication.error==None).distinct(
-                    Post.id)
+            Post.bot==self).filter(Publication.most_recent_attempt < now)
+        if require_success:
+            qu = qu.filter(Publication.error==None)
+        if posted_after:
+            qu = qu.filter(
+                Publication.most_recent_attempt >= posted_after).distinct(
+                    Post.id
+                )
+        qu = qu.order_by(Publication.most_recent_attempt.desc())
         return qu
 
+    def undeliverable_posts(self):
+        """Find posts that had errrors when we tried to publish them to one or
+        more publications.
+        """
+        _db = Session.object_session(self)
+        return _db.query(Post).join(Post.publications).filter(
+            Post.bot==self).filter(Publication.error != None).order_by(
+                Publication.most_recent_attempt.asc()
+            )
+                
+    
     @property
     def json_state(self):
         """Try to interpret .state as a JSON object."""
@@ -316,6 +352,9 @@ class BotModel(Base):
             return self.state
         return json.loads(self.state)
 
+    def set_state(self, new_value):
+        self.state = new_value
+        self.last_state_update_time = _now()
     
 class Post(Base):
     __tablename__ = 'posts'
@@ -438,6 +477,8 @@ class Post(Base):
         """Publish this Post to every service registered with the bot.
 
         :return: A list of Publications.
+
+        TODO: This seems redundant with Bot.publish
         """
         now = _now()
         if self.publish_at and self.publish_at >= now:
@@ -446,7 +487,14 @@ class Post(Base):
                 self.publish_at.strftime(self.TIME_FORMAT)
             )
             return []
-        return self.bot.implementation.publish(self)
+        result = self.bot.implementation.publish(self)
+
+        # If necessary, update the next scheduled post time.
+        self.next_post_time = self.bot.implementation.schedule_next_post(
+            [self]
+        )
+        return result
+
         
 
 class Publication(Base):

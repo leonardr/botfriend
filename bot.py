@@ -95,7 +95,7 @@ class Bot(object):
         if force or self.state_needs_update:
             result = self.update_state()
             if result and isinstance(result, basestring):
-                self.model.state = result
+                self.set_state(result)
             self.model.last_state_update_time = _now()
             _db = Session.object_session(self.model)
             _db.commit()
@@ -121,7 +121,11 @@ class Bot(object):
         By default, does nothing.
         """
         pass
-        
+
+    def set_state(self, value):
+        """Set a bot's internal state to a specific value."""
+        self.model.set_state(value)
+    
     def new_post(self):
         """Create a brand new Post.
         
@@ -138,12 +142,11 @@ class Bot(object):
         we treat this as the literal content of a Post object that
         will be posted according to the bot's internal schedule.
 
-        :return: A Post.
+        :return: A 2-tuple (Post, is_new).
         """
-        post, is_new = Post.from_content(
-            self, content, publish_at=Post.NO_VALUE
-        )
-        return post
+        if isinstance(content, basestring):
+            content = content.decode("utf8")
+        return Post.from_content(self.model, content)
     
     def publish(self, post):
         """Push a Post to every publisher.
@@ -162,13 +165,17 @@ class Bot(object):
 
                 continue
             try:
-                publisher.publish(post, publication)
+                self.post_to_publisher(publisher, post, publication)
             except Exception, e:
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
+        self.model.next_post_time = self.schedule_next_post([post])
         return publications
 
+    def post_to_publisher(self, publisher, post, publication):
+        return publisher.publish(post, publication)
+    
     def schedule_next_post(self, last_posts):
         """Determine the best value for BotModel.next_post_time, given that
         `last_posts` were just created.
@@ -223,7 +230,7 @@ class Bot(object):
             mean = int(self.schedule['mean'])
             stdev = int(self.schedule.get('stdev', mean/5.0))
             how_long = random.gauss(mean, stdev)
-        return datetime.datetime.utcnow() + datetime.timedelta(minutes=how_long)
+        return _now() + datetime.timedelta(minutes=how_long)
 
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -256,6 +263,61 @@ class TextGeneratorBot(Bot):
         for i in range(rounds):
             print self.generate_text()
 
+
+class StateListBot(Bot):
+    """A bot that keeps a backlog of things to post as a JSON-encoded list
+    in its .state.
+    """
+    
+    def new_post(self):
+        """Pull a Post off of the list kept in .state"""
+        no_more_backlog = Exception("State contains no more backlog")
+
+        if not self.model.state:
+            raise no_more_backlog
+        data = self.model.json_state
+        if isinstance(data, dict):
+            backlog = data['backlog']
+        else:
+            backlog = data
+        if not backlog:
+            raise no_more_backlog
+        new_post = backlog[0]
+        remaining_posts = backlog[1:]
+        if isinstance(data, dict):
+            data['backlog'] = remaining_posts
+        else:
+            data = remaining_posts
+        self.model.set_state(json.dumps(data))
+        return new_post
+
+    def set_state(self, value):
+        """We're setting the state to a specific value, probably
+        as the result of running a script for just this purpose.
+        """
+        if isinstance(value, basestring):
+            # This might be a JSON list, or it might be a
+            # newline-delimited list.
+            try:
+                as_json = json.loads(value)
+                # If that didn't raise an exception, we're good.
+                # Leave it alone.
+                if isinstance(as_json, list):
+                    as_json = dict(backlog=as_json)
+            except ValueError, e:
+                # We got a newline-delimited list. Convert it to a
+                # JSON list.
+                if not isinstance(value, unicode):
+                    value = value.decode("utf8")
+                value = [x for x in value.split("\n") if x.strip()]
+                value = json.dumps(dict(backlog=value))
+        self.model.set_state(value)
+        
+    def stress_test(self, rounds):
+        posts = self.model.json_state
+        for i in range(rounds):
+            print posts[i].encode("utf8")
+    
 
 class Publisher(object):
 

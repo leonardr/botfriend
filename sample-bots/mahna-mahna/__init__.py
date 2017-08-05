@@ -12,12 +12,16 @@ class MahnaMahna(Bot):
 
     @property
     def next_workday(self):
-        """Return Monday, if it's currently the weekend, and
-        today otherwise.
+        """Return Monday, if it's currently the weekend, today, if it's before
+        9 AM, and tomorrow otherwise.
         """
         now = datetime.datetime.now()
         day = now.replace(hour=0, minute=0, second=0)
-        while day.weekday() > 5:
+        if day.weekday() > 5:
+            # Weekend.
+            while day.weekday() > 5:
+                day += datetime.timedelta(days=1)
+        elif now.hour > 8:
             day += datetime.timedelta(days=1)
         return day
     
