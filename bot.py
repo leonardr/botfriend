@@ -148,8 +148,8 @@ class Bot(object):
         """Update the bot's internal state, assuming it needs to be updated."""
         if force or self.state_needs_update:
             result = self.update_state()
-            if result and isinstance(result, basestring):
-                self.set_state(result)
+            if result:
+                self.state = result
             self.model.last_state_update_time = _now()
             _db = Session.object_session(self.model)
             _db.commit()
@@ -175,10 +175,6 @@ class Bot(object):
         By default, does nothing.
         """
         pass
-
-    def set_state(self, value):
-        """Set a bot's internal state to a specific value."""
-        self.model.set_state(value)
 
     # Methods dealing with backlog posts
         
@@ -210,13 +206,10 @@ class Bot(object):
     
     def schedule_posts(self):
         """Create some number of posts to be published at specific times.
-        
-        By default, this does nothing. This is an advanced feature for
-        bots like Mahna Mahna that need to post at specific
-        times. Most bots should be able to use the default scheduler,
-        and either generate posts on demand or put posts into
-        Bot.backlog.
 
+        It's better to override do_schedule_posts() -- this method
+        just calls that method and does some error checking.
+        
         :return: A list of newly scheduled Posts.
 
         """
@@ -230,6 +223,16 @@ class Bot(object):
                 )
         retun scheduled
 
+    def do_schedule_posts(self):
+        """
+        By default, this does nothing. This is an advanced feature for
+        bots like Mahna Mahna that need to post at specific
+        times. Most bots should be able to use the default scheduler,
+        and either generate posts on demand or put posts into
+        Bot.backlog.
+        """
+        return []
+        
     def schedule_next_post(self):
         """Assuming that a post was just created, see when the bot configuration
         says the next post should be created.
