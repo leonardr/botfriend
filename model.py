@@ -108,11 +108,17 @@ def get_one_or_create(db, model, create_method='',
             return db.query(model).filter_by(**kwargs).one(), False
 
 
-def production_session(filename):
-    """Get a database connection to the SQLite database at `filename`."""
+def engine(filename):
+    """Return an engine for and database connection to the
+    SQLite database at `filename`.
+    """
     engine = create_engine('sqlite:///%s' % filename, echo=False)
     Base.metadata.create_all(engine)
-    connection = engine.connect()
+    return engine, engine.connect()    
+        
+def production_session(filename):
+    """Get a database connection to the SQLite database at `filename`."""
+    engine, connection = engine(filename)
     session = Session(connection)
     return session
 
@@ -461,7 +467,7 @@ class Publication(Base):
 
     # The content that was posted to this service, if different from
     # the content stored in Post.content
-    content = Column(string)
+    content = Column(String)
     
     # The reason, if any, we couldn't publish this post. If this
     # is None, it is assumed the post was successfully published.
