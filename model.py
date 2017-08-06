@@ -216,6 +216,11 @@ class BotModel(Base):
         return bot_model
 
     @property
+    def should_make_new_post(self):
+        """Is it time to publish a brand new post?"""
+        return not self.next_post_time or self.next_post_time < _now()
+
+    @property
     def ready_scheduled_posts(self):
         """Find all scheduled Posts that should be published now.
 
@@ -242,10 +247,8 @@ class BotModel(Base):
         if past_due:
             return past_due
 
-        if self.next_post_time and self.next_post_time > now:
-            # We should not be publishing anything at the moment.
+        if not self.should_make_new_post:
             return []
-        
         next_in_line = base_query.filter(Post.publish_at == None).order_by(
             Post.created.asc()).limit(1).all()
         return next_in_line

@@ -82,10 +82,13 @@ class Bot(object):
             # One or more scheduled posts need to be published immediately.
             return posts
 
-        if self.model.next_post_time and self.model.next_post_time < _now():
-            # It's not time to create a new post yet.
+        if not self.model.should_make_new_post:
+            # It's not time to make a new post.
             return []
 
+        # Beyond this point, we either have something to post or we
+        # want to make a new post.
+        
         # Look in the backlog for an object we can convert into a post.
         posts = self.model.pop_backlog()
         if not posts:
@@ -96,21 +99,22 @@ class Bot(object):
             # We didn't do any work. Return immediately so as not to
             # update BotModel.next_post_time
             return []
-        if isinstance(posts, Post):
-            # We made a single Post.
-            posts = [posts]
-        elif (isinstance(posts, list)
-              and all(isinstance(x, Post) for x in posts)):
-            # We made a number of Posts.
-            pass
-        else:
-            # We found an object that should be turned into a Post.
-            posts = self.object_to_post(posts)
-            if isinstance(posts, Post):
-                posts = [posts]
+        return self._to_post_list(posts)
 
-        self.model.next_post_time = self.schedule_next_post()
+    def _to_post_list(self, obj):
+        """Take the output of a post generation process and make
+        sure it becomes a list of Posts.
+        """
+        if isinstance(obj, Post):
+            return [obj]
+        if (isinstance(obj, list) and
+            all(isinstance(x, Post) for x in obj)):
+            return obj
+        posts = self.object_to_post(posts)
+        if isinstance(posts, Post):
+            posts = [posts]
         return posts
+        
     
     def new_post(self):
         """Create a new post for immediate publication.
@@ -150,7 +154,6 @@ class Bot(object):
             result = self.update_state()
             if result:
                 self.state = result
-            self.model.last_state_update_time = _now()
             _db = Session.object_session(self.model)
             _db.commit()
             return True
@@ -167,7 +170,7 @@ class Bot(object):
             minutes=self.state_update_schedule
         )
         last_update = self.model.last_state_update_time
-        return not last_update  or last_update > now
+        return not last_update or now > update_at
 
     def update_state(self):
         """Update a bot's internal state.
@@ -183,20 +186,20 @@ class Bot(object):
         """Return a bot's backlog as a list of strings."""
         return self.model.json_backlog
         
-    def extend_backlog(self, data):
+    def extend_backlog(self, items):
         """Add data to a bot's backlog."""
         backlog = self.model.json_backlog
-        items = self.backlog_items(data)
+        items = self.backlog_item(data)
         backlog.extend(items)
         self.model.json_backlog = backlog
 
     def backlog_items(self, data):
-        """Convert an input string into a list of backlog items.
+        """Convert an input string into a backlog item.
 
-        The default behavior is to treat each line as an individual
-        backlog item.
+        The default behavior is to treat the line as the content for
+        the backlog item.
         """
-        return data.split("\n")
+        return data
         
     def clear_backlog(self):
         """Clear a bot's backlog."""
@@ -211,9 +214,9 @@ class Bot(object):
         just calls that method and does some error checking.
         
         :return: A list of newly scheduled Posts.
-
         """
         scheduled = self._schedule_posts()
+        now = _now()
         for post in scheduled:
             if post.publish_at and post.publish_at < now:
                 raise InvalidPost(
@@ -233,10 +236,14 @@ class Bot(object):
         """
         return []
         
-    def schedule_next_post(self):
+    def next_scheduled_post(self):
         """Assuming that a post was just created, see when the bot configuration
         says the next post should be created.
         """
+        return _now() + self._schedule_next_post
+
+    @property
+    def _next_scheduled_post(self):
         how_long = None
         if not self.schedule:
             # The next post should happen immediately.
@@ -250,7 +257,7 @@ class Bot(object):
             mean = int(self.schedule['mean'])
             stdev = int(self.schedule.get('stdev', mean/5.0))
             how_long = random.gauss(mean, stdev)
-        return _now() + datetime.timedelta(minutes=how_long)
+        return datetime.timedelta(minutes=how_long)
 
     # Methods dealing with publishing posts.
     
@@ -259,7 +266,7 @@ class Bot(object):
 
         :return: a list of Publications.
         """
-        if post.publish_at and self.publish_at >= _now():
+        if post.publish_at and self.publish_at > _now():
             # This should never happen; the method should not have been
             # called.
             logging.warn(
@@ -284,8 +291,8 @@ class Bot(object):
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
 
-        # If necessary, update the next scheduled post time.
-        self.model.next_post_time = self.schedule_next_post()
+        # Update the time at which we will try to publish the next post.
+        self.model.next_post_time = self.next_scheduled_post()
         return publications
 
     def make_publication(self, publisher, post):
@@ -295,8 +302,8 @@ class Bot(object):
         different publishers.
         """
         return get_one_or_create(
-                self._db, Publication, service=publisher.service,
-                post=post
+            self._db, Publication, service=publisher.service,
+            post=post
         )
     
     def post_to_publisher(self, publisher, post, publication):
