@@ -167,3 +167,27 @@ class TestBot(DatabaseTest):
                 return [post]
         bot = self._bot(PastBot)
         assert_raises(InvalidPost, bot.schedule_posts)
+
+    def test_next_scheduled_post(self):
+        bot = self._bot()
+
+        # If there is no schedule, a Bot will either create a new post
+        # every time it's invoked (not a good idea), or posts must be
+        # scheduled in advance using some other mechanism.
+        bot.schedule = None
+        eq_(None, bot._next_scheduled_post)
+
+        # If the schedule is a number, a Bot will create a new post
+        # every [that number] of minutes.
+        bot.schedule = 5
+        delta = bot._next_scheduled_post
+        assert isinstance(delta, datetime.timedelta)
+        eq_(5*60, delta.seconds)
+
+        # If the schedule is a dictionary with values 'mean' and 'stdev',
+        # a Bot will create posts in a Gaussian distribution with those numbers
+        # as mean and standard deviation.
+        bot.schedule = dict(mean=6, stdev=0)
+        delta = bot._next_scheduled_post
+        assert isinstance(delta, datetime.timedelta)
+        eq_(6*60, delta.seconds)

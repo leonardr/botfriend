@@ -235,7 +235,7 @@ class Bot(object):
     def schedule_posts(self):
         """Create some number of posts to be published at specific times.
 
-        It's better to override do_schedule_posts() -- this method
+        It's better to override _schedule_posts() -- this method
         just calls that method and does some error checking.
         
         :return: A list of newly scheduled Posts.
