@@ -357,52 +357,6 @@ class TextGeneratorBot(Bot):
     def stress_test(self, rounds):
         for i in range(rounds):
             print self.generate_text()
-
-
-class JSONBacklogBot(Bot):
-    """A bot that draws its posts from a JSON-encoded list in its
-    .backlog.
-    """
-    
-    def new_post(self):
-        """Pull a Post off of the list kept in .backlog"""
-        no_more_backlog = Exception("State contains no more backlog")
-
-        if not self.model.backlog:
-            raise no_more_backlog
-        backlog = self.model.json_backlog
-        backlog = data
-        if not backlog:
-            raise no_more_backlog
-        new_post = backlog[0]
-        remaining_posts = backlog[1:]
-        self.model.backlog = json.dumps(remaining_posts)
-        return new_post
-
-    def set_backlog(self, value):
-        """We're setting the backlog to a specific value, probably
-        as the result of running a script for just this purpose.
-        """
-        if isinstance(value, basestring):
-            # This might be a JSON list, or it might be a
-            # newline-delimited list.
-            try:
-                as_json = json.loads(value)
-                # If that didn't raise an exception, we're good.
-                # Leave it alone.
-            except ValueError, e:
-                # We got a newline-delimited list. Convert it to a
-                # JSON list.
-                if not isinstance(value, unicode):
-                    value = value.decode("utf8")
-                value = [x for x in value.split("\n") if x.strip()]
-                value = json.dumps(value)
-        self.model.backlog = backlog
-        
-    def stress_test(self, rounds):
-        posts = self.model.json_state
-        for i in range(rounds):
-            print posts[i].encode("utf8")
     
 
 class Publisher(object):
