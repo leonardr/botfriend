@@ -1,10 +1,13 @@
 import datetime
 from nose.tools import (
+    assert_raises,
     eq_,
     set_trace,
 )
 from . import DatabaseTest
+from bot import Bot
 from model import (
+    InvalidPost,
     Post,
     _now,
 )
@@ -73,4 +76,53 @@ class TestBot(DatabaseTest):
         # publishable_posts once. They will stick around until they're
         # published.
         eq_([publish_earlier, publish_yesterday], bot.publishable_posts)
-        
+
+    def test_to_post_list(self):
+        """Test the method that handles the output of new_post."""
+
+        class ModifierBot(Bot):
+            def object_to_post(self, obj):
+                return obj + "!"
+
+        bot = self._bot(ModifierBot)
+        m = bot._to_post_list
+        post = self._post()
+
+        # A bot can turn an object (such as a backlog object) into a post
+        # by creating the Post object, or a list of posts.
+        eq_([post], m(post))
+        eq_([post], m([post]))
+
+        # A bot can also create a Post by defining object_to_post to
+        # return a string.  publishable_posts takes care of actually
+        # converting it into a post.
+        [modified_post] = m("A string")
+        assert isinstance(modified_post, Post)
+        eq_("A string!", modified_post.content)
+
+        # It's also okay for object_to_post to return the actual Post object.
+        class PostBot(Bot):
+            def object_to_post(self, obj):
+                post, is_new = Post.from_content(self.model, obj)
+                return post
+        bot = self._bot(PostBot)
+        [post] = bot._to_post_list("A string")
+        assert isinstance(modified_post, Post)
+        eq_("A string", post.content)
+
+        # Or a list of Post objects.
+        class PostBot(Bot):
+            def object_to_post(self, obj):
+                post, is_new = Post.from_content(self.model, obj)
+                return [post]
+        [post] = self._bot(PostBot)._to_post_list("A string")
+        assert isinstance(modified_post, Post)
+        eq_("A string", post.content)
+
+        # No other type of value is acceptable.
+        class PostBot(Bot):
+            def object_to_list(self, obj):
+                return dict(value=obj)
+        assert_raises(
+            InvalidPost, self._bot(PostBot)._to_post_list, ["A complicated value"]
+        )

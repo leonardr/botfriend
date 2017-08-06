@@ -35,7 +35,7 @@ class MockBot(Bot, HasCounter):
         self.stress_tested = False
         
     def new_post(self):
-        post = self._id
+        post = self._str
         self.new_posts.append(post)
         return post
 

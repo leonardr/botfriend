@@ -8,6 +8,7 @@ import requests
 from nose.tools import set_trace
 from model import (
     get_one_or_create,
+    InvalidPost,
     Post,
     Publication,
     _now,
@@ -113,17 +114,30 @@ class Bot(object):
         """Take the output of a post generation process and make
         sure it becomes a list of Posts.
         """
+        def is_list_of_posts(posts):
+            return (
+                isinstance(posts, list) and
+                all(isinstance(i, Post) for i in posts)
+            )
+        
         if isinstance(obj, Post):
             # It's already a Post.
             return [obj]
-        if (isinstance(obj, list) and
-            all(isinstance(x, Post) for x in obj)):
+        if is_list_of_posts(obj):
             # It's already a list of Posts.
             return obj
         posts = self.object_to_post(obj)
+        if isinstance(posts, basestring):
+            post, is_new = Post.from_content(self.model, posts)
+            return [post]
         if isinstance(posts, Post):
-            posts = [posts]
-        return posts
+            return [posts]
+        if is_list_of_posts(posts):
+            # It's already a list of Posts.
+            return posts
+        raise InvalidPost(
+            "object_to_post must return a Post or a list containing only Posts. (got %r)" % posts
+        )
         
     
     def new_post(self):
@@ -143,8 +157,7 @@ class Bot(object):
         The default implementation assumes `obj` is a string to be used
         as the content of the post.
         """
-        post, is_new = Post.from_content(self.model, obj)
-        return post
+        return obj
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
