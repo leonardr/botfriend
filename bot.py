@@ -228,7 +228,7 @@ class Bot(object):
         
     def clear_backlog(self):
         """Clear a bot's backlog."""
-        self.model.backlog = None
+        self.model.backlog = []
         
     # Methods dealing with scheduling posts.
     

@@ -40,6 +40,23 @@ class TestBot(DatabaseTest):
         eq_(True, bot.state_updated)
         eq_(False, bot.state_needs_update)
 
+    def test_backlog(self):
+        bot = self._bot()
+        eq_([], bot.backlog)
+        item = {"k": "v"}
+
+        # By default, items are stored in the backlog as is.
+        eq_(item, bot.backlog_item(item))
+
+        # Backlog items are transparently serialized and deserialized
+        # to JSON.
+        bot.extend_backlog([item])
+        eq_([item], bot.backlog)
+
+        bot.clear_backlog()
+        eq_([], bot.backlog)
+
+        
     def test_publishable_posts_pops_backlog(self):
         bot = self._bot()
         bot.extend_backlog(["backlog_1", "backlog_2"])
