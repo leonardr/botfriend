@@ -165,7 +165,7 @@ class Bot(object):
         if force or self.state_needs_update:
             result = self.update_state()
             if result:
-                self.state = result
+                self.model.state = result
             _db = Session.object_session(self.model)
             _db.commit()
             return True
