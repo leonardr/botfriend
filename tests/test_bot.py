@@ -1,3 +1,4 @@
+import datetime
 from nose.tools import (
     eq_,
     set_trace,
@@ -5,6 +6,7 @@ from nose.tools import (
 from . import DatabaseTest
 from model import (
     Post,
+    _now,
 )
 
 class TestBot(DatabaseTest):
@@ -45,3 +47,30 @@ class TestBot(DatabaseTest):
         # so publishable_posts doesn't pop it.
         eq_(["backlog_2"], bot.backlog)
         eq_([], bot.publishable_posts)
+
+    def test_publishable_posts_returns_all_scheduled_posts(self):
+        bot = self._bot()
+        now = _now()
+        yesterday = now - datetime.timedelta(days=1)
+        day_before = now - datetime.timedelta(days=2)
+        tomorrow = now + datetime.timedelta(days=1)
+        publish_yesterday = self._post(
+            bot.model, "yesterday", publish_at=yesterday
+        )
+        publish_earlier = self._post(
+            bot.model, "day before", publish_at=day_before
+        )
+        publish_later = self._post(
+            bot.model, "tomorrow", publish_at=tomorrow
+        )
+
+        # publishable_posts returns all posts that should have been
+        # published by now.
+        eq_([publish_earlier, publish_yesterday], bot.publishable_posts)
+
+        # Since the scheduled posts weren't _created_ by the
+        # publishable_posts, they don't go away when you call
+        # publishable_posts once. They will stick around until they're
+        # published.
+        eq_([publish_earlier, publish_yesterday], bot.publishable_posts)
+        
