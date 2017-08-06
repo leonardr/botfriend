@@ -40,4 +40,8 @@ class TestBot(DatabaseTest):
         bot.extend_backlog(["backlog_1", "backlog_2"])
         [post1] = bot.publishable_posts
         eq_("backlog_1", post1.content)
+
+        # There's still a backlog item, but it's not time for another post,
+        # so publishable_posts doesn't pop it.
         eq_(["backlog_2"], bot.backlog)
+        eq_([], bot.publishable_posts)
