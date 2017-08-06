@@ -118,7 +118,7 @@ def engine(filename):
         
 def production_session(filename):
     """Get a database connection to the SQLite database at `filename`."""
-    engine, connection = engine(filename)
+    e, connection = engine(filename)
     session = Session(connection)
     return session
 

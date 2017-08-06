@@ -153,21 +153,18 @@ class DashboardScript(BotScript):
                     
         # Announce scheduled posts.
         scheduled = bot_model.scheduled
-        count = scheduled.count()
         next_post_time = bot_model.next_post_time
-        if count:
-            first = scheduled.limit(1).one()
+        if len(scheduled) > 0:
+            first = scheduled[0]
             announce_list(backlog, count, first.content, "scheduled")
             next_post_time = next_item.publish_at or bot_model.next_post_time
 
         # Announce backlog posts.
         try:
-            backlog = bot_model.json_backlog
-            if isinstance(backlog, list):
-                count = len(backlog)
-                if count:
-                    first = backlog[0]
-                    announce_list(backlog, count, first, "in backlog")
+            backlog = bot_model.backlog
+            if backlog:
+                first = backlog[0]
+                announce_list(backlog, count, first, "in backlog")
         except ValueError, e:
             pass
         
