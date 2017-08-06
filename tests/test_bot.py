@@ -34,3 +34,10 @@ class TestBot(DatabaseTest):
         bot.publishable_posts
         eq_(True, bot.state_updated)
         eq_(False, bot.state_needs_update)
+
+    def test_publishable_posts_pops_backlog(self):
+        bot = self._bot()
+        bot.extend_backlog(["backlog_1", "backlog_2"])
+        [post1] = bot.publishable_posts
+        eq_("backlog_1", post1.content)
+        eq_(["backlog_2"], bot.backlog)

@@ -201,8 +201,8 @@ class Bot(object):
     def extend_backlog(self, items):
         """Add data to a bot's backlog."""
         backlog = self.model.json_backlog
-        items = self.backlog_item(data)
-        backlog.extend(items)
+        for item in items:
+            backlog.append(self.backlog_item(item))
         self.model.json_backlog = backlog
 
     def backlog_items(self, data):
