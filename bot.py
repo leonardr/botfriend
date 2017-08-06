@@ -67,8 +67,9 @@ class Bot(object):
         return value
 
     # Methods dealing with creating new posts
-    
-    def postable(self):
+
+    @property
+    def publishable_posts(self):
         """Find the Posts that can be published right now, creating a new one
         if necessary.
 
@@ -96,9 +97,16 @@ class Bot(object):
             posts = self.new_post()
         
         if not posts:
-            # We didn't do any work. Return immediately so as not to
-            # update BotModel.next_post_time
+            # We didn't actually do any work. (This probably shouldn't
+            # happen.) Return immediately so as not to update the post
+            # schedule.
             return []
+
+        # Schedule the next post time. This will hopefully be
+        # overwritten after the new posts are published, but doing it
+        # now prevents a large number of unpublishable posts from being
+        # created when a publisher isn't working.
+        self.schedule_next_post()
         return self._to_post_list(posts)
 
     def _to_post_list(self, obj):
@@ -106,11 +114,13 @@ class Bot(object):
         sure it becomes a list of Posts.
         """
         if isinstance(obj, Post):
+            # It's already a Post.
             return [obj]
         if (isinstance(obj, list) and
             all(isinstance(x, Post) for x in obj)):
+            # It's already a list of Posts.
             return obj
-        posts = self.object_to_post(posts)
+        posts = self.object_to_post(obj)
         if isinstance(posts, Post):
             posts = [posts]
         return posts
@@ -130,9 +140,11 @@ class Bot(object):
         """Turn an object retrieved from backlog or from new_post(), into a
         Post object.
 
-        The default implementation assumes `obj` is a string.
+        The default implementation assumes `obj` is a string to be used
+        as the content of the post.
         """
-        return Post.from_content(obj)
+        post, is_new = Post.from_content(self.model, obj)
+        return post
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -224,7 +236,7 @@ class Bot(object):
                         post.content.encode("ascii", errors="replace"), post.publish_at
                     )
                 )
-        retun scheduled
+        return scheduled
 
     def do_schedule_posts(self):
         """
@@ -236,17 +248,19 @@ class Bot(object):
         """
         return []
         
-    def next_scheduled_post(self):
-        """Assuming that a post was just created, see when the bot configuration
-        says the next post should be created.
+    def schedule_next_post(self):
+        """Assuming that a post was just published, set the time at which the
+        next post should be published.
         """
-        return _now() + self._schedule_next_post
+        self.model.next_post_time = _now() + self._next_scheduled_post
 
     @property
     def _next_scheduled_post(self):
         how_long = None
         if not self.schedule:
-            # The next post should happen immediately.
+            # This bot schedules individual posts in advance rather than
+            # relying on a timer-based schedule. Posts should happen as
+            # they're scheduled.
             return None
         if any(isinstance(self.schedule, x) for x in (int, float)):
             # There should be another post in this number of minutes.
@@ -292,7 +306,7 @@ class Bot(object):
             publications.append(publication)
 
         # Update the time at which we will try to publish the next post.
-        self.model.next_post_time = self.next_scheduled_post()
+        self.schedule_next_post()
         return publications
 
     def make_publication(self, publisher, post):

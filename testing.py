@@ -9,9 +9,43 @@ from model import (
     Post,
     Publication,
 )
+from bot import (
+    Bot,
+)
 
 
-class DatabaseTest(object):
+class HasCounter(object):
+    @property
+    def _id(self):
+        self.counter += 1
+        return self.counter
+
+    @property
+    def _str(self):
+        return unicode(self._id)
+
+class MockBot(Bot, HasCounter):
+
+    def __init__(self, *args, **kwargs):
+        super(MockBot, self).__init__(*args, **kwargs)
+        self.new_posts = []
+        self.counter = 2000
+        self.state_updated = False
+        self.stress_tested = False
+        
+    def new_post(self):
+        post = self._id
+        self.new_posts.append(post)
+        return post
+
+    def update_state(self):
+        self.state_updated = True
+    
+    def stress_test(self):
+        self.stress_tested = True
+    
+
+class DatabaseTest(HasCounter):
 
     # These variables are set appropriately by package_setup.
     engine = None
@@ -38,20 +72,17 @@ class DatabaseTest(object):
         self.transaction.rollback()
 
     @property
-    def _id(self):
-        self.counter += 1
-        return self.counter
-
-    @property
-    def _str(self):
-        return unicode(self._id)
-
-    @property
     def _time(self):
         v = self.time_counter 
         self.time_counter = self.time_counter + timedelta(days=1)
         return v
 
+    def _bot(self, cls=MockBot, botmodel=None, directory=None, config=None):
+        botmodel = botmodel or self._botmodel()
+        directory = directory or self._str + '/' + self._str
+        config = config or dict(schedule=1)
+        return cls(botmodel, directory, config)
+    
     def _botmodel(self, name=None):
         name = name or self._str
         bot, is_new = get_one_or_create(
@@ -88,7 +119,7 @@ class DatabaseTest(object):
             if post.publish_at:
                 publication.first_attempt = publication.most_recent_attempt = post.publish_at
         return publication
-
+    
     
 def package_setup():
     """Initialize an in-memory SQLite database to be used by
