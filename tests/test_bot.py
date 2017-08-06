@@ -143,3 +143,27 @@ class TestBot(DatabaseTest):
         assert_raises(
             InvalidPost, self._bot(PostBot)._to_post_list, ["A complicated value"]
         )
+
+    def test_post_can_only_be_scheduled_for_the_future(self):
+
+        # You can schedule a post for the future.
+        class FutureBot(Bot):
+            def _schedule_posts(self):
+                tomorrow = _now() + datetime.timedelta(days=1)
+                post, is_new = Post.from_content(
+                    self.model, "the future!", publish_at=tomorrow
+                )
+                return post
+        bot = self._bot(FutureBot)
+        eq_(["the future!"], [x.content for x in bot.schedule_posts()])
+            
+        # But not for the past.
+        class PastBot(Bot):
+            def _schedule_posts(self):
+                yesterday = _now() - datetime.timedelta(days=1)
+                post, is_new = Post.from_content(
+                    self.model, "the past!", publish_at=yesterday
+                )
+                return [post]
+        bot = self._bot(PastBot)
+        assert_raises(InvalidPost, bot.schedule_posts)

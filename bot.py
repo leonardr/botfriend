@@ -241,6 +241,8 @@ class Bot(object):
         :return: A list of newly scheduled Posts.
         """
         scheduled = self._schedule_posts()
+        if isinstance(scheduled, Post):
+            scheduled = [scheduled]
         now = _now()
         for post in scheduled:
             if post.publish_at and post.publish_at < now:
@@ -251,7 +253,7 @@ class Bot(object):
                 )
         return scheduled
 
-    def do_schedule_posts(self):
+    def _schedule_posts(self):
         """
         By default, this does nothing. This is an advanced feature for
         bots like Mahna Mahna that need to post at specific
