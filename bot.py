@@ -196,16 +196,16 @@ class Bot(object):
     @property
     def backlog(self):
         """Return a bot's backlog as a list of strings."""
-        return self.model.json_backlog
+        return self.model.backlog
         
     def extend_backlog(self, items):
         """Add data to a bot's backlog."""
-        backlog = self.model.json_backlog
+        backlog = self.model.backlog
         for item in items:
             backlog.append(self.backlog_item(item))
-        self.model.json_backlog = backlog
+        self.model.backlog = backlog
 
-    def backlog_items(self, data):
+    def backlog_item(self, data):
         """Convert an input string into a backlog item.
 
         The default behavior is to treat the line as the content for
