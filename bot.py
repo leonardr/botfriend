@@ -252,7 +252,9 @@ class Bot(object):
         """Assuming that a post was just published, set the time at which the
         next post should be published.
         """
-        self.model.next_post_time = _now() + self._next_scheduled_post
+        how_long = self._next_scheduled_post
+        if how_long:
+            self.model.next_post_time = _now() + how_long
 
     @property
     def _next_scheduled_post(self):
