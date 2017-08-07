@@ -198,9 +198,10 @@ class PostScript(BotScript):
         return parser
     
     def process_bot(self, bot_model):
+        implementation = bot_model.implementation
         if self.args.force:
             bot_model.next_post_time = _now()
-        posts = bot_model.implementation.postable()
+        posts = implementation.publishable_posts
         if self.args.dry_run:
             print bot_model.name
             for post in posts:
@@ -210,7 +211,7 @@ class PostScript(BotScript):
 
         # We're doing this for real.
         for post in posts:
-            for publication in post.publish():
+            for publication in implementation.publish(post):
                 publication.post.bot.log.info(publication.display())
         self.config._db.commit()
 

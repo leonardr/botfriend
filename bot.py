@@ -295,7 +295,7 @@ class Bot(object):
 
         :return: a list of Publications.
         """
-        if post.publish_at and self.publish_at > _now():
+        if post.publish_at and post.publish_at > _now():
             # This should never happen; the method should not have been
             # called.
             logging.warn(
