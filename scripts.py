@@ -156,8 +156,8 @@ class DashboardScript(BotScript):
         next_post_time = bot_model.next_post_time
         if len(scheduled) > 0:
             first = scheduled[0]
-            announce_list(backlog, count, first.content, "scheduled")
-            next_post_time = next_item.publish_at or bot_model.next_post_time
+            announce_list(len(scheduled), first.content, "scheduled")
+            next_post_time = first.publish_at or bot_model.next_post_time
 
         # Announce backlog posts.
         try:

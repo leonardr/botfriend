@@ -526,6 +526,8 @@ class RetweetBot(Bot):
 
     def score(self, tweet):
         """Calculate a semi-arbitrary score for this tweet."""
+        if not tweet:
+            return 0
         return (
             tweet.retweet_count*self.RETWEET_COEFFICIENT
         ) + tweet.favorite_count
@@ -540,6 +542,9 @@ class RetweetBot(Bot):
         timeline = self.twitter.user_timeline(**kwargs)
         max_id = None
         most_popular = None
+        if not timeline:
+            # No tweets since last time. Do nothing.
+            return
         for tweet in timeline:
             if not max_id or tweet.id > max_id:
                 max_id = tweet.id
