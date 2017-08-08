@@ -332,6 +332,8 @@ class BotModel(Base):
 
     @state.setter
     def set_state(self, new_value):
+        if not isinstance(new_value, basestring):
+            new_value = json.dumps(new_value)
         self._state = new_value
         self.last_state_update_time = _now()
         

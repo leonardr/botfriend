@@ -173,7 +173,7 @@ class DashboardScript(BotScript):
             if minutes < 0:
                 when = "ASAP"
             else:
-                when = "in %dm"
+                when = "in %dm" % minutes
             bot_model.log.info("Next post %s" % when)
         else:
             bot_model.log.info("Next post not scheduled.")
