@@ -1,5 +1,6 @@
 from nose.tools import set_trace
 from argparse import ArgumentParser
+import logging
 import sys
 import time
 
@@ -18,6 +19,8 @@ class Script(object):
 class BotScript(Script):
     """A script that operates on one or more bots."""
 
+    log = logging.getLogger("Bot script")
+    
     @classmethod
     def parser(cls):
         parser = ArgumentParser()
@@ -39,12 +42,10 @@ class BotScript(Script):
         self.config = Configuration.from_directory(self.args.config, self.args.bot)
 
     def run(self):
+        found = False
         for model in self.config.bots:
-            if self.args.bot and not any(x in self.args.bot for x in (model.name, model.implementation.module_name)):
-                # We're processing specific bots, and this one isn't
-                # mentioned.
-                continue
             try:
+                found = True
                 self.process_bot(model)
             except InvalidPost, e:
                 # This _should_ crash the whole script -- we don't
@@ -54,6 +55,10 @@ class BotScript(Script):
                 # Don't let a 'normal' error crash the whole script.
                 model.implementation.log.error(e.message, exc_info=e)
         self.config._db.commit()
+        if not found:
+            self.log.error("Could not find any bot named %s in %s.",
+                           self.args.bot, self.config.directory
+            )
         
     def process_bot(self, bot_model):
         raise NotImplementedError()
@@ -340,9 +345,12 @@ class BacklogLoadScript(SingleBotScript):
             fh = open(self.args.file)
         else:
             fh = sys.stdin
-        data = fh.read().decode("utf8")
-        bot_model.implementation.extend_backlog(data)
-    
+        # Process one backlog item per line of the input file.
+        items = [x.strip().decode("utf8") for x in fh.readlines()]
+        bot_model.implementation.extend_backlog(items)
+        self.log.info("Appended %d items to backlog." % len(items))
+        self.log.info("Backlog size now %d items" % len(bot_model.backlog))
+        
 class BacklogClearScript(SingleBotScript):
 
     def process_bot(self, bot_model):
@@ -355,7 +363,7 @@ class BacklogClearScript(SingleBotScript):
                 "Sleeping for 2 seconds to give you a chance to Ctrl-C."
             )
             time.sleep(2)
-            bot.clear_backlog()
+            bot_model.implementation.clear_backlog()
                 
 class ScheduledPostsShowScript(BotScript):
     """Show the scheduled posts for a bot."""

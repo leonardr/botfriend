@@ -210,9 +210,8 @@ class Bot(object):
     def backlog(self):
         """Return a bot's backlog as a list of strings."""
         return self.model.backlog
-        
+
     def extend_backlog(self, items):
-        """Add data to a bot's backlog."""
         backlog = self.model.backlog
         for item in items:
             backlog.append(self.backlog_item(item))

@@ -28,7 +28,7 @@ logging.basicConfig(
 class Configuration(object):
     """Encapsulates all configuration for a botfriend installation."""
 
-    def __init__(self, _db, bots):
+    def __init__(self, _db, bots, directory=''):
         """Constructor.
 
         :param _db: A connection to the database.
@@ -36,7 +36,8 @@ class Configuration(object):
         """
         self._db = _db
         self.bots = bots
-
+        self.directory = directory
+        
     @classmethod
     def from_directory(cls, directory, consider_only=None):
         """Load database and configuration from a directory on disk.
@@ -94,5 +95,5 @@ class Configuration(object):
                     seen_names.add(botmodel.name)
                     botmodels.append(botmodel)
                     
-        return Configuration(_db, botmodels)
+        return Configuration(_db, botmodels, directory)
                 
