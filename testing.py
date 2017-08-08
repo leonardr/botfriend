@@ -1,3 +1,4 @@
+from nose.tools import set_trace
 from datetime import datetime
 from sqlalchemy.orm.session import Session
 from model import (
@@ -34,13 +35,14 @@ class MockBot(Bot, HasCounter):
         self.stress_tested = False
         
     def new_post(self):
-        post = self._id
+        post = self._str
         self.new_posts.append(post)
         return post
 
     def update_state(self):
         self.state_updated = True
-    
+        return "state"
+        
     def stress_test(self):
         self.stress_tested = True
     

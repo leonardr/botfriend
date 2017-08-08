@@ -8,6 +8,7 @@ import requests
 from nose.tools import set_trace
 from model import (
     get_one_or_create,
+    InvalidPost,
     Post,
     Publication,
     _now,
@@ -113,17 +114,30 @@ class Bot(object):
         """Take the output of a post generation process and make
         sure it becomes a list of Posts.
         """
+        def is_list_of_posts(posts):
+            return (
+                isinstance(posts, list) and
+                all(isinstance(i, Post) for i in posts)
+            )
+        
         if isinstance(obj, Post):
             # It's already a Post.
             return [obj]
-        if (isinstance(obj, list) and
-            all(isinstance(x, Post) for x in obj)):
+        if is_list_of_posts(obj):
             # It's already a list of Posts.
             return obj
         posts = self.object_to_post(obj)
+        if isinstance(posts, basestring):
+            post, is_new = Post.from_content(self.model, posts)
+            return [post]
         if isinstance(posts, Post):
-            posts = [posts]
-        return posts
+            return [posts]
+        if is_list_of_posts(posts):
+            # It's already a list of Posts.
+            return posts
+        raise InvalidPost(
+            "object_to_post must return a Post or a list containing only Posts. (got %r)" % posts
+        )
         
     
     def new_post(self):
@@ -143,8 +157,7 @@ class Bot(object):
         The default implementation assumes `obj` is a string to be used
         as the content of the post.
         """
-        post, is_new = Post.from_content(self.model, obj)
-        return post
+        return obj
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -165,7 +178,7 @@ class Bot(object):
         if force or self.state_needs_update:
             result = self.update_state()
             if result:
-                self.state = result
+                self.model.state = result
             _db = Session.object_session(self.model)
             _db.commit()
             return True
@@ -196,16 +209,16 @@ class Bot(object):
     @property
     def backlog(self):
         """Return a bot's backlog as a list of strings."""
-        return self.model.json_backlog
+        return self.model.backlog
         
     def extend_backlog(self, items):
         """Add data to a bot's backlog."""
-        backlog = self.model.json_backlog
-        items = self.backlog_item(data)
-        backlog.extend(items)
-        self.model.json_backlog = backlog
+        backlog = self.model.backlog
+        for item in items:
+            backlog.append(self.backlog_item(item))
+        self.model.backlog = backlog
 
-    def backlog_items(self, data):
+    def backlog_item(self, data):
         """Convert an input string into a backlog item.
 
         The default behavior is to treat the line as the content for
@@ -215,19 +228,21 @@ class Bot(object):
         
     def clear_backlog(self):
         """Clear a bot's backlog."""
-        self.model.backlog = None
+        self.model.backlog = []
         
     # Methods dealing with scheduling posts.
     
     def schedule_posts(self):
         """Create some number of posts to be published at specific times.
 
-        It's better to override do_schedule_posts() -- this method
+        It's better to override _schedule_posts() -- this method
         just calls that method and does some error checking.
         
         :return: A list of newly scheduled Posts.
         """
         scheduled = self._schedule_posts()
+        if isinstance(scheduled, Post):
+            scheduled = [scheduled]
         now = _now()
         for post in scheduled:
             if post.publish_at and post.publish_at < now:
@@ -238,7 +253,7 @@ class Bot(object):
                 )
         return scheduled
 
-    def do_schedule_posts(self):
+    def _schedule_posts(self):
         """
         By default, this does nothing. This is an advanced feature for
         bots like Mahna Mahna that need to post at specific
@@ -282,7 +297,7 @@ class Bot(object):
 
         :return: a list of Publications.
         """
-        if post.publish_at and self.publish_at > _now():
+        if post.publish_at and post.publish_at > _now():
             # This should never happen; the method should not have been
             # called.
             logging.warn(
@@ -344,52 +359,6 @@ class TextGeneratorBot(Bot):
     def stress_test(self, rounds):
         for i in range(rounds):
             print self.generate_text()
-
-
-class JSONBacklogBot(Bot):
-    """A bot that draws its posts from a JSON-encoded list in its
-    .backlog.
-    """
-    
-    def new_post(self):
-        """Pull a Post off of the list kept in .backlog"""
-        no_more_backlog = Exception("State contains no more backlog")
-
-        if not self.model.backlog:
-            raise no_more_backlog
-        backlog = self.model.json_backlog
-        backlog = data
-        if not backlog:
-            raise no_more_backlog
-        new_post = backlog[0]
-        remaining_posts = backlog[1:]
-        self.model.backlog = json.dumps(remaining_posts)
-        return new_post
-
-    def set_backlog(self, value):
-        """We're setting the backlog to a specific value, probably
-        as the result of running a script for just this purpose.
-        """
-        if isinstance(value, basestring):
-            # This might be a JSON list, or it might be a
-            # newline-delimited list.
-            try:
-                as_json = json.loads(value)
-                # If that didn't raise an exception, we're good.
-                # Leave it alone.
-            except ValueError, e:
-                # We got a newline-delimited list. Convert it to a
-                # JSON list.
-                if not isinstance(value, unicode):
-                    value = value.decode("utf8")
-                value = [x for x in value.split("\n") if x.strip()]
-                value = json.dumps(value)
-        self.model.backlog = backlog
-        
-    def stress_test(self, rounds):
-        posts = self.model.json_state
-        for i in range(rounds):
-            print posts[i].encode("utf8")
     
 
 class Publisher(object):

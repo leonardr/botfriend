@@ -118,7 +118,7 @@ def engine(filename):
         
 def production_session(filename):
     """Get a database connection to the SQLite database at `filename`."""
-    engine, connection = engine(filename)
+    e, connection = engine(filename)
     session = Session(connection)
     return session
 
@@ -452,7 +452,7 @@ class Post(Base):
     def content_snippet(self):
         "A small string of content suitable for logging."
         if self.content:
-            if len(content > 20):
+            if len(self.content) > 20:
                 return self.content[:20] + u"…"
             return self.content
         else:
