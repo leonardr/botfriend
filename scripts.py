@@ -381,7 +381,7 @@ class ScheduledPostsShowScript(BotScript):
 
     def process_bot(self, bot_model):
         scheduled = bot_model.scheduled
-        count = scheduled.count()
+        count = len(scheduled)
         if self.args.limit:
             max_i = self.args.limit - 1
         else:
