@@ -427,7 +427,7 @@ class ScheduledPostsClearScript(SingleBotScript):
                 self.config._db.delete(post)
 
         # Also reset the next post time.
-        bot_model.next_post_time = bot_model.implementation.schedule_next_post()
+        bot_model.next_post_time = bot_model.implementation.schedule_next_post([])
         if bot_model.next_post_time:
             bot_model.log.info("Next post at %s", bot_model.next_post_time)
         else:

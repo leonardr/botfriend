@@ -107,8 +107,9 @@ class Bot(object):
         # overwritten after the new posts are published, but doing it
         # now prevents a large number of unpublishable posts from being
         # created when a publisher isn't working.
-        self.schedule_next_post()
-        return self._to_post_list(posts)
+        post_list = self._to_post_list(posts)
+        self.schedule_next_post(post_list)
+        return post_list
 
     def _to_post_list(self, obj):
         """Take the output of a post generation process and make
@@ -262,16 +263,15 @@ class Bot(object):
         """
         return []
         
-    def schedule_next_post(self):
+    def schedule_next_post(self, just_published=None):
         """Assuming that a post was just published, set the time at which the
         next post should be published.
         """
-        how_long = self._next_scheduled_post
+        how_long = self._next_scheduled_post(just_published)
         if how_long:
             self.model.next_post_time = _now() + how_long
 
-    @property
-    def _next_scheduled_post(self):
+    def _next_scheduled_post(self, just_published):
         how_long = None
         if not self.schedule:
             # This bot schedules individual posts in advance rather than
