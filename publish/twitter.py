@@ -32,7 +32,8 @@ class TwitterPublisher(Publisher):
         return _twitter_safe(content)
         
     def publish(self, post, publication):
-        content = self.twitter_safe(post.content)
+        content = publication.content or post.content
+        content = self.twitter_safe(content)
         arguments = dict(status=content)
         if post.attachments:
             # Looks like we can only add one attachment?

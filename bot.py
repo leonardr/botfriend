@@ -263,7 +263,7 @@ class Bot(object):
         """
         return []
         
-    def schedule_next_post(self, just_published=None):
+    def schedule_next_post(self, just_published=[]):
         """Assuming that a post was just published, set the time at which the
         next post should be published.
         """
@@ -322,7 +322,7 @@ class Bot(object):
             publications.append(publication)
 
         # Update the time at which we will try to publish the next post.
-        self.schedule_next_post()
+        self.schedule_next_post([post])
         return publications
 
     def make_publication(self, publisher, post):

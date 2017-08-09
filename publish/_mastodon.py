@@ -41,7 +41,8 @@ class MastodonPublisher(Publisher):
             media = self.api.media_post(**arguments)
             media_ids.append(media['id'])
         try:
-            content = self.mastodon_safe(post.content)
+            content = publication.content or post.content
+            content = self.mastodon_safe(content)
             response = self.api.status_post(
                 content, media_ids=media_ids, sensitive=post.sensitive
             )
