@@ -169,7 +169,7 @@ class DashboardScript(BotScript):
             backlog = bot_model.backlog
             if backlog:
                 first = backlog[0]
-                announce_list(backlog, count, first, "in backlog")
+                announce_list(len(backlog), first, "in backlog")
         except ValueError, e:
             pass
         
