@@ -338,8 +338,12 @@ class Bot(object):
     
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
-    
 
+# If you import BasicBot and forget to define Bot in your class you'll
+# get an error. If you import Bot and forget to override it you'll get
+# silent weirdness.
+BasicBot = Bot
+    
 class TextGeneratorBot(Bot):
     """A bot that comes up with a new piece of text every time it's invoked.
     """
