@@ -39,7 +39,6 @@ class TwitterPublisher(Publisher):
             # Looks like we can only add one attachment?
             # TODO: Try to find one we know is an image, since
             # only images are allowed.
-            set_trace()
             attachment = post.attachments[0]
             method = self.api.update_with_media
             if attachment.filename:
