@@ -161,6 +161,14 @@ class Bot(object):
         as the content of the post.
         """
         return obj
+
+    def local_path(self, path):
+        """Turn a path relative to the bot's root to a path relative
+        to the botfriend root.
+        """
+        if hasattr(self, 'ROOT_DIR'):
+            return os.path.join(self.ROOT_DIR, path)
+        return path
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -234,7 +242,7 @@ class Bot(object):
         
     # Methods dealing with scheduling posts.
     
-    def schedule_posts(self, filename):
+    def schedule_posts(self, filehandle):
         """Create some number of posts to be published at specific times.
 
         It's better to override _schedule_posts() -- this method
@@ -242,11 +250,12 @@ class Bot(object):
         
         :return: A list of newly scheduled Posts.
         """
-        scheduled = self._schedule_posts(filename)
+        scheduled = self._schedule_posts(filehandle)
         if isinstance(scheduled, Post):
             scheduled = [scheduled]
         now = _now()
         for post in scheduled:
+            continue
             if post.publish_at and post.publish_at < now:
                 raise InvalidPost(
                     "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
@@ -255,7 +264,7 @@ class Bot(object):
                 )
         return scheduled
 
-    def _schedule_posts(self, filename):
+    def _schedule_posts(self, filehandle):
         """By default, this does nothing. For an implementation, see
         ScriptedBot or the Mahna Mahna sample bot.
 
@@ -370,11 +379,17 @@ class ScriptedBot(Bot):
     """A bot that schedules posts at specific times based on an input script.
     """
 
-    def _schedule_posts(self, file):
-        if not file:
+    def new_post(self):
+        """This bot never generates a new post -- posts must be loaded
+        in advance.
+        """
+        return None
+    
+    def _schedule_posts(self, filehandle):
+        if not filehandle:
             raise IOError("ScriptedBot can only load posts from a file.")
-        for line in open(file):
-            self.import_from_line(self)
+        for line in filehandle:
+            yield self.import_from_line(line)
 
     def import_from_line(self, line):
         """Convert one line of a script into a Post object.
@@ -388,7 +403,7 @@ class ScriptedBot(Bot):
         be ignored.
         """
         now = datetime.datetime.utcnow()
-        obj = json.load(line)
+        obj = json.loads(line.strip())
         content = obj['content']
         publish_at_str = obj['publish_at']
         publish_at = self.parsedate(publish_at_str)
@@ -404,8 +419,6 @@ class ScriptedBot(Bot):
                 key, publish_at_str
             )
 
-        post.content = content
-        post.publish_at = publish_at
         attachments = []
         for attachment in obj.get('attachments', []):
             path = attachment['path']
@@ -418,9 +431,11 @@ class ScriptedBot(Bot):
                 return
                         
             media_type = attachment.get('type', 'image/png')
-            attachments.append(media_type, path)
-        post, is_new = Post.for_external_key(self.model, publish_at_string)
+            attachments.append((media_type, path))
+        post, is_new = Post.for_external_key(self.model, publish_at_str)
         if is_new:
+            post.content = content
+            post.publish_at = publish_at
             self.log.info(
                 "Imported post for %s: %s", key, content
             )
@@ -437,12 +452,11 @@ class ScriptedBot(Bot):
     def parsedate(self, date):
         for format in (self.TIME_FORMAT_MINUTE, self.TIME_FORMAT):
             try:
-                parsed = datetime.strptime(date, self.TIME_FORMAT)
+                parsed = datetime.datetime.strptime(date, format)
                 return parsed
             except ValueError, e:
-                set_trace()
                 continue
-
+        raise ValueError("Could not parse time: %s" % date)
 
 
 class Publisher(object):

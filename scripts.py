@@ -419,7 +419,7 @@ class ScheduledPostsLoadScript(SingleBotScript):
         return parser
     
     def process_bot(self, bot_model):
-        bot_model.implementation.schedule_posts(self.args.file)
+        bot_model.implementation.schedule_posts(open(self.args.file))
 
 
 class ScheduledPostsClearScript(SingleBotScript):
