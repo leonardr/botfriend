@@ -389,7 +389,9 @@ class ScriptedBot(Bot):
         if not filehandle:
             raise IOError("ScriptedBot can only load posts from a file.")
         for line in filehandle:
-            yield self.import_from_line(line)
+            result = self.import_from_line(line)
+            if result:
+                yield result
 
     def import_from_line(self, line):
         """Convert one line of a script into a Post object.
@@ -416,8 +418,9 @@ class ScriptedBot(Bot):
         if publish_at < now - datetime.timedelta(days=1):
             self.log.warn(
                 "Ignoring %s since its post date is more than a day in the past.",
-                key, publish_at_str
+                key
             )
+            return None
 
         attachments = []
         for attachment in obj.get('attachments', []):
@@ -428,7 +431,7 @@ class ScriptedBot(Bot):
                     "Not creating post for %s: Attachment %s does not exist on disk.",
                     key, expect
                 )
-                return
+                return None
                         
             media_type = attachment.get('type', 'image/png')
             attachments.append((media_type, path))
