@@ -409,7 +409,7 @@ class ScheduledPostsShowScript(BotScript):
 class SchedulePostsLoadScript(SingleBotScript):
 
     def process_bot(self, bot_model):
-        bot.schedule_posts()
+        bot_model.implementation.schedule_posts()
 
 class ScheduledPostsClearScript(SingleBotScript):
 
