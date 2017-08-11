@@ -406,10 +406,21 @@ class ScheduledPostsShowScript(BotScript):
             bot_model.log.info("No scheduled posts.")
 
 
-class SchedulePostsLoadScript(SingleBotScript):
+class ScheduledPostsLoadScript(SingleBotScript):
 
+    @classmethod
+    def parser(cls):
+        parser = SingleBotScript.parser()
+        parser.add_argument(
+            "--file",
+            help="Load scheduled posts from this file.",
+            default=None
+        )
+        return parser
+    
     def process_bot(self, bot_model):
-        bot_model.implementation.schedule_posts()
+        bot_model.implementation.schedule_posts(self.args.file)
+
 
 class ScheduledPostsClearScript(SingleBotScript):
 

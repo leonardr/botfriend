@@ -27,6 +27,8 @@ class Bot(object):
     # A good generic time format.
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+    TIME_FORMAT_MINUTE = "%Y-%m-%d %H:%M"
+    
     # The time format used by HTTP (UTC only)
     HTTP_TIME_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
     
@@ -232,7 +234,7 @@ class Bot(object):
         
     # Methods dealing with scheduling posts.
     
-    def schedule_posts(self):
+    def schedule_posts(self, filename):
         """Create some number of posts to be published at specific times.
 
         It's better to override _schedule_posts() -- this method
@@ -240,7 +242,7 @@ class Bot(object):
         
         :return: A list of newly scheduled Posts.
         """
-        scheduled = self._schedule_posts()
+        scheduled = self._schedule_posts(filename)
         if isinstance(scheduled, Post):
             scheduled = [scheduled]
         now = _now()
@@ -253,13 +255,13 @@ class Bot(object):
                 )
         return scheduled
 
-    def _schedule_posts(self):
-        """
-        By default, this does nothing. This is an advanced feature for
-        bots like Mahna Mahna that need to post at specific
-        times. Most bots should be able to use the default scheduler,
-        and either generate posts on demand or put posts into
-        Bot.backlog.
+    def _schedule_posts(self, filename):
+        """By default, this does nothing. For an implementation, see
+        ScriptedBot or the Mahna Mahna sample bot.
+
+        This is a fairly advanced feature. Most bots should be able to
+        use the default scheduler, and either generate posts on demand
+        or put posts into Bot.backlog.
         """
         return []
         
@@ -362,7 +364,86 @@ class TextGeneratorBot(Bot):
     def stress_test(self, rounds):
         for i in range(rounds):
             print self.generate_text()
-    
+
+
+class ScriptedBot(Bot):
+    """A bot that schedules posts at specific times based on an input script.
+    """
+
+    def _schedule_posts(self, file):
+        if not file:
+            raise IOError("ScriptedBot can only load posts from a file.")
+        for line in open(file):
+            self.import_from_line(self)
+
+    def import_from_line(self, line):
+        """Convert one line of a script into a Post object.
+        
+        Default implementation assumes the line is a JSON object
+        containing "publish_at" and "content" keys. May also
+        contain 'key' and 'attachment'.
+
+        `publish_at` is presumed to be a UTC timestamp in
+        TIME_FORMAT. If this time is before the current time, it will
+        be ignored.
+        """
+        now = datetime.datetime.utcnow()
+        obj = json.load(line)
+        content = obj['content']
+        publish_at_str = obj['publish_at']
+        publish_at = self.parsedate(publish_at_str)
+
+        # By default, we set the post time to the external_key to
+        # reduce the risk of a post being imported twice. But you can
+        # specify a different key in the script -- it just needs to be
+        # unique.
+        key = obj.get('key', publish_at_str)
+        if publish_at < now - datetime.timedelta(days=1):
+            self.log.warn(
+                "Ignoring %s since its post date is more than a day in the past.",
+                key, publish_at_str
+            )
+
+        post.content = content
+        post.publish_at = publish_at
+        attachments = []
+        for attachment in obj.get('attachments', []):
+            path = attachment['path']
+            expect = self.local_path(path)
+            if not os.path.exists(expect):
+                self.log.warn(
+                    "Not creating post for %s: Attachment %s does not exist on disk.",
+                    key, expect
+                )
+                return
+                        
+            media_type = attachment.get('type', 'image/png')
+            attachments.append(media_type, path)
+        post, is_new = Post.for_external_key(self.model, publish_at_string)
+        if is_new:
+            self.log.info(
+                "Imported post for %s: %s", key, content
+            )
+            for (media_type, path) in attachments:
+                post.attach(media_type, path)
+                self.log.info(
+                    " Added attachment: %s", self.local_path(path)
+                )
+        else:
+            self.log.info("Did not import post for %s -- we already have one.",
+                          key)
+        return post
+            
+    def parsedate(self, date):
+        for format in (self.TIME_FORMAT_MINUTE, self.TIME_FORMAT):
+            try:
+                parsed = datetime.strptime(date, self.TIME_FORMAT)
+                return parsed
+            except ValueError, e:
+                set_trace()
+                continue
+
+
 
 class Publisher(object):
 
