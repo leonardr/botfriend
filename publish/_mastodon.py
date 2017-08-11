@@ -39,7 +39,8 @@ class MastodonPublisher(Publisher):
                 arguments = dict(media_file=attachment.contents,
                                  mime_type=attachment.media_type)
             media = self.api.media_post(**arguments)
-            media_ids.append(media['id'])
+            if media:
+                media_ids.append(media['id'])
         try:
             content = publication.content or post.content
             content = self.mastodon_safe(content)

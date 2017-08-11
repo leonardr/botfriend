@@ -299,11 +299,11 @@ class Bot(object):
         if post.publish_at and post.publish_at > _now():
             # This should never happen; the method should not have been
             # called.
-            logging.warn(
+            self.log.warn(
                 "Not publishing %s until %s", post.content,
                 post.publish_at.strftime(self.TIME_FORMAT)
             )
-            return
+            return []
         
         publications = []
         for publisher in self.publishers:

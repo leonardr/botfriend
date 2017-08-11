@@ -423,8 +423,11 @@ class ScheduledPostsClearScript(SingleBotScript):
                 "Sleeping for 2 seconds to give you a chance to Ctrl-C."
             )
             time.sleep(2)
+            _db = self.config._db
             for post in scheduled:
-                self.config._db.delete(post)
+                for attachment in post.attachments:
+                    _db.delete(attachment)
+                _db.delete(post)
 
         # Also reset the next post time.
         bot_model.next_post_time = bot_model.implementation.schedule_next_post([])
