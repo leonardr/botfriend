@@ -425,6 +425,8 @@ class ScheduledPostsClearScript(SingleBotScript):
             time.sleep(2)
             _db = self.config._db
             for post in scheduled:
+                for publication in post.publications:
+                    _db.delete(publication)
                 for attachment in post.attachments:
                     _db.delete(attachment)
                 _db.delete(post)
