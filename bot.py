@@ -35,7 +35,7 @@ class Bot(object):
     @property
     def log(self):
         return self.model.log
-    
+
     def __init__(self, model, directory, config):
         """
         :param model: A `Bot` object.
@@ -163,12 +163,11 @@ class Bot(object):
         return obj
 
     def local_path(self, path):
-        """Turn a path relative to the bot's root to a path relative
-        to the botfriend root.
+        """Turn a path relative to the bot's root to a path relative to the
+        botfriend root, by prepending the directory where the bot
+        lives.
         """
-        if hasattr(self, 'ROOT_DIR'):
-            return os.path.join(self.ROOT_DIR, path)
-        return path
+        return os.path.join(self.directory, path)
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -350,6 +349,21 @@ class Bot(object):
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
 
+    def load_attachments(self, attachments):
+        """Take in a list of attachments from a backlog or script,
+        and make sure the files actually exist on disk.
+        """
+        for attachment in attachments:
+            path = attachment['path']
+            expect = self.local_path(path)
+            if not os.path.exists(expect):
+                raise InvalidPost("%s not found on disk" % expect)
+                        
+            media_type = attachment.get('type', 'image/png')
+            attachments.append((media_type, path))
+        return attachments
+
+    
 # If you import BasicBot and forget to define Bot in your class you'll
 # get an error. If you import Bot and forget to override it you'll get
 # silent weirdness.
@@ -422,19 +436,14 @@ class ScriptedBot(Bot):
             )
             return None
 
-        attachments = []
-        for attachment in obj.get('attachments', []):
-            path = attachment['path']
-            expect = self.local_path(path)
-            if not os.path.exists(expect):
-                self.log.warn(
-                    "Not creating post for %s: Attachment %s does not exist on disk.",
-                    key, expect
-                )
-                return None
-                        
-            media_type = attachment.get('type', 'image/png')
-            attachments.append((media_type, path))
+        try:
+            attachments = self.load_attachments(obj.get('attachments', []))
+        except InvalidPost, e:
+            # There was a problem loading an attachment.
+            self.log.warn(
+                "Not importing %s: %s", key, e.message
+            )
+            return None
         post, is_new = Post.for_external_key(self.model, publish_at_str)
         if is_new:
             post.content = content
@@ -451,7 +460,7 @@ class ScriptedBot(Bot):
             self.log.info("Did not import post for %s -- we already have one.",
                           key)
         return post
-            
+    
     def parsedate(self, date):
         for format in (self.TIME_FORMAT_MINUTE, self.TIME_FORMAT):
             try:
