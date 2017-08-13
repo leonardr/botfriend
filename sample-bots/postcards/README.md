@@ -6,6 +6,10 @@ Roy's Postcards
 This is the official code, but only three sample postcards are
 included, plus the metadata for a fourth card that is not present.
 
+Use the backlog-load script to load the backlog.
+
+$ ./backlog-load --config=sample-bots --bot=postcards --file=sample-bots/postcards/backlog.ndjson
+
 This example demonstrates some advanced features of botfriend:
 
 * You can load posts with attachments into the backlog. If a post

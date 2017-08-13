@@ -182,7 +182,7 @@ class Bot(object):
             post, is_new = Post.for_external_key(self.model, key)
         else:
             post, is_new = Post.from_content(
-                self.model, content, publish_at=publish_at,
+                self.model, content, publish_at=publish_at_datetime,
                 reuse_existing=self.duplicate_filter
             )
         if is_new:
