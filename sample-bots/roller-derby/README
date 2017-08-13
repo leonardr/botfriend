@@ -1,0 +1,21 @@
+Deathbot 3000
+https://twitter.com/DeathBot3000
+https://botsin.space/@DeathBot3000
+
+This bot does nothing but post items from its backlog. It illustrates
+some advanced features of botfriend:
+
+* Instead of a backlog of strings to be posted (like the boat-names
+  bot), the backlog is a series of JSON lists. The
+  Bot.object_to_post() method turns one of these lists into a string
+  that gets published.
+
+Use the backlog-load script to load the backlog.
+
+$ ./backlog-load --config=sample-bots --bot=roller-derby --file=sample-bots/roller-derby/backlog.ndjson
+
+Then you can use the post script to post items:
+
+$ ./post --config=sample-bots --bot=roller-derby
+
+The posts will show up in sample-bots/roller-derby/roller-derby.txt

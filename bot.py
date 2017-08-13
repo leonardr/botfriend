@@ -422,6 +422,10 @@ class Bot(object):
         else:
             obj = line
 
+        if not isinstance(obj, dict):
+            # We're not sure what's going on here -- return the object as-is.
+            return obj
+        
         # Preserve any extra stuff that came in through the dictionary.
         output = dict(obj)
         

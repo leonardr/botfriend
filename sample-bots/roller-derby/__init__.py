@@ -1,9 +1,9 @@
 import json
 
-from bot import Bot
+from bot import BasicBot
 from model import Post
 
-class DeathBot3000(Bot):
+class DeathBot3000(BasicBot):
 
     special_numbers = [
         'n/a', 'retired', 'coach', 'staff', 'mascot', 'announcer', 'jeerleader'
@@ -57,15 +57,12 @@ class DeathBot3000(Bot):
             name = name + position
         return name
 
-    def import_post(self, content):
-        """:param content: In this case, `content` comes in as a JSON list
-        which we need to render as text.
+    def object_to_post(self, obj):
+        """The input is a JSON list. We turn it into a post by calling render().
         """
-        inputs = json.loads(content)
-        text = self.render(*inputs)
-        post = Post.from_content(self.model, text)
-        import pdb; pdb.set_trace()
-        return post
+        text = self.render(*obj)
+        post, is_new = Post.from_content(self.model, text)
+        return [post]
 
     
 Bot = DeathBot3000
