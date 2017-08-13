@@ -1,0 +1,4 @@
+name: Boat Names
+publish:
+  file: {filename: Boat Names.txt}
+schedule: {mean: 480, stdev: 15}
