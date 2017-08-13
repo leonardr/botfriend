@@ -1,0 +1,5 @@
+name: Roy's Postcards
+publish:
+  file: {filename: Roy's Postcards.txt}
+schedule: { mean: 1440, stdev: 30 }
+duplicate_filter : false

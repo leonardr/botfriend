@@ -350,7 +350,12 @@ class BacklogLoadScript(SingleBotScript):
         items = []
         for line in fh.readlines():
             line = line.strip().decode("utf8")
-            items.append(bot.prepare_input(line))
+            try:
+                items.append(bot.prepare_input(line))
+            except InvalidPost, e:
+                self.log.error(
+                    "Could not import %s: %s", line, e.message
+                )
         bot.extend_backlog(items)
         self.log.info("Appended %d items to backlog." % len(items))
         self.log.info("Backlog size now %d items" % len(bot_model.backlog))
