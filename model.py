@@ -401,7 +401,7 @@ class Post(Base):
     reply_to_foreign_id = Column(String, index=True)
 
     # A Post may have some item of state associated with it.
-    state = Column(String, index=True)
+    state = Column(String, index=True, name="state")
 
     # A Post may also have some small piece _unique_ state associated
     # with it. This is useful when a Post corresponds to a unique
@@ -417,6 +417,17 @@ class Post(Base):
 
     def __repr__(self):
         return "<Post %s: %s>" % (self.id, self.content)
+
+    @hybrid_property
+    def json_state(self):
+        """Parse the post's state as a JSON dictionary."""
+        if not self.state:
+            return {}
+        return json.loads(self.state)
+
+    @json_state.setter
+    def set_json_state(self, state):
+        self.state = json.dumps(state)
     
     @classmethod
     def for_external_key(cls, bot, key):

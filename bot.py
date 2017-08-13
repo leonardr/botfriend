@@ -52,6 +52,7 @@ class Bot(object):
         self.config = config
         self.schedule = self._extract_from_config(config, 'schedule')
         self.state_update_schedule = config.get( 'state_update_schedule', None)
+        self.duplicate_filter = self.config.get('duplicate_filter', True)
         publishers = self.config.get('publish', {})
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
@@ -131,7 +132,9 @@ class Bot(object):
             return obj
         posts = self.object_to_post(obj)
         if isinstance(posts, basestring):
-            post, is_new = Post.from_content(self.model, posts)
+            post, is_new = Post.from_content(
+                self.model, posts, reuse_existing=self.duplicate_filter
+            )
             return [post]
         if isinstance(posts, Post):
             return [posts]
@@ -158,9 +161,56 @@ class Bot(object):
         Post object.
 
         The default implementation assumes `obj` is a string to be used
-        as the content of the post.
+        as the content of the post, or a dictionary of the sort returned by
+        prepare_input.
         """
-        return obj
+        if isinstance(obj, basestring):
+            return obj
+
+        if isinstance(obj, Post):
+            # This shouldn't happen, but we can deal with it.
+            return obj
+        
+        if not isinstance(obj, dict):
+            raise InvalidPost(
+                "I don't know what to do with a post that's neither a string nor a dictionary."
+            )
+        key = obj.get('key')
+        publish_at = obj.get('publish_at')
+        content = obj.get('content')
+        if key:
+            post, is_new = Post.for_external_key(self.model, key)
+        else:
+            post, is_new = Post.from_content(
+                self.model, content, publish_at=publish_at,
+                reuse_existing=self.duplicate_filter
+            )
+        if is_new:
+            post.content = content
+            post.publish_at = publish_at
+
+            # Store the original object as the Post's state in case
+            # it's got extra information that is used during the publication
+            # process.
+            post.json_state = obj
+            self.log.info("New post: %s", content)
+            for attachment in obj.get('attachments', []):
+                default_type = 'image/png'
+                if isinstance(attachment, basestring):
+                    path = attachment
+                    media_type = default_type
+                else:
+                    path = attachment['path']
+                    media_type = attachment.get('type', default_type)
+                post.attach(media_type, path)
+                self.log.info(
+                    " Added attachment: %s", self.local_path(path)
+                )
+        else:
+            self.log.info("Did not create post for %s -- it's a duplicate.",
+                          post.content
+            )                
+        return post
 
     def local_path(self, path):
         """Turn a path relative to the bot's root to a path relative to the
@@ -497,21 +547,7 @@ class ScriptedBot(Bot):
                 "Post %s has no unique key, cannot import as a scheduled post.",
                 display_name
             )
-        post, is_new = Post.for_external_key(self.model, output['key'])
-        if is_new:
-            post.content = output.get('content')
-            post.publish_at = output.get('publish_at')
-            self.log.info(
-                "Imported post for %s: %s", key, content
-            )
-            for (media_type, path) in output.get('attachments'):
-                post.attach(media_type, path)
-                self.log.info(
-                    " Added attachment: %s", self.local_path(path)
-                )
-        else:
-            self.log.info("Did not import post for %s -- we already have one.",
-                          key)
+        post, is_new = self.object_to_post(output)
         return post
     
     def parsedate(self, date):
