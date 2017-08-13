@@ -14,11 +14,13 @@ This example demonstrates some advanced features of botfriend:
 
 * You can publish dramatically different content to different
   publications. The higher Mastodon character limit allows the
-  postcard inscription to be included in the post.
+  postcard inscription to be included in the post, versus the Twitter
+  publication, which only includes a link and tags.
 
-* The JSON document stored in the backlog is stored as Post.state once
-  the post is created. You can access this in Bot.post_to_publisher
-  to customize what gets sent to which publisher.
+* The JSON document that is kept in the backlog is stored as
+  Post.state once the Post object is created. You can access this in
+  Bot.post_to_publisher() to customize what gets sent to which
+  publisher.
 
 * A bot may disable off the normal checks that prevent duplicate posts
   by setting "duplicate_filter: false" in bot.yaml. Since Roy's
