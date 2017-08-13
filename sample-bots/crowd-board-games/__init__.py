@@ -1,2 +1,2 @@
-from bot import RSSScraperBot
-Bot = RSSScraperBot
+from bot import RSSScraperBot as Bot
+
