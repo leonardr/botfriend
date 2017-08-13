@@ -1,5 +1,6 @@
 import datetime
 import random
+from nose.tools import set_trace
 from olipy.integration import pad
 from bot import Bot
 from model import (
@@ -10,29 +11,31 @@ from scat import ScatGenerator
 
 class MahnaMahna(Bot):
 
-    @property
-    def next_workday(self):
-        """Return Monday, if it's currently the weekend, today, if it's before
-        9 AM, and tomorrow otherwise.
-        """
-        now = datetime.datetime.now()
+    def schedule_posts(self, filehandle):
+        """Load five posts for the day if it's before 9AM on a weekday."""
+
+        # Hard-coded UTC offset. :p
+        utc_offset = datetime.timedelta(hours=5)
+        now = datetime.datetime.utcnow()
         day = now.replace(hour=0, minute=0, second=0)
         if day.weekday() > 5:
-            # Weekend.
-            while day.weekday() > 5:
-                day += datetime.timedelta(days=1)
-        elif now.hour > 8:
-            day += datetime.timedelta(days=1)
-        return day
-    
-    def new_post(self):
-        """Create six Posts representing this bot's activity for one day."""
+            # It's the weekend. Do nothing.
+            self.log.info("Taking the weekend off.")
+            return
+        if now.hour >= 9 + 5:
+            # It's past 9 AM. Do nothing.
+            self.log.info("Too late, it's past 9 AM.")
+            return
+
+        if self.model.scheduled:
+            # There are already scheduled posts. do nothing.
+            self.log.info("Not doing anything until scheduled posts are cleared out.")
+            return
 
         sg = ScatGenerator()
         posts = []
-        workday = self.next_workday
         for i, hour in enumerate([9, 11, 13, 15, 16, 17]):
-            publish_at = workday.replace(hour=hour)
+            publish_at = day.replace(hour=hour) + utc_offset
             if i < 2:
                 mahna = "Mahna mahna."
                 output = pad(mahna, len(mahna)+10)
@@ -53,11 +56,12 @@ class MahnaMahna(Bot):
                 self._db, Post, bot=self.model, publish_at=publish_at
             )
             post.content = output
+            self.log.info("Will publish %s at %s", post.content, post.publish_at)
             posts.append(post)
-
-        # Don't ask me again until an hour after the bot is done with
-        # these posts.
-        self.model.next_post_time = publish_at + datetime.timedelta(hours=1)
         return posts
+            
+    def new_post(self):
+        # We only publish posts scheduled in advance.
+        pass
             
 Bot = MahnaMahna
