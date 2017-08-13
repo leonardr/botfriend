@@ -19,3 +19,9 @@ This example demonstrates some advanced features of botfriend:
 * The JSON document stored in the backlog is stored as Post.state once
   the post is created. You can access this in Bot.post_to_publisher
   to customize what gets sent to which publisher.
+
+* A bot may disable off the normal checks that prevent duplicate posts
+  by setting "duplicate_filter: false" in bot.yaml. Since Roy's
+  Postcards runs in a loop, with the backlog being refilled whenever
+  it empties, it's expected that identical posts will appear about
+  three years apart.
