@@ -176,7 +176,7 @@ class Bot(object):
                 "I don't know what to do with a post that's neither a string nor a dictionary."
             )
         key = obj.get('key')
-        publish_at = obj.get('publish_at')
+        publish_at_datetime = obj.get('publish_at_datetime')
         content = obj.get('content')
         if key:
             post, is_new = Post.for_external_key(self.model, key)
@@ -187,12 +187,22 @@ class Bot(object):
             )
         if is_new:
             post.content = content
-            post.publish_at = publish_at
+            post.publish_at = publish_at_datetime
 
             # Store the original object as the Post's state in case
             # it's got extra information that is used during the publication
             # process.
-            post.json_state = obj
+            if 'publish_at_datetime' in obj:
+                # Remove a known non-serializable object before
+                # serializing this object into Post.state.
+                del obj['publish_at_datetime']
+            try:
+                post.json_state = obj
+            except ValueError:
+                # Something in the original object can't be serialized
+                # to JSON.  Assume that the bot doesn't need
+                # individual post state storage, and continue.
+                pass
             self.log.info("New post: %s", content)
             for attachment in obj.get('attachments', []):
                 default_type = 'image/png'
@@ -209,7 +219,7 @@ class Bot(object):
         else:
             self.log.info("Did not create post for %s -- it's a duplicate.",
                           post.content
-            )                
+            )
         return post
 
     def local_path(self, path):
@@ -418,10 +428,6 @@ class Bot(object):
         now = datetime.datetime.utcnow()
         content = obj.get('content')
         publish_at_str = obj.get('publish_at')
-        publish_at = None
-        if publish_at_str:
-            publish_at = self.parsedate(publish_at_str)
-            output['publish_at'] = publish_at
 
         # Attempt to get some kind of unique identifier for this post:
         # either a unique key or the scheduled post time. It's okay to
@@ -439,13 +445,6 @@ class Bot(object):
         display_name = key or content or "[unknown post]"
         output['display_name'] = display_name
         
-        if publish_at and publish_at < now - datetime.timedelta(days=1):
-            self.log.warn(
-                "Ignoring %s since its post date is more than a day in the past. (%s)",
-                display_name, publish_at
-            )
-            return None
-
         attachments = self.load_attachments(obj.get('attachments', []))
         if attachments:
             output['attachments'] = attachments
@@ -526,6 +525,7 @@ class ScriptedBot(Bot):
         TIME_FORMAT. If this time is before the current time, it will
         be ignored.
         """
+        now = datetime.datetime.utcnow()
         output = self.prepare_input(line)
         if not isinstance(output, dict):
             self.log.warn(
@@ -535,10 +535,18 @@ class ScriptedBot(Bot):
             return None
                 
         display_name = output['display_name']
-        publish_at = output.get('publish_at')
+        publish_at_str = output.get('publish_at')
+        publish_at = self.parsedate(publish_at_str)
         if not publish_at:
             self.log.warn(
                 "Post %s has no publication time, cannot import as a scheduled post. Maybe put it in the backlog instead?", display_name
+            )
+            return None
+        output['publish_at_datetime'] = publish_at
+        if publish_at and publish_at < now - datetime.timedelta(days=1):
+            self.log.warn(
+                "Ignoring %s since its post date is more than a day in the past. (%s)",
+                display_name, publish_at
             )
             return None
         
@@ -547,8 +555,7 @@ class ScriptedBot(Bot):
                 "Post %s has no unique key, cannot import as a scheduled post.",
                 display_name
             )
-        post, is_new = self.object_to_post(output)
-        return post
+        return self.object_to_post(output)
     
     def parsedate(self, date):
         for format in (self.TIME_FORMAT_MINUTE, self.TIME_FORMAT):
