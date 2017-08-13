@@ -4,4 +4,4 @@ schedule:
     stdev: 30
 publish:
     file:
-      filename: "../serial-entrepreneur.log"
+      filename: "Serial Entrepreneur.txt"
