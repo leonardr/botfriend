@@ -349,10 +349,68 @@ class Bot(object):
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
 
+    def prepare_input(self, line):
+        """Turn input data into a dictionary which can be used to
+        create a scheduled Post or populate a backlog.
+        """
+        if isinstance(line, basestring):
+            try:
+                obj = json.loads(line.strip())
+            except ValueError:
+                # Assume the content is just a normal string.
+                return line
+        else:
+            obj = line
+
+        # Preserve any extra stuff that came in through the dictionary.
+        output = dict(obj)
+        
+        now = datetime.datetime.utcnow()
+        content = obj.get('content')
+        publish_at_str = obj.get('publish_at')
+        publish_at = None
+        if publish_at_str:
+            publish_at = self.parsedate(publish_at_str)
+            output['publish_at'] = publish_at
+
+        # Attempt to get some kind of unique identifier for this post:
+        # either a unique key or the scheduled post time. It's okay to
+        # have posts with no keys -- in fact, it's pretty rare to have
+        # a key -- but having them helps avoid duplicate posts.
+        key = None
+        if 'key' in obj:
+            key = obj['key']
+        elif publish_at_str:
+            key = publish_at_str
+        if key:
+            output['key'] = key
+
+        # We need some way of referring to the post in log messages.
+        display_name = key or content or "[unknown post]"
+        output['display_name'] = display_name
+        
+        if publish_at and publish_at < now - datetime.timedelta(days=1):
+            self.log.warn(
+                "Ignoring %s since its post date is more than a day in the past. (%s)",
+                display_name, publish_at
+            )
+            return None
+
+        attachments = self.load_attachments(obj.get('attachments', []))
+        if attachments:
+            output['attachments'] = attachments
+        if not output.get('content') and not output.get('attachments'):
+            self.log.warn(
+                "Ignoring %s since it has neither content nor attachments.",
+                display_name
+            )
+        return output
+    
     def load_attachments(self, attachments):
         """Take in a list of attachments from a backlog or script,
         and make sure the files actually exist on disk.
         """
+        new_attachments = []
         for attachment in attachments:
             path = attachment['path']
             expect = self.local_path(path)
@@ -360,7 +418,7 @@ class Bot(object):
                 raise InvalidPost("%s not found on disk" % expect)
                         
             media_type = attachment.get('type', 'image/png')
-            attachments.append((media_type, path))
+            new_attachments.append(dict(path=path, type=media_type))
         return attachments
 
     
@@ -406,7 +464,7 @@ class ScriptedBot(Bot):
             result = self.import_from_line(line)
             if result:
                 yield result
-
+            
     def import_from_line(self, line):
         """Convert one line of a script into a Post object.
         
@@ -418,40 +476,35 @@ class ScriptedBot(Bot):
         TIME_FORMAT. If this time is before the current time, it will
         be ignored.
         """
-        now = datetime.datetime.utcnow()
-        obj = json.loads(line.strip())
-        content = obj['content']
-        publish_at_str = obj['publish_at']
-        publish_at = self.parsedate(publish_at_str)
-
-        # By default, we set the post time to the external_key to
-        # reduce the risk of a post being imported twice. But you can
-        # specify a different key in the script -- it just needs to be
-        # unique.
-        key = obj.get('key', publish_at_str)
-        if publish_at < now - datetime.timedelta(days=1):
+        output = self.prepare_input(line)
+        if not isinstance(output, dict):
             self.log.warn(
-                "Ignoring %s since its post date is more than a day in the past.",
-                key
+                "Not loading a standalone string (%s) as a Post--put it in the backlog.",
+                output
             )
             return None
-
-        try:
-            attachments = self.load_attachments(obj.get('attachments', []))
-        except InvalidPost, e:
-            # There was a problem loading an attachment.
+                
+        display_name = output['display_name']
+        publish_at = output.get('publish_at')
+        if not publish_at:
             self.log.warn(
-                "Not importing %s: %s", key, e.message
+                "Post %s has no publication time, cannot import as a scheduled post. Maybe put it in the backlog instead?", display_name
             )
             return None
-        post, is_new = Post.for_external_key(self.model, publish_at_str)
+        
+        if not output.get('key'):
+            self.log.warn(
+                "Post %s has no unique key, cannot import as a scheduled post.",
+                display_name
+            )
+        post, is_new = Post.for_external_key(self.model, output['key'])
         if is_new:
-            post.content = content
-            post.publish_at = publish_at
+            post.content = output.get('content')
+            post.publish_at = output.get('publish_at')
             self.log.info(
                 "Imported post for %s: %s", key, content
             )
-            for (media_type, path) in attachments:
+            for (media_type, path) in output.get('attachments'):
                 post.attach(media_type, path)
                 self.log.info(
                     " Added attachment: %s", self.local_path(path)
@@ -547,11 +600,13 @@ class ScraperBot(Bot):
     @property
     def url(self):
         return self._url
+
+    def make_request(self):
+        return requests.get(self.url, headers=self.headers)
     
     def new_post(self):
         """Scrape the site and get a number of new Posts out of it."""
-        headers = self.headers
-        response = requests.get(self.url, headers=headers)
+        response = self.make_request()
         if response.status_code == 304: # Not Modified
             return
         utcnow = datetime.datetime.utcnow()
@@ -577,6 +632,9 @@ class ScraperBot(Bot):
                 self.HTTP_TIME_FORMAT
             )
         return headers
+
+    def scrape(self, response):
+        raise NotImplementedError()
 
 
 class RSSScraperBot(ScraperBot):
