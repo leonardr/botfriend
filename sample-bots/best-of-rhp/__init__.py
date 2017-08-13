@@ -1,2 +1,1 @@
-from bot import Bot, RetweetBot
-Bot = RetweetBot
+from bot import RetweetBot as Bot
