@@ -393,6 +393,68 @@ class ScriptedBot(Bot):
             if result:
                 yield result
 
+    def prepare_input(self, line):
+        """Turn input data into a dictionary which can be used to
+        create a scheduled Post or populate a backlog.
+        """
+        if isinstance(line, basestring):
+            try:
+                obj = json.loads(line.strip())
+            except ValueError:
+                # Assume the content is just a normal string.
+                return line
+        else:
+            obj = line
+            
+        output = dict()
+        now = datetime.datetime.utcnow()
+        if 'content' in obj:
+            output['content'] = obj['content']
+        publish_at_str = obj['publish_at']
+        publish_at = self.parsedate(publish_at_str)
+        output['publish_at'] = publish_at
+
+        # Attempt to get some kind of unique identifier for this post:
+        # either a unique key or the scheduled post time. It's okay to
+        # have posts with no keys -- in fact, it's pretty rare to have
+        # a key -- but having them helps avoid duplicate posts.
+        key = obj.get('key', publish_at_str)
+        if key:
+            output['key'] = key
+
+        # We need some way of referring to the post in log messages.
+        display_name = key or content or "[unknown post]"
+        output['display_name'] = 
+        
+        if publish_at < now - datetime.timedelta(days=1):
+            self.log.warn(
+                "Ignoring %s since its post date is more than a day in the past. (%s)",
+                display_name, publish_at
+            )
+            return None
+
+        attachments = []
+        for attachment in obj.get('attachments', []):
+            path = attachment['path']
+            expect = self.local_path(path)
+            if not os.path.exists(expect):
+                self.log.warn(
+                    "Ignoring %s since its attachment %s does not exist on disk.",
+                    display_name, expect
+                )
+                return None
+                        
+            media_type = attachment.get('type', 'image/png')
+            attachments.append((media_type, path))
+        if attachments:
+            output['attachments'] = attachments
+        if not output.get('content') and not output.get('attachments'):
+            self.log.warn(
+                "Ignoring %s since it has neither content nor attachments.",
+                display_name
+            )
+        return output
+            
     def import_from_line(self, line):
         """Convert one line of a script into a Post object.
         
@@ -404,45 +466,35 @@ class ScriptedBot(Bot):
         TIME_FORMAT. If this time is before the current time, it will
         be ignored.
         """
-        now = datetime.datetime.utcnow()
-        obj = json.loads(line.strip())
-        content = obj['content']
-        publish_at_str = obj['publish_at']
-        publish_at = self.parsedate(publish_at_str)
-
-        # By default, we set the post time to the external_key to
-        # reduce the risk of a post being imported twice. But you can
-        # specify a different key in the script -- it just needs to be
-        # unique.
-        key = obj.get('key', publish_at_str)
-        if publish_at < now - datetime.timedelta(days=1):
+        output = self.prepare_input(line)
+        if not isinstance(output, dict):
             self.log.warn(
-                "Ignoring %s since its post date is more than a day in the past.",
-                key
+                "Not loading a standalone string (%s) as a Post--put it in the backlog.",
+                output
             )
             return None
-
-        attachments = []
-        for attachment in obj.get('attachments', []):
-            path = attachment['path']
-            expect = self.local_path(path)
-            if not os.path.exists(expect):
-                self.log.warn(
-                    "Not creating post for %s: Attachment %s does not exist on disk.",
-                    key, expect
-                )
-                return None
-                        
-            media_type = attachment.get('type', 'image/png')
-            attachments.append((media_type, path))
-        post, is_new = Post.for_external_key(self.model, publish_at_str)
+                
+        display_name = output['display_name']
+        publish_at = output.get('publish_at')
+        if not publish_at:
+            self.log.warn(
+                "Post %s has no publication time, cannot import as a scheduled post. Maybe put it in the backlog instead?", display_name
+            )
+            return None
+        
+        if not output.get('key'):
+            self.log.warn(
+                "Post %s has no unique key, cannot import as a scheduled post.",
+                display_name
+            )
+        post, is_new = Post.for_external_key(self.model, output['key'])
         if is_new:
-            post.content = content
-            post.publish_at = publish_at
+            post.content = output.get('content')
+            post.publish_at = output.get('publish_at')
             self.log.info(
                 "Imported post for %s: %s", key, content
             )
-            for (media_type, path) in attachments:
+            for (media_type, path) in output.get('attachments'):
                 post.attach(media_type, path)
                 self.log.info(
                     " Added attachment: %s", self.local_path(path)
@@ -538,11 +590,13 @@ class ScraperBot(Bot):
     @property
     def url(self):
         return self._url
+
+    def make_request(self)
+        return requests.get(self.url, headers=self.headers)
     
     def new_post(self):
         """Scrape the site and get a number of new Posts out of it."""
-        headers = self.headers
-        response = requests.get(self.url, headers=headers)
+        response = self.make_request()
         if response.status_code == 304: # Not Modified
             return
         utcnow = datetime.datetime.utcnow()
@@ -568,6 +622,9 @@ class ScraperBot(Bot):
                 self.HTTP_TIME_FORMAT
             )
         return headers
+
+    def scrape(self, response):
+        raise NotImplementedError()
 
 
 class RSSScraperBot(ScraperBot):

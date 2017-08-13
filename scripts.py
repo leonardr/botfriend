@@ -345,12 +345,17 @@ class BacklogLoadScript(SingleBotScript):
             fh = open(self.args.file)
         else:
             fh = sys.stdin
+        bot = bot_model.implementation
         # Process one backlog item per line of the input file.
-        items = [x.strip().decode("utf8") for x in fh.readlines()]
-        bot_model.implementation.extend_backlog(items)
+        items = []
+        for line in fh.readlines():
+            line = line.strip().decode("utf8")
+            items.append(bot.pepare_input_line(line))
+        bot.extend_backlog(items)
         self.log.info("Appended %d items to backlog." % len(items))
         self.log.info("Backlog size now %d items" % len(bot_model.backlog))
-        
+
+
 class BacklogClearScript(SingleBotScript):
 
     def process_bot(self, bot_model):
