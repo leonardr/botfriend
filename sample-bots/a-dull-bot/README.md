@@ -1,5 +1,4 @@
 A Dull Bot
-
 https://twitter.com/a_dull_bot
 https://botsin.space/@adullbot
 
