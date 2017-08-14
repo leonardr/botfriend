@@ -52,9 +52,7 @@ class TumblrPublisher(Publisher):
         )
 
         # Set the post's external ID.
-        publication.external_id = str(response['id'])
-        set_trace()
-        pass
+        publication.report_success(response['id'])
 
 Publisher = TumblrPublisher
 

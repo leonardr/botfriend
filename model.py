@@ -556,8 +556,10 @@ class Publication(Base):
         self.most_recent_attempt = now
         self.error = error
 
-    def report_success(self):
+    def report_success(self, external_id=None):
         self.report_attempt(error=None)
+        if external_is:
+            self.external_id = str(external_id)
         
     def report_failure(self, error="Unknown error."):
         if isinstance(error, Exception):
