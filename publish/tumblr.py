@@ -21,36 +21,40 @@ class TumblrPublisher(Publisher):
             kwargs['consumer_key'], kwargs['consumer_secret'],
             kwargs['access_token'], kwargs['access_token_secret']
         )
-        set_trace()
         self.tumblr_blog = kwargs['blog']
 
     def self_test(self):
         # Do something that will raise an exception if the credentials are invalid.
         # Return a string that will let the user know if they somehow gave
         # credentials to the wrong account.
-        set_trace()
-        dashboard = self.api.dashboard()
+        info = self.api.info()
+        for blog in info['user']['blogs']:
+            if blog['name'] == self.tumblr_blog:
+                return blog['title']
+        raise ValueError(
+            'Credentials are valid but could not find blog %s' % blog['name']
+        )
                 
     def publish(self, post, publication):
-        content = publication.content or post.content
-        if post.attachments:
-            # TODO: Not sure what to do when there are multiple
-            # attachments.
-            [attachment] = post.attachments
-            i = content.rfind(' ', 0, 20)
-            slug = content[:i]
+        content = publication.content or post.content        
+        paths = [x.filename.encode("utf8") for x in post.attachments]
 
-            # Create the post.
-            response = self.tumblr.create_photo(
-                self.tumblr_blog, state="published", format="html",
-                caption=content, slug=slug
-            )
+        i = post.content.rfind(' ', 0, 20)
+        slug = post.content[:i]
 
-            # Get information about the post.
-            publication.external_id = response['id']
-            set_trace()
-            response = self.tumblr.posts(self.tumblr_blog, id=response['id'])
-            set_trace()        
+        content = content.encode("utf8")
+        slug = slug.encode("utf8")
+        
+        # Create the post.
+        response = self.api.create_photo(
+            self.tumblr_blog, state="published", format="html",
+            caption=content, slug=slug, data=paths
+        )
+
+        # Set the post's external ID.
+        publication.external_id = str(response['id'])
+        set_trace()
+        pass
 
 Publisher = TumblrPublisher
 

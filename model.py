@@ -542,7 +542,10 @@ class Publication(Base):
             if self.most_recent_attempt != self.first_attempt:
                 msg += " (since %s)" % self.first_attempt
         else:
-            msg = "Published %s" % self.most_recent_attempt.strftime(TIME_FORMAT)
+            if self.most_recent_attempt:
+                msg = "Published %s" % self.most_recent_attempt.strftime(TIME_FORMAT)
+            else:
+                msg = "Somehow neither published nor errored."
         return "%s | %s | %s " % (self.service, msg, self.post.content_snippet)
         
     def report_attempt(self, error=None):
