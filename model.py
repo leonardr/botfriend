@@ -558,7 +558,7 @@ class Publication(Base):
 
     def report_success(self, external_id=None):
         self.report_attempt(error=None)
-        if external_is:
+        if external_id:
             self.external_id = str(external_id)
         
     def report_failure(self, error="Unknown error."):

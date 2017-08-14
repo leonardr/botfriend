@@ -50,7 +50,7 @@ class TwitterPublisher(Publisher):
             method = self.api.update_status
         try:
             response = method(**arguments)
-            publication.report_success()
+            publication.report_success(response.id)
         except tweepy.error.TweepError, e:
             publication.report_failure(e)
 
