@@ -34,10 +34,8 @@ class MastodonPublisher(Publisher):
         media_ids = []
         for attachment in post.attachments:
             if attachment.filename:
-                arguments = dict(
-                    media_file=attachment.filename,
-                    mime_type=attachment.media_type
-                )
+                path = self.attachment_path(attachment.filename)
+                arguments = dict(media_file=path)
             else:
                 arguments = dict(media_file=attachment.contents,
                                  mime_type=attachment.media_type)

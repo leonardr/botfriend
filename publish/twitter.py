@@ -42,7 +42,8 @@ class TwitterPublisher(Publisher):
             attachment = post.attachments[0]
             method = self.api.update_with_media
             if attachment.filename:
-                arguments = dict(filename=attachment.filename)
+                path = self.attachment_path(attachment.filename)
+                arguments = dict(filename=path)
             else:
                 arguments = dict(file=StringIO(attachment.content))
         else:

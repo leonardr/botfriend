@@ -617,6 +617,12 @@ class Publisher(object):
         self.service_name=service_name
         self.bot = bot
 
+    def attachment_path(self, path):
+        """Convert a path relative to the botfriend root to an absolute
+        path."""
+        d = os.path.split(__file__)[0]
+        return os.path.join(d, path)
+        
     def publish(self, post, publication):
         """Publish the content of the given Post object.
 
