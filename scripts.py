@@ -116,7 +116,7 @@ class RepublicationScript(BotScript):
                         post.content
                     )
                 )
-                publisher.publish(post, publication)
+                bot_model.implementation.post_to_publisher(publisher, post, publication)
                 if publication.error:
                     bot_model.log.info("Failure: %s" % publication.error)
                 else:
