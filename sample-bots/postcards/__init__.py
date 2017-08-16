@@ -17,8 +17,7 @@ class PostcardBot(BasicBot):
         
         tags = ['#%s' % tag for tag in info.get('tags', [])]
         tag_string = " ".join(tags)
-
-        short_content = post.content + " " + tag_string
+        short_content = info.get('url', '') + " " + tag_string
         max_text_length = 490 - len(short_content)
 
         text = info.get('inscription') or info.get('postcard-back')
