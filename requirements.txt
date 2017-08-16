@@ -8,3 +8,4 @@ Mastodon.py
 requests
 beautifulsoup4
 feedparser
+pytumblr

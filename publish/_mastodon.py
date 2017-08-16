@@ -50,7 +50,7 @@ class MastodonPublisher(Publisher):
             response = self.api.status_post(
                 content, media_ids=media_ids, sensitive=post.sensitive
             )
-            publication.report_success()
+            publication.report_success(response['id'])
         except Exception, e:
             publication.report_failure(e)
 

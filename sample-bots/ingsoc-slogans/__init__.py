@@ -51,8 +51,6 @@ class SloganBot(TextGeneratorBot):
         # Delete all previous tweets and records of same.        
         for tweet in self.twitter.user_timeline():
             self.twitter.destroy_status(tweet.id)
-        for post in self.model.posts:
-            self._db.delete(post)
             
         return slogan
         

@@ -1,0 +1,19 @@
+Boat Names
+https://twitter.com/BoatNameBot
+https://botsin.space/@BoatNames
+
+This simple bot does nothing but pull strings from its backlog and
+post them one at a time.
+
+See roller-derby for a slightly more complex bot that also posts from
+its backlog.
+
+To try this bot out, use the backlog-load script to load the backlog.
+
+$ ./backlog-load --config=sample-bots --bot=boat-names --file=sample-bots/boat-names/backlog.txt
+
+Then you can use the post script to post items:
+
+$ ./post --config=sample-bots --bot=boat-names
+
+The posts will show up in sample-bots/boat-names/boat-names.txt

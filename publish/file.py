@@ -26,8 +26,9 @@ class FileOutputPublisher(Publisher):
             
     def publish(self, post, publication):
         publish_at = post.publish_at or _now()
+        content = publication.content or post.content
         output = publish_at.strftime("%Y-%m-%d %H:%M:%S")
-        output = output + " | " + post.content.encode("utf8") + "\n"
+        output = output + " | " + content.encode("utf8") + "\n"
         with open(self.path, 'a') as out:
             out.write(output)
         publication.report_success()

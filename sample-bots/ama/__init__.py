@@ -61,7 +61,7 @@ class IAMAExtractor(object):
                 return None
                 
             #print "%s <- %s" % (match, text)
-            print match.encode("utf8")
+            # print match.encode("utf8")
             return quality, match
 
         # Sometimes the problem is you searched for "I am x" and
@@ -175,7 +175,13 @@ class StateManager(object):
                 # Matches more likely to get a good result get weighted
                 # more heavily.
                 possibilities.append(item)
-        return random.choice(possibilities)
+        if possibilities:
+            return random.choice(possibilities)
+        else:
+            if recently_seen_words:
+                return self.choose(recently_used_posts, set())
+            else:
+                return self.choose(set(), set())
 
 
 class IAmABot(TextGeneratorBot):
@@ -211,7 +217,7 @@ class IAmABot(TextGeneratorBot):
 
     def update_state(self):
         self.state_manager.update()
-        self.model.state = json.dumps(self.state_manager.potentials)
+        return json.dumps(self.state_manager.potentials)
             
     def generate_text(self):        
         # We don't want to exactly repeat a post created in the past year.
@@ -224,7 +230,6 @@ class IAmABot(TextGeneratorBot):
         ama = None        
         while not ama:
             choice = self.state_manager.choose(recent_posts, recent_words)
-            print "Choice", choice
             ama = choice['iama'] + " AMA" + random.choice('.. !')
             ama = ama.strip()
             if len(ama) > 140 or "\n" in ama or IAMAExtractor.has_bad_end(

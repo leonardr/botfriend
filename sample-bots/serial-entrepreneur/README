@@ -1,0 +1,11 @@
+Serial Entrepreneur
+https://twitter.com/ItCantFail
+https://botsin.space/@ItCantFail
+
+A simple TextGeneratorBot.
+
+To make it post, run the post script.
+
+$ ./post --config=sample-bots --bot=serial-entrepreneur
+
+The output will be published to sample-bots/serial-entrepreneur/Serial Entrepreneur.txt.

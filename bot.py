@@ -35,7 +35,7 @@ class Bot(object):
     @property
     def log(self):
         return self.model.log
-    
+
     def __init__(self, model, directory, config):
         """
         :param model: A `Bot` object.
@@ -52,6 +52,7 @@ class Bot(object):
         self.config = config
         self.schedule = self._extract_from_config(config, 'schedule')
         self.state_update_schedule = config.get( 'state_update_schedule', None)
+        self.duplicate_filter = self.config.get('duplicate_filter', True)
         publishers = self.config.get('publish', {})
         if not publishers:
             self.log.warn("Bot %s defines no publishers.", self.name)
@@ -131,7 +132,9 @@ class Bot(object):
             return obj
         posts = self.object_to_post(obj)
         if isinstance(posts, basestring):
-            post, is_new = Post.from_content(self.model, posts)
+            post, is_new = Post.from_content(
+                self.model, posts, reuse_existing=self.duplicate_filter
+            )
             return [post]
         if isinstance(posts, Post):
             return [posts]
@@ -158,17 +161,73 @@ class Bot(object):
         Post object.
 
         The default implementation assumes `obj` is a string to be used
-        as the content of the post.
+        as the content of the post, or a dictionary of the sort returned by
+        prepare_input.
         """
-        return obj
+        if isinstance(obj, basestring):
+            return obj
+
+        if isinstance(obj, Post):
+            # This shouldn't happen, but we can deal with it.
+            return obj
+        
+        if not isinstance(obj, dict):
+            raise InvalidPost(
+                "I don't know what to do with a post that's neither a string nor a dictionary."
+            )
+        key = obj.get('key')
+        publish_at_datetime = obj.get('publish_at_datetime')
+        content = obj.get('content')
+        if key:
+            post, is_new = Post.for_external_key(self.model, key)
+        else:
+            post, is_new = Post.from_content(
+                self.model, content, publish_at=publish_at_datetime,
+                reuse_existing=self.duplicate_filter
+            )
+        if is_new:
+            post.content = content
+            post.publish_at = publish_at_datetime
+
+            # Store the original object as the Post's state in case
+            # it's got extra information that is used during the publication
+            # process.
+            if 'publish_at_datetime' in obj:
+                # Remove a known non-serializable object before
+                # serializing this object into Post.state.
+                del obj['publish_at_datetime']
+            try:
+                post.json_state = obj
+            except ValueError:
+                # Something in the original object can't be serialized
+                # to JSON.  Assume that the bot doesn't need
+                # individual post state storage, and continue.
+                pass
+            self.log.info("New post: %s", content)
+            for attachment in obj.get('attachments', []):
+                default_type = 'image/png'
+                if isinstance(attachment, basestring):
+                    path = attachment
+                    media_type = default_type
+                else:
+                    path = attachment['path']
+                    media_type = attachment.get('type', default_type)
+                post.attach(media_type, path)
+                self.log.info(
+                    " Added attachment: %s", self.local_path(path)
+                )
+        else:
+            self.log.info("Did not create post for %s -- it's a duplicate.",
+                          post.content
+            )
+        return post
 
     def local_path(self, path):
-        """Turn a path relative to the bot's root to a path relative
-        to the botfriend root.
+        """Turn a path relative to the bot's root to a path relative to the
+        botfriend root, by prepending the directory where the bot
+        lives.
         """
-        if hasattr(self, 'ROOT_DIR'):
-            return os.path.join(self.ROOT_DIR, path)
-        return path
+        return os.path.join(self.directory, path)
     
     def stress_test(self, rounds):
         """Perform a stress test of the bot's generative capabilities.
@@ -350,6 +409,72 @@ class Bot(object):
     def post_to_publisher(self, publisher, post, publication):
         return publisher.publish(post, publication)
 
+    def prepare_input(self, line):
+        """Turn input data into a dictionary which can be used to
+        create a scheduled Post or populate a backlog.
+        """
+        if isinstance(line, basestring):
+            try:
+                obj = json.loads(line.strip())
+            except ValueError:
+                # Assume the content is just a normal string.
+                return line
+        else:
+            obj = line
+
+        if not isinstance(obj, dict):
+            # We're not sure what's going on here -- return the object as-is.
+            return obj
+        
+        # Preserve any extra stuff that came in through the dictionary.
+        output = dict(obj)
+        
+        now = datetime.datetime.utcnow()
+        content = obj.get('content')
+        publish_at_str = obj.get('publish_at')
+
+        # Attempt to get some kind of unique identifier for this post:
+        # either a unique key or the scheduled post time. It's okay to
+        # have posts with no keys -- in fact, it's pretty rare to have
+        # a key -- but having them helps avoid duplicate posts.
+        key = None
+        if 'key' in obj:
+            key = obj['key']
+        elif publish_at_str:
+            key = publish_at_str
+        if key:
+            output['key'] = key
+
+        # We need some way of referring to the post in log messages.
+        display_name = key or content or "[unknown post]"
+        output['display_name'] = display_name
+        
+        attachments = self.load_attachments(obj.get('attachments', []))
+        if attachments:
+            output['attachments'] = attachments
+        if not output.get('content') and not output.get('attachments'):
+            self.log.warn(
+                "Ignoring %s since it has neither content nor attachments.",
+                display_name
+            )
+        return output
+    
+    def load_attachments(self, attachments):
+        """Take in a list of attachments from a backlog or script,
+        and make sure the files actually exist on disk.
+        """
+        new_attachments = []
+        for attachment in attachments:
+            path = attachment['path']
+            expect = self.local_path(path)
+            if not os.path.exists(expect):
+                raise InvalidPost("%s not found on disk" % expect)
+                        
+            media_type = attachment.get('type', 'image/png')
+            new_attachments.append(dict(path=path, type=media_type))
+        return attachments
+
+    
 # If you import BasicBot and forget to define Bot in your class you'll
 # get an error. If you import Bot and forget to override it you'll get
 # silent weirdness.
@@ -392,7 +517,7 @@ class ScriptedBot(Bot):
             result = self.import_from_line(line)
             if result:
                 yield result
-
+            
     def import_from_line(self, line):
         """Convert one line of a script into a Post object.
         
@@ -405,53 +530,37 @@ class ScriptedBot(Bot):
         be ignored.
         """
         now = datetime.datetime.utcnow()
-        obj = json.loads(line.strip())
-        content = obj['content']
-        publish_at_str = obj['publish_at']
-        publish_at = self.parsedate(publish_at_str)
-
-        # By default, we set the post time to the external_key to
-        # reduce the risk of a post being imported twice. But you can
-        # specify a different key in the script -- it just needs to be
-        # unique.
-        key = obj.get('key', publish_at_str)
-        if publish_at < now - datetime.timedelta(days=1):
+        output = self.prepare_input(line)
+        if not isinstance(output, dict):
             self.log.warn(
-                "Ignoring %s since its post date is more than a day in the past.",
-                key
+                "Not loading a standalone string (%s) as a Post--put it in the backlog.",
+                output
             )
             return None
-
-        attachments = []
-        for attachment in obj.get('attachments', []):
-            path = attachment['path']
-            expect = self.local_path(path)
-            if not os.path.exists(expect):
-                self.log.warn(
-                    "Not creating post for %s: Attachment %s does not exist on disk.",
-                    key, expect
-                )
-                return None
-                        
-            media_type = attachment.get('type', 'image/png')
-            attachments.append((media_type, path))
-        post, is_new = Post.for_external_key(self.model, publish_at_str)
-        if is_new:
-            post.content = content
-            post.publish_at = publish_at
-            self.log.info(
-                "Imported post for %s: %s", key, content
+                
+        display_name = output['display_name']
+        publish_at_str = output.get('publish_at')
+        publish_at = self.parsedate(publish_at_str)
+        if not publish_at:
+            self.log.warn(
+                "Post %s has no publication time, cannot import as a scheduled post. Maybe put it in the backlog instead?", display_name
             )
-            for (media_type, path) in attachments:
-                post.attach(media_type, path)
-                self.log.info(
-                    " Added attachment: %s", self.local_path(path)
-                )
-        else:
-            self.log.info("Did not import post for %s -- we already have one.",
-                          key)
-        return post
-            
+            return None
+        output['publish_at_datetime'] = publish_at
+        if publish_at and publish_at < now - datetime.timedelta(days=1):
+            self.log.warn(
+                "Ignoring %s since its post date is more than a day in the past. (%s)",
+                display_name, publish_at
+            )
+            return None
+        
+        if not output.get('key'):
+            self.log.warn(
+                "Post %s has no unique key, cannot import as a scheduled post.",
+                display_name
+            )
+        return self.object_to_post(output)
+    
     def parsedate(self, date):
         for format in (self.TIME_FORMAT_MINUTE, self.TIME_FORMAT):
             try:
@@ -538,11 +647,13 @@ class ScraperBot(Bot):
     @property
     def url(self):
         return self._url
+
+    def make_request(self):
+        return requests.get(self.url, headers=self.headers)
     
     def new_post(self):
         """Scrape the site and get a number of new Posts out of it."""
-        headers = self.headers
-        response = requests.get(self.url, headers=headers)
+        response = self.make_request()
         if response.status_code == 304: # Not Modified
             return
         utcnow = datetime.datetime.utcnow()
@@ -568,6 +679,9 @@ class ScraperBot(Bot):
                 self.HTTP_TIME_FORMAT
             )
         return headers
+
+    def scrape(self, response):
+        raise NotImplementedError()
 
 
 class RSSScraperBot(ScraperBot):
