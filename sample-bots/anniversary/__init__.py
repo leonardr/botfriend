@@ -373,14 +373,16 @@ class AnniversaryBot(TextGeneratorBot):
                 self.state_manager = StateManager(
                     self.log, twitter.api, self.model.json_state
                 )
+                break
+        else:
+            self.log.error("No Twitter publisher configured, cannot find materials from Twitter.")
+            self.state_manager = None
             
     def update_state(self):
         if self.state_manager:
             self.state_manager.update()
             return json.dumps(self.state_manager.current_state)
-        else:
-            self.log.warn("No Twitter publisher configured, cannot find materials from Twitter.")
-
+            
     def generate_text(self):
         self.advisor = Advisor(self.model.json_state)
 
