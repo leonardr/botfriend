@@ -1,13 +1,42 @@
 # botfriend
 
 Botfriend is a Python framework for managing a lot of creative bots that
-post to a lot of different places.
+post to a lot of different places. Its primary features:
 
-* Simple YAML-based configuration
-* Easy post scheduling
-* Built-in access to [olipy](https://github.com/leonardr/olipy) and
-  [corpora](https://github.com/dariusk/corpora/).
-* Post to Twitter, Mastodon, and/or Tumblr.
+* Minimal Python coding -- just write the interesting part of your bot.
+* Simple YAML-based configuration.
+* Easy post scheduling.
+* Can post to Twitter, Mastodon, and/or Tumblr.
+* Built-in access to [olipy](https://github.com/leonardr/olipy) for
+   Queneau assembly, Markov chains, and other artistic randomness tools.
+* Built-in access to common data sets through [corpora](https://github.com/dariusk/corpora/).
+
+# Setup
+
+After cloning this repository, run these commands to set up 
+
+```
+virtualenv env
+source env/bin/activate
+pip install -r requirements.txt
+git submodule init
+cd olipy
+git submodule init
+```
+
+Now you need a directory to keep your bot database in. To get started,
+you can use the `sample-bots` directory, which contains more than ten
+sample bots.
+
+You can see what the bots are up to with the `dashboard` script. 
+
+``
+./dashboard --config=sample-bots
+``
+
+For each bot, this will tell you the last time it posted, the next
+time it's going to post, what it last posted, and (if known) the next
+thing it's going to post.
 
 # Bots that generate posts on demand
 
@@ -29,7 +58,7 @@ Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
 is a more complicated `TextGeneratorBot` that stores state between
 invocations to minimize load on the Twitter API.
 
-# Creating posts in advance
+# Bots that post from a predefined list
 
 Instead of creating a new post every time it's time for the bot to
 act, you can list out all the things the bot should post, and have the
@@ -41,7 +70,7 @@ posts. Most of the time, though, you need posts to be published at
 rough intervals but not at specific times. In that case, it's easier
 to create a backlog.
 
-## Creating a backlog
+## Bots that post from a backlog
 
 When you have a large number of posts and the exact timing isn't
 particularly important, the best thing to do is to dump all those
@@ -71,7 +100,7 @@ source env/bin/activate
 ./backlog-load --config=sample-bots --bot=boat-names < sample-bots/boat-names/input.txt
 ```
 
-## Scheduling posts for specific times
+## Bots that post from a script
 
 The default assumption of botfriend is that a bot should post at a
 certain interval, but that the exact times aren't important. But
