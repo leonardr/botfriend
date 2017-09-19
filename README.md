@@ -331,29 +331,130 @@ Materials](https://github.com/leonardr/botfriend/tree/master/sample-bots/anniver
 is another example--it also uses the Twitter search API to gather raw
 data from Twitter.
 
-# Publication
-
-## Twitter
-
-## Mastodon
-
-## Tumblr
-
 # Configuration
 
-`name`, `schedule`, and `publish` are only the most common
+Let's take another look at [Serial
+Entrepreneur's bot.yaml](https://github.com/leonardr/botfriend/tree/master/sample-bots/serial-entrepreneur/bot.yaml):
+
+```
+name: "Serial Entrepreneur"
+schedule:
+    mean: 150
+    stdev: 30
+publish:
+    file:
+      filename: "Serial Entrepreneur.txt"
+```
+
+`name` should be self-explanatory -- it's the human-readable name of
+the bot.
+
+## `schedule`
+
+The `schedule` configuration option controls how often your bot should
+post. There are basically three strategies.
+
+1. Set `schedule` to a number of minutes. Your bot will post at exact
+intervals, with that number of minutes between posts.
+2. Give `schedule` a `mean` number of minutes. Your bot will post at
+randomly determined intervals, with _approximately_ that number of
+minutes between posts.
+3. To fine-tune the randomness, you can specify a `stdev` to go along
+with the mean. This sets the standard deviation used when calculating
+when the next post should be. Set it to a low number, and posts will
+nearly `mean` minutes apart. Set it to a high number, and the posting
+schedule will vary widely.
+
+You can omit `schedule` if your bot schedules all of its posts ahead
+of time (like [Frances
+Daily](https://github.com/leonardr/botfriend/tree/master/sample-bots/frances-daily)
+does).
+
+`schedule`, and `publish` are only the most common
 configuration options.  [Best of
 RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp),
 a subclass of `RetweetBot`, has a special configuration setting called
 `retweet-user`, which controls the Twitter account that the bot
 retweets.
 
-[I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
-defines an option called `state_update_schedule`. This is just like
-`schedule`, but instead of controlling how often the bot should post,
-it controls how often `Bot.update_state` is called.
+### `state_update_schedule`
 
+There's a related option, `state_update_schedule`, which you only need
+to set if your bot keeps internal state, like [I Am A
+Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
+does. This option works the same way as `schedule`, but instead of
+controlling how often the bot should post, it controls how often your
+`update_state()` method is called.
+
+## Publication
+
+Underneath the `publish` configuration setting, list the various
+techniques you want your bot to use when publishing its posts to the
+Internet. Almost all of my bots post to both Twitter and Mastodon; one
+posts to Tumblr as well.
+
+Sometimes you'll need to communicate with an API for more than just
+posting. You can always access a publisher from inside a `Bot` as
+`self.publishers`, and the raw API will always be available as
+`Publisher.api`.
+
+See the `IAmABot` constructor for an example -- it needs a Twitter API
+client to run a search, so it looks through `self.publishers` until it
+finds the Twitter publisher, and grabs its `.api`, storing it for
+later.
+
+## Publish to a file
+
+This is the simplest publication technique, and it's really only good
+for testing and keeping a log. The `file` publisher takes one
+configuration setting: `filename`, the name of the file to write to.
+
+```
+publish:
+    file:
+        filename: "anniversary.txt"
+```
+
+## Twitter
+
+To post to 
+
+## Mastodon
+
+## Tumblr
+
+
+## Defaults
+
+If you put a file called `default.yaml` in your `botfriend` directory
+(next to `botfriend.sqlite`), all of your bots will inherit the values
+in that file.
+
+Almost all my bots use the same Mastodon and Twitter client keys (but
+different application keys). I keep the client keys in `default.yaml`
+so I don't have to repeat them in every single `bot.yaml` file. My
+`default.yaml` looks like this:
+
+```
+publish:
+  mastodon: {api_base_url: 'https://botsin.space/', client_id: a, client_secret: b}
+  twitter: {consumer_key: c, consumer_secret: d}
+```
+
+This way, inside a given `bot.yaml` file, I only have to fill in the
+information that's not specified in `default.yaml`:
+
+```
+name: My Bot
+publish:
+ mastodon:
+  access_token: efg
+ twitter:
+  access_token: hij
+  access_token_secret: klm
+schedule:
+ mean: 120
+```
 
 # Posting
 
