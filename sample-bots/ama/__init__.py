@@ -181,7 +181,10 @@ class StateManager(object):
             if recently_seen_words:
                 return self.choose(recently_used_posts, set())
             else:
-                return self.choose(set(), set())
+                if recently_seen_words or recently_used_posts:
+                    return self.choose(set(), set())
+                else:
+                    self.log.error("Can't do anything -- no data to work from.")
 
 
 class IAmABot(TextGeneratorBot):
@@ -230,6 +233,8 @@ class IAmABot(TextGeneratorBot):
         ama = None        
         while not ama:
             choice = self.state_manager.choose(recent_posts, recent_words)
+            if not choice:
+                return None
             ama = choice['iama'] + " AMA" + random.choice('.. !')
             ama = ama.strip()
             if len(ama) > 140 or "\n" in ama or IAMAExtractor.has_bad_end(
