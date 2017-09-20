@@ -1,9 +1,9 @@
-# botfriend
+# Botfriend
 
-`botfriend` is a Python framework for managing a lot of creative bots
+Botfriend is a Python framework for managing a lot of creative bots
 that post to a number of different services.
 
-I think the primary features of `botfriend` are these:
+I think the primary features of Botfriend are these:
 
 * Minimal Python coding -- just write the interesting part of your bot.
 * Simple YAML-based configuration.
@@ -13,7 +13,7 @@ I think the primary features of `botfriend` are these:
    Queneau assembly, Markov chains, and other tools for artistic randomness.
 * Built-in access to common data sets through [corpora](https://github.com/dariusk/corpora/).
 
-`botfriend` is a Python library that runs on a server. If you're not
+Botfriend is a Python library that runs on a server. If you're not
 comfortable with setting up a cron job, or writing Python code, I
 recommend you check out [Cheap Bots, Done
 Quick](http://cheapbotsdonequick.com/) instead as a simpler way to
@@ -21,7 +21,7 @@ express your creativity.
 
 # The Story
 
-I wrote `botfriend` to manage about [thirty different Twitter
+I wrote Botfriend to manage about [thirty different Twitter
 bots](https://www.crummy.com/features/) that I created. I found myself
 constantly copying and pasting, writing the same code over and
 over. Every bot does something different, but they all have certain
@@ -43,12 +43,12 @@ work, I wanted the end product to be a reusable library that everyone
 could use.
 
 So I went through my thirty bots, rewrote everything, and moved all of
-the reusable code into `botfriend`. Now my bots are a lot smaller and
+the reusable code into Botfriend. Now my bots are a lot smaller and
 easier to manage. They can still post to Twitter if I want them to,
 but they also post to Mastodon with no extra code.
 
 If you want to save code on your own projects, or expand the reach of
-your bots, I hope you'll consider `botfriend`.
+your bots, I hope you'll consider Botfriend.
 
 # Setup
 
@@ -66,16 +66,16 @@ git submodule init
 
 From this point on I'll be giving lots of example command-line
 scripts. All of my examples assume you've run `source
-env/bin/activate` beforehand, to enter the `botfriend` virtual
+env/bin/activate` beforehand, to enter the Botfriend virtual
 environment.
 
 # Getting started
 
-All the `botfriend` scripts take a `--config` argument that points to
-the directory where you keep your bots. The `botfriend` database
+All the Botfriend scripts take a `--config` argument that points to
+the directory where you keep your bots. The Botfriend database
 itself will be stored in this directory as `botfriend.sqlite`.
 
-For each of your bots, you'll add a subdirectory of your `botfriend`
+For each of your bots, you'll add a subdirectory of your Botfriend
 directory named after your bot. To see how this works,
 started, check out [the `sample-bots` directory](https://github.com/leonardr/botfriend/tree/master/sample-bots), which contains about
 ten sample bots.
@@ -196,7 +196,7 @@ This is saying:
 # `__init__.py`
 
 This is where the bot's source code lives. There's only one rule here:
-you have to define a class called `Bot`. The `botfriend` scripts are
+you have to define a class called `Bot`. The Botfriend scripts are
 going to load that class, instantiate it, and use it to make that
 bot's contribution to whatever the script is supposed to do. The bot
 may be asked to post something, list previous posts, or whatever.
@@ -214,7 +214,7 @@ class Bot(BasicBot):
 
 But for most common types of bot, there's a more specific class you
 can subclass, which will eliminate most of the work and any need to
-deal with the `botfriend` object model.
+deal with the Botfriend object model.
 
 ## Bots that generate posts on demand
 
@@ -225,7 +225,7 @@ next. Each post is the result of running the same random process.
 To create this kind of bot, subclass
 [`TextGeneratorBot`](https://github.com/leonardr/botfriend/blob/master/bot.py)
 and implement the `generate_text()` method to return the string you
-want to post. Every time your bot needs to post something, `botfriend`
+want to post. Every time your bot needs to post something, Botfriend
 will call its `generate_text()` method, and post whatever is returned.
 
 Several examples of `TextGeneratorBot` are included with botfriend,
@@ -315,7 +315,7 @@ To convert from a JSON list to a string, Death Bot 3000 subclasses the
 
 ### Bots that act out a script
 
-The default assumption of `botfriend` is that a bot should post at a
+The default assumption of Botfriend is that a bot should post at a
 certain interval, but that the exact times aren't important. Most of
 the time you _want_ a little variation in the posting time, so that
 your bot doesn't post at the exact same time all the time, like a
@@ -336,7 +336,7 @@ Frances Daily doesn't have any special code -- it uses [a simple JSON
 script
 format](https://github.com/leonardr/botfriend/blob/master/sample-bots/frances-daily/script.ndjson)
 to explain what should be published when. Most of the times, you can
-create schedule posts without writing any special `botfriend` code at
+create schedule posts without writing any special Botfriend code at
 all. All the work goes into generating your script.
 
 To load a list of scheduled posts, use the `scheduled-load`
@@ -520,7 +520,7 @@ will be able to post to your Mastodon account.
 
 ## Defaults
 
-If you put a file called `default.yaml` in your `botfriend` directory
+If you put a file called `default.yaml` in your Botfriend directory
 (next to `botfriend.sqlite`), all of your bots will inherit the values
 in that file.
 
@@ -591,7 +591,7 @@ can check periodically.
 
 # Conclusion
 
-There are a lot of features of `botfriend` that I've barely touched --
+There are a lot of features of Botfriend that I've barely touched --
 bots that retweet other Twitter accounts, bots that get their posts by
 scraping a web page for their content, scripts for showing or clearing
 the backlog, scripts for managing the stored state if it should get
@@ -599,4 +599,4 @@ screwed up, scripts for republishing posts that weren't posted
 properly the first time.
 
 But the features I've covered are the main ones you need to get
-started and to see the power of `botfriend`.
+started and to see the power of Botfriend.
