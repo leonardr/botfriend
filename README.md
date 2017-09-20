@@ -39,8 +39,8 @@ I didn't want to give up my botmaking hobby, so I started
 investigating the world of [Mastodon](https://joinmastodon.org/)
 bots. This created another problem: it's a big pain to rewrite thirty
 bots to post to a different service. If I was going to do that much
-work, I wanted the end product to be a reusable library that everyone
-could use.
+work, I wanted the end product to be a reusable library that could
+save everyone time.
 
 So I went through my thirty bots, rewrote everything, and moved all of
 the reusable code into Botfriend. Now my bots are a lot smaller and
