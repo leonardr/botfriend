@@ -27,13 +27,13 @@ constantly copying and pasting, writing the same code over and
 over. Every bot does something different, but they all have certain
 basic needs: connecting to various services and APIs, deciding when to
 post something, managing backlogs, and so on. There's no reason each
-bot needs its own code for this. . The only part of a bot that needs
+bot needs its own code for this. The only part of a bot that needs
 different _code_ is the creative bit.
 
 My other big problem was, I've come to dislike Twitter. It's a great
 platform for creative bots, but every time I created a bot, I felt
 guilty about increasing the value of an platform I think is making the
-world worse. (Also, it started suspending my bots for no reason.)
+world worse. (Also, Twitter has started suspending my bots for no reason.)
 
 I didn't want to give up my botmaking hobby, so I started
 investigating the world of [Mastodon](https://joinmastodon.org/)
@@ -52,7 +52,7 @@ your bots, I hope you'll consider Botfriend.
 
 # Setup
 
-After cloning this repository, run these commands to set up botfriend
+After cloning this repository, run these commands to set up Botfriend
 with all of its dependencies:
 
 ```
@@ -65,20 +65,25 @@ git submodule init
 ```
 
 From this point on I'll be giving lots of example command-line
-scripts. All of my examples assume you've run `source
-env/bin/activate` beforehand, to enter the Botfriend virtual
-environment.
+scripts. All of my examples assume you've entered the Botfriend
+virtual environment by running this command beforehand:
+
+```
+source env/bin/activate
+```
 
 # Getting started
 
-All the Botfriend scripts take a `--config` argument that points to
-the directory where you keep your bots. The Botfriend database
-itself will be stored in this directory as `botfriend.sqlite`.
+You'll interact with Botfriend exclusively through command-line
+scripts. All the Botfriend scripts take a `--config` argument that
+points to the directory where you keep your bots. The Botfriend
+database itself will be stored in this directory as
+`botfriend.sqlite`.
 
 For each of your bots, you'll add a subdirectory of your Botfriend
 directory named after your bot. To see how this works,
 started, check out [the `sample-bots` directory](https://github.com/leonardr/botfriend/tree/master/sample-bots), which contains about
-ten sample bots.
+ten sample bots, all of them based on real bots that I run.
 
 You can see what your bots are up to with the `dashboard` script. 
 
@@ -102,9 +107,9 @@ exception. [Roy's
 Postcards](https://github.com/leonardr/botfriend/tree/master/sample-bots/postcards)
 and [Deathbot
 3000](https://github.com/leonardr/botfriend/tree/master/sample-bots/roller-derby)
-are examples. These bots can only post from a backlog or from
-prescheduled posts. Since they start out with nothing scheduled, they
-have nothing to post.
+are examples. These bots can't just make up something to post--they
+can only post from a backlog. Since they start out with an empty
+backlog, they have nothing to post.
 
 Other bots, like [Best of
 RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp)
@@ -116,8 +121,8 @@ valid Twitter credentials.
 
 But most of the bots in `sample-bots` will work fine. They will
 generate one or more posts and publish them. These posts won't be
-published to Twitter, since none of the sample bots have working
-Twitter credentials. Instead, the posts will be published to files in
+published to Twitter or Mastodon, since none of the sample bots have
+working credentials. Instead, the posts will be published to files in
 the bot subdirectories.
 
 For example, [A Dull
@@ -231,7 +236,7 @@ will call its `generate_text()` method, and post whatever is returned.
 Several examples of `TextGeneratorBot` are included with botfriend,
 the simplest being [A Dull
 Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/a-dull-bot).
-Here's all of the code for A Dull Bot:
+Here's the _entire_ code of A Dull Bot:
 
 ```
 from olipy.typewriter import Typewriter
@@ -247,6 +252,19 @@ class TypewriterBot(TextGeneratorBot):
         
 Bot = TypewriterBot
 ```
+
+Whenever it's time to post something, A Dull Bot instantiates a
+simulated typewriter, types a phrase on the typewriter (which usually
+introduces some typos), and returns the phrase (typos and all). You
+can see the results on [Twitter](https://twitter.com/a_dull_bot) or
+[Mastodon](http://botsin.space/adullbot). 
+
+Although it's very simple, creating this bot was a fair amount of
+work. But all of the work went into the fun part: creating an accurate
+software model of the typewriter from _The Shining_. There's no code
+for making sure the bot posts once an hour, or for pushing the
+typewritten text through the Twitter or Mastodon APIs. Botfriend takes
+care of all that stuff.
 
 [Euphemism
 Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/euphemism)
@@ -270,7 +288,7 @@ There are two ways to do this. If you need posts to be published at
 specific dates and times, you can schedule posts with
 `ScriptedBot`. Most of the time, though, you need posts to be
 published at rough intervals but not at specific times. In that case,
-it's easier to create a backlog and just subclass `BasicBot`.
+it's easier to subclass the base `Bot` class and load in a backlog from a text file.
 
 ### Bots that post from a backlog
 
@@ -284,8 +302,8 @@ published.
 [Boat Name
 Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/boat-names)
 is a bot that has no custom code whatsoever. It does nothing but post
-strings from its backlog. The code for Boat Name Bot is just a
-placeholder:
+strings from its backlog. The `__init__.py` for Boat Name Bot contains
+no code, just a placeholder:
 
 ```
 from bot import Bot
@@ -302,7 +320,8 @@ of boat names](https://github.com/leonardr/botfriend/blob/master/sample-bots/boa
 Once you've loaded a backlog, the `./post` script will start posting
 items off the backlog, gradually, one at a time. With a backlog bot,
 there's almost no risk of something going wrong while the bot is in
-operation, because you've do all the work ahead of time.
+operation, because you've done all the work ahead of time. The bot is
+going to post the things from that text file, one at a time.
 
 [Death Bot
 3000](https://github.com/leonardr/botfriend/tree/master/sample-bots/roller-derby)
@@ -327,8 +346,8 @@ precise times, by subclassing `ScriptedBot`.
 
 [Frances
 Daily](https://github.com/leonardr/botfriend/tree/master/sample-bots/frances-daily)
-schedules posts for specific dates, exactly thirty years after the
-journal items were originally written. On some days, there is no post
+posts journal entries on specific dates, exactly thirty years after the
+journal entries were originally written. On some days, there is no post
 at all. So there's no simple rule like "every day, publish the next
 post." Each post is associated with a specific date and time.
 
@@ -357,7 +376,10 @@ Postcards](https://github.com/leonardr/botfriend/tree/master/sample-bots/postcar
 is an example of a bot that loads a combination of images and text
 into its backlog. In this case the images are loaded off disk when
 it's time to post them -- only the filenames are stored in the
-database backlog.
+database backlog. The images will be uploaded as attachments to the
+posts; you can see this in action on
+[Twitter](https://twitter.com/RoyPostcards/) or
+[Mastodon](https://botsin.space/@RoysPostcards).
 
 # Tracking bot-specific state
 
@@ -365,11 +387,11 @@ database backlog.
 Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
 gets its data by using the Twitter API to run searches on strings like
 "i am a" and "i am an". These searches take a long time and can cause
-Twitter to rate-limit the bot. Rather than go through this process
-every single time the bot wants to post, the `IAmABot` class
-implements the `update_state` method. This method performs the
-searches and returns the raw data in a JSON string that's stored in the
-database.
+Twitter to rate-limit the bot if you run them too often. Rather than
+go through this process every single time the bot wants to post, the
+`IAmABot` class implements the `update_state` method. This method
+performs the searches against the Twitter API, and returns the raw data
+in a JSON string that's stored in the database.
 
 When it's time for the bot to post something, the current value of the
 bot's state is accessible through the property `self.model.state`. 
@@ -379,7 +401,7 @@ be cached and is time-consuming to calculate is a good
 choice. [Anniversary
 Materials](https://github.com/leonardr/botfriend/tree/master/sample-bots/anniversary)
 is another example--it also uses the Twitter search API to gather raw
-data from Twitter.
+data from Twitter, which it stores in its state.
 
 # Configuration
 
@@ -393,8 +415,8 @@ publish:
       filename: "a-dull-bottxt"
 ```
 
-`name` should be self-explanatory -- it's the human-readable name of
-the bot.
+The `name` option should be self-explanatory -- it's the human-readable name of
+the bot. Now let's take a detailed look at the other two options.
 
 ## `schedule`
 
@@ -417,13 +439,6 @@ You can omit `schedule` if your bot schedules all of its posts ahead
 of time (like [Frances
 Daily](https://github.com/leonardr/botfriend/tree/master/sample-bots/frances-daily)
 does).
-
-`schedule`, and `publish` are only the most common
-configuration options.  [Best of
-RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp),
-a subclass of `RetweetBot`, has a special configuration setting called
-`retweet-user`, which controls the Twitter account that the bot
-retweets.
 
 ### `state_update_schedule`
 
@@ -504,7 +519,7 @@ has some good instructions.
 
 ## Mastodon
 
-To connect your bot to Mastodon you create a Mastodon accoutn for the
+To connect your bot to Mastodon you create a Mastodon account for the
 bot, and then get four values. First, `api_base_url`-- this is easy,
 it's just the URL to the Mastodon instance that hosts the account you
 created. I like to use [botsin.space](https://botsin.space/), a Mastodon
@@ -518,6 +533,18 @@ for getting these three values for your Mastodon account.
 Once you have these four values, put them into `bot.yaml` and your bot
 will be able to post to your Mastodon account.
 
+## Other publication options
+
+`schedule`, and `publish` are only the most common
+configuration options.  [Best of
+RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp),
+a subclass of `RetweetBot`, has a special configuration setting called
+`retweet-user`, which controls the Twitter account that the bot
+retweets. Your bot can have its own configuration options--the
+configuration object is parsed as YAML and passed into the `Bot`
+constructor as the `config` argument. You can look in there and pick
+out whatever information you want.
+
 ## Defaults
 
 If you put a file called `default.yaml` in your Botfriend directory
@@ -525,8 +552,9 @@ If you put a file called `default.yaml` in your Botfriend directory
 in that file.
 
 Almost all my bots use the same Mastodon and Twitter client keys (but
-different application keys). I keep the client keys in `default.yaml`
-so I don't have to repeat them in every single `bot.yaml` file. My
+different application keys), and all my Mastodon bots are hosted at
+botsin.space. I keep these configuration settings in `default.yaml` so
+I don't have to repeat them in every single `bot.yaml` file. My
 `default.yaml` looks like this:
 
 ```
@@ -557,10 +585,11 @@ posting. You can always access a publisher from inside a `Bot` as
 `self.publishers`, and the raw API will always be available as
 `Publisher.api`.
 
-See the `IAmABot` constructor for an example -- it needs a Twitter API
-client to run a search, so it looks through `self.publishers` until it
-finds the Twitter publisher, and grabs its `.api`, storing it for
-later.
+See the [`IAmABot`
+constructor](https://github.com/leonardr/botfriend/blob/master/sample-bots/ama/__init__.py)
+for an example. This bot needs a Twitter API client to get its data,
+so it looks through `self.publishers` until it finds the Twitter
+publisher, and grabs its `.api`, storing it for later.
 
 # Posting on a regular basis
 
@@ -591,12 +620,12 @@ can check periodically.
 
 # Conclusion
 
-There are a lot of features of Botfriend that I've barely touched --
-bots that retweet other Twitter accounts, bots that get their posts by
-scraping a web page for their content, scripts for showing or clearing
-the backlog, scripts for managing the stored state if it should get
-screwed up, scripts for republishing posts that weren't posted
-properly the first time.
+There are a lot of features of Botfriend that I've barely touched or
+not mentioned at all: bots that retweet other Twitter accounts, bots
+that get their posts by scraping a web page for their content, scripts
+for showing or clearing the backlog, scripts for managing the stored
+state if it should get screwed up, scripts for republishing posts that
+weren't posted properly the first time.
 
 But the features I've covered are the main ones you need to get
-started and to see the power of Botfriend.
+started and to see the power of Botfriend. I hope you enjoy it!
