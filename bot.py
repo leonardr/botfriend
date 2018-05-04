@@ -15,6 +15,11 @@ from model import (
 )
 from sqlalchemy.orm.session import Session
 
+class NothingToPost(Exception):
+    """There are no scheduled posts for this bot, no backlog, and the bot
+    does not know how to generate posts on the fly.
+    """
+    pass
 
 class Bot(object):
     """Bot implements the creative part of a bot.
@@ -154,7 +159,7 @@ class Bot(object):
         (which will be passed into object_for_post for conversion into
         a post).
         """
-        raise NotImplementedError()
+        raise NothingToPost()
 
     def object_to_post(self, obj):
         """Turn an object retrieved from backlog or from new_post(), into a
