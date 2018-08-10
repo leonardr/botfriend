@@ -1,6 +1,7 @@
 from nose.tools import set_trace
 from argparse import ArgumentParser
 import logging
+import os
 import sys
 import time
 
@@ -27,7 +28,6 @@ class BotScript(Script):
         parser.add_argument(
             '--config',
             help="Directory containing the botfriend database.",
-            required=True,
         )
         parser.add_argument(
             '--bot', 
@@ -39,6 +39,19 @@ class BotScript(Script):
     def __init__(self):
         parser = self.parser()
         self.args = parser.parse_args()
+        if self.args.config:
+            config_directory = self.args.config
+        elif 'VIRTUAL_ENV' in os.environ:
+            env_root = os.environ['VIRTUAL_ENV']
+            env_parent, ignore = os.path.split(env_root)
+            config_directory = os.path.join(env_parent, 'data')
+
+        if not os.path.exists(config_directory):
+            self.log.warn(
+                "%s does not exist, creating it.", config_directory
+            )
+            os.makedirs(config_directory)
+
         self.config = Configuration.from_directory(self.args.config, self.args.bot)
 
     def run(self):

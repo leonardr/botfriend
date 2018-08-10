@@ -8,10 +8,8 @@ I think the primary features of Botfriend are these:
 * Minimal Python coding -- just write the interesting part of your bot.
 * Simple YAML-based configuration.
 * Easy scheduling of posts.
-* Your bots can post to Twitter and/or Mastodon. (Tumblr support is planned.)
-* Built-in access to [olipy](https://github.com/leonardr/olipy) for
-   Queneau assembly, Markov chains, and other tools for artistic randomness.
-* Built-in access to common data sets through [corpora](https://github.com/dariusk/corpora/).
+* Each bot can post to Twitter and/or Mastodon. (Tumblr support is planned.)
+* Built-in access to art supplies: [olipy](https://github.com/leonardr/olipy) for artistic randomness, and [corpora](https://github.com/dariusk/corpora/) for common data sets.
 
 Botfriend is a Python library that runs on a server. If you're not
 comfortable with setting up a cron job, or writing Python code, I
@@ -53,15 +51,12 @@ your bots, I hope you'll consider Botfriend.
 # Setup
 
 After cloning this repository, run these commands to set up Botfriend
-with all of its dependencies:
+in a virtual environment called `env`.
 
 ```
 virtualenv env
 source env/bin/activate
 pip install -r requirements.txt
-git submodule init
-cd olipy
-git submodule init
 ```
 
 From this point on I'll be giving lots of example command-line
@@ -75,31 +70,42 @@ source env/bin/activate
 # Getting started
 
 You'll interact with Botfriend exclusively through command-line
-scripts. All the Botfriend scripts take a `--config` argument that
-points to the directory where you keep your bots. The Botfriend
-database itself will be stored in this directory as
+scripts.
+
+By default, Botfriend expects you to put the source code for the bots
+in a directory `bots/`, located in the same directory as your virtual
+environment. So if your virtual environment is located in
+`/home/user/botfriend/env`, Botfriend will expect your bots to live
+underneath `/home/user/botfriend/bots`.
+
+The Botfriend database itself will be stored in the bot directory as
 `botfriend.sqlite`.
 
-For each of your bots, you'll add a subdirectory of your Botfriend
-directory named after your bot. To see how this works,
-started, check out [the `sample-bots` directory](https://github.com/leonardr/botfriend/tree/master/sample-bots), which contains about
-ten sample bots, all of them based on real bots that I run.
+If you want to store your Botfriend data somewhere other than `bots/`,
+all the Botfriend scripts take a `--config` argument that points to
+your bot directory.
 
-You can see what your bots are up to with the `dashboard` script. 
+Each individual bot will live in a subdirectory to `bots/` named after
+the bot. To see how this works, started, check out [the `sample-bots`
+directory](https://github.com/leonardr/botfriend/tree/master/sample-bots),
+which contains about ten sample bots, all of them based on real bots
+that I run.
+
+You can see what your bots are up to with the `botfriend.dashboard` script. 
 
 ```
-./dashboard --config=sample-bots
+botfriend.dashboard
 ```
 
-The `dashboard` script will tell you the last time each bot posted,
-the next time it's going to post, what it last posted, and (if known)
-the next thing it's going to post. Since you just cloned the botfriend
-repository, running `dashboard` won't do much.
+This script will tell you the last time each bot posted, the next time
+it's going to post, what it last posted, and (if known) the next thing
+it's going to post. Since you just installed botfriend, running
+`dashboard` won't do much.
 
 To tell the bots to actually post something, run the `post` script:
 
 ```
-./post --config=sample-bots
+botfriend.post
 ```
 
 At this point, some of the sample bots will raise a `NothingToPost`
