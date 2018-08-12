@@ -37,6 +37,7 @@ class BotScript(Script):
         return parser
     
     def __init__(self):
+        """Instantiate and run a script."""
         parser = self.parser()
         self.args = parser.parse_args()
         if self.args.config:
@@ -52,14 +53,17 @@ class BotScript(Script):
             )
             os.makedirs(config_directory)
 
-        self.config = Configuration.from_directory(self.args.config, self.args.bot)
+        self.log.debug("Using config directory %s", config_directory)
+        self.config = Configuration.from_directory(config_directory, self.args.bot)
 
-    def run(self):
+    @classmethod
+    def run(cls):
+        instance = cls()
         found = False
-        for model in self.config.bots:
+        for model in instance.config.bots:
             try:
                 found = True
-                self.process_bot(model)
+                instance.process_bot(model)
             except InvalidPost, e:
                 # This _should_ crash the whole script -- we don't
                 # want to commit invalid posts to the database.
@@ -67,11 +71,14 @@ class BotScript(Script):
             except Exception, e:
                 # Don't let a 'normal' error crash the whole script.
                 model.implementation.log.error(e.message, exc_info=e)
-        self.config._db.commit()
+        instance.config._db.commit()
         if not found:
-            self.log.error("Could not find any bot named %s in %s.",
-                           self.args.bot, self.config.directory
-            )
+            if instance.args.bot:
+                instance.log.error("Could not find any bot named %s in %s.",
+                               instance.args.bot, instance.config.directory
+                )
+            else:
+                instance.log.error("No bots in %s", instance.config.directory)
         
     def process_bot(self, bot_model):
         raise NotImplementedError()

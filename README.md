@@ -9,7 +9,7 @@ I think the primary features of Botfriend are these:
 * Simple YAML-based configuration.
 * Easy scheduling of posts.
 * Each bot can post to Twitter and/or Mastodon. (Tumblr support is planned.)
-* Built-in access to art supplies: [olipy](https://github.com/leonardr/olipy) for artistic randomness, and [corpora](https://github.com/dariusk/corpora/) for common data sets.
+* Built-in access to art supplies through [Olipy](https://github.com/leonardr/olipy).
 
 Botfriend is a Python library that runs on a server. If you're not
 comfortable with setting up a cron job, or writing Python code, I
@@ -50,13 +50,14 @@ your bots, I hope you'll consider Botfriend.
 
 # Setup
 
-After cloning this repository, run these commands to set up Botfriend
-in a virtual environment called `env`.
+I recommend you run Botfriend in a virtual environment. Here's how to
+create a virtual environment called `env` and install Botfriend into
+it.
 
 ```
 virtualenv env
 source env/bin/activate
-pip install -r requirements.txt
+pip install botfriend
 ```
 
 From this point on I'll be giving lots of example command-line
@@ -75,8 +76,8 @@ scripts.
 By default, Botfriend expects you to put the source code for the bots
 in a directory `bots/`, located in the same directory as your virtual
 environment. So if your virtual environment is located in
-`/home/user/botfriend/env`, Botfriend will expect your bots to live
-underneath `/home/user/botfriend/bots`.
+`/home/myusername/botfriend/env`, Botfriend will expect your bots to live
+underneath `/home/myusername/botfriend/bots`.
 
 The Botfriend database itself will be stored in the bot directory as
 `botfriend.sqlite`.
@@ -87,9 +88,9 @@ your bot directory.
 
 Each individual bot will live in a subdirectory to `bots/` named after
 the bot. To see how this works, started, check out [the `sample-bots`
-directory](https://github.com/leonardr/botfriend/tree/master/sample-bots),
-which contains about ten sample bots, all of them based on real bots
-that I run.
+directory](https://github.com/leonardr/botfriend/tree/master/sample-bots)
+in the project repository. This directory structure contains about ten
+sample bots, all of them based on real bots that I run.
 
 You can see what your bots are up to with the `botfriend.dashboard` script. 
 
