@@ -1,9 +1,10 @@
 import os
 import json
 import random
+from nose.tools import set_trace
 from olipy.randomness import WanderingMonsterTable
-from olipy.corpus import Corpus
-us_states = Corpus.load("us_states")
+from olipy import corpora 
+us_states = corpora.geography.us_states['states']
 
 class Grammar(object):
 
@@ -41,13 +42,13 @@ class NounPhraseGrammar(Grammar):
         means = {}
         dir = os.path.split(__file__)[0]
         for name, corpus_name, mean in (
-                ('abstract', 'abstract_nouns', 0.20),
-                ('concrete', 'scribblenauts_words', None),
-                ('adjectival', 'adjectival_nouns', 0.20),
-                ('adjective', 'adjectives', 0.20)
+                ('abstract', corpora.words.common_nouns['abstract_nouns'], 0.20),
+                ('concrete', corpora.words.scribblenauts['nouns'], None),
+                ('adjectival', corpora.words.common_nouns['adjectival_nouns'], 0.20),
+                ('adjective', corpora.words.adjectives['adjectives'], 0.20)
         ):
-             
-            choices[name] = Corpus.load(corpus_name)
+            
+            choices[name] = corpus_name
             means[name] = mean
         super(NounPhraseGrammar, self).__init__(choices, means)
 

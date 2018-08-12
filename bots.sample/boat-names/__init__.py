@@ -1,1 +1,1 @@
-from bot import Bot
+from botfriend.bot import Bot

@@ -5,7 +5,7 @@ import unicodedata
 from nose.tools import set_trace
 import tweepy
 import logging
-from bot import Publisher
+from botfriend.bot import Publisher
 logging.getLogger("tweepy.binder").setLevel(logging.WARN)
 
 class TwitterPublisher(Publisher):

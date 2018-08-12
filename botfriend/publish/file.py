@@ -3,9 +3,9 @@
 Useful mainly for testing.
 """
 import os
-from bot import Publisher
 from nose.tools import set_trace
-from model import _now
+from botfriend.bot import Publisher
+from botfriend.model import _now
 
 class FileOutputPublisher(Publisher):
     def __init__(

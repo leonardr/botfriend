@@ -1,1 +1,1 @@
-from bot import ScriptedBot as Bot
+from botfriend.bot import ScriptedBot as Bot

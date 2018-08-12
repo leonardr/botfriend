@@ -1,1 +1,1 @@
-from bot import RetweetBot as Bot
+from botfriend.bot import RetweetBot as Bot

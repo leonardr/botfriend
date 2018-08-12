@@ -4,10 +4,13 @@ import os
 import json
 import random
 from olipy.randomness import WanderingMonsterTable
-from olipy.corpus import Corpus
+from olipy import corpora
 
-countries = [x for x in Corpus.load("countries") if not ' ' in x]
-us_states = Corpus.load("us_states")
+countries = [
+    country for country in corpora.geography.countries['countries']
+    if not ' ' in country
+]
+us_states = corpora.geography.us_states['states']
 
 class Grammar(object):
 
@@ -57,15 +60,17 @@ class EuphemismGrammar(Grammar):
         ('adjective', 'adjectives', 0.20),
         ('city', 'large_cities', None),
         ):
-        _choices[name] = Corpus.load(corpus_name)
+        _choices[name] = corpora.load(corpus_name)
         _means[name] = mean
 
-    occupations = [x for x in Corpus.load("humans/occupations")
-                   if x.count(' ') <= 1]
+    occupations = [
+        x for x in corpora.humans.occupations['occupations']
+        if x.count(' ') <= 1
+    ]
     _choices['occupation'] = occupations
     _means['occupation'] = None
 
-    animals = [x for x in Corpus.load("animals/common")
+    animals = [x for x in corpora.animals.common
                    if x.count(' ') <= 1]
 
     _choices['country'] = countries

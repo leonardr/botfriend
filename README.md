@@ -87,8 +87,14 @@ all the Botfriend scripts take a `--config` argument that points to
 your bot directory.
 
 Each individual bot will live in a subdirectory to `bots/` named after
-the bot. To see how this works, started, check out [the `sample-bots`
-directory](https://github.com/leonardr/botfriend/tree/master/sample-bots)
+the bot. To see how this works, started, check out [the `botfriend`
+project repository](https://github.com/leonardr/botfriend/)
+and copy its `sample-bots` directory into your virtual environment:
+
+```
+git clone git@github.com:leonardr/botfriend.git
+cp -r botfriend/bots.sample bots
+```
 in the project repository. This directory structure contains about ten
 sample bots, all of them based on real bots that I run.
 
@@ -111,50 +117,50 @@ botfriend.post
 
 At this point, some of the sample bots will raise a `NothingToPost`
 exception. [Roy's
-Postcards](https://github.com/leonardr/botfriend/tree/master/sample-bots/postcards)
+Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards)
 and [Deathbot
-3000](https://github.com/leonardr/botfriend/tree/master/sample-bots/roller-derby)
+3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby)
 are examples. These bots can't just make up something to post--they
 can only post from a backlog. Since they start out with an empty
 backlog, they have nothing to post.
 
 Other bots, like [Best of
-RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp)
+RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp)
 and [Ingsoc Party
-Slogans](https://github.com/leonardr/botfriend/tree/master/sample-bots/ingsoc-slogans),
+Slogans](https://github.com/leonardr/botfriend/tree/master/bots.sample/ingsoc-slogans),
 will raise `TweepError` at this point. These bots need working Twitter
 credentials to function, and none of the sample bots are supplied with
 valid Twitter credentials.
 
-But most of the bots in `sample-bots` will work fine. They will
+But most of the bots in `bots.sample` will work fine. They will
 generate one or more posts and publish them. These posts won't be
 published to Twitter or Mastodon, since none of the sample bots have
 working credentials. Instead, the posts will be published to files in
 the bot subdirectories.
 
 For example, [A Dull
-Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/a-dull-bot)
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot)
 will write one post at a time to
-`sample-bots/a-dull-bot/a-dull-bot.txt`.
+`bots.sample/a-dull-bot/a-dull-bot.txt`.
 
 [Crowd Board
-Games](https://github.com/leonardr/botfriend/tree/master/sample-bots/crowd-board-games)
+Games](https://github.com/leonardr/botfriend/tree/master/bots.sample/crowd-board-games)
 will convert an entire RSS feed into a series of posts, and write them
-all to `sample-bots/crowd-board-games/crowd-board-games.txt`.
+all to `bots.sample/crowd-board-games/crowd-board-games.txt`.
 
 [Anniversary
-Materials](https://github.com/leonardr/botfriend/tree/master/sample-bots/anniversary)
+Materials](https://github.com/leonardr/botfriend/tree/master/bots.sample/anniversary)
 can get extra data from Twitter if it has Twitter credentials, but it
 won't crash or give up if those credentials are missing. When you run
 `post` this bot will come up with a gift idea using the built-in
 datasets from `olipy` and `corpora`, and write its idea to
-`sample-bots/anniversary/anniversary.txt`.
+`bots.sample/anniversary/anniversary.txt`.
 
-If you run `./dashboard --config=sample-bots` after running `post`,
+If you run `./dashboard --config=bots.sample` after running `post`,
 you'll see that everything that just happened was archived in the
-database at `sample-bots/botfriend.sqlite`.
+database at `bots.sample/botfriend.sqlite`.
 
-The second time you run `./post --config=sample-bots`, you'll see a
+The second time you run `./post --config=bots.sample`, you'll see a
 lot less action. The bots that crashed the first time will crash the
 second time, but most of the bots will be silent. This is because they
 just posted something. Every bot has some kind of scheduling rules
@@ -165,12 +171,12 @@ If you want to force a specific bot to post, despite its schedule, you
 can use the `--force` option, like this:
 
 ```
-./post --config=sample-bots --bot=anniversary --force
+./post --config=bots.sample --bot=anniversary --force
 ```
 
 # Bot anatomy
 
-So, you've got about ten examples to look at in `sample-bots/`. Each
+So, you've got about ten examples to look at in `bots.sample/`. Each
 bot directory contains two special files: `bot.yaml` for configuration
 and `__init__.py` for source code.
 
@@ -186,7 +192,7 @@ need to supply three pieces of information:
   on those services.
 
 Configuration options are covered in more detail below, but here's a
-simple example: the `bot.yaml` for [A Dull Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/a-dull-bot).
+simple example: the `bot.yaml` for [A Dull Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot).
 
 ```
 name: "A Dull Bot"
@@ -242,7 +248,7 @@ will call its `generate_text()` method, and post whatever is returned.
 
 Several examples of `TextGeneratorBot` are included with botfriend,
 the simplest being [A Dull
-Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/a-dull-bot).
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot).
 Here's the _entire_ code of A Dull Bot:
 
 ```
@@ -274,14 +280,14 @@ typewritten text through the Twitter or Mastodon APIs. Botfriend takes
 care of all that stuff.
 
 [Euphemism
-Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/euphemism)
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/euphemism)
 and [Serial
-Entrepreneur](https://github.com/leonardr/botfriend/tree/master/sample-bots/serial-entrepreneur)
+Entrepreneur](https://github.com/leonardr/botfriend/tree/master/bots.sample/serial-entrepreneur)
 have more complex generative logic, but they're still very simple
 `TextGeneratorBot`s.
 
 [I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
+Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
 is a more complicated `TextGeneratorBot` that stores state between
 invocations to minimize load on the Twitter API.
 
@@ -307,7 +313,7 @@ something, it will pick the top item off the backlog and send it to be
 published.
 
 [Boat Name
-Bot](https://github.com/leonardr/botfriend/tree/master/sample-bots/boat-names)
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/boat-names)
 is a bot that has no custom code whatsoever. It does nothing but post
 strings from its backlog. The `__init__.py` for Boat Name Bot contains
 no code, just a placeholder:
@@ -318,10 +324,10 @@ from bot import Bot
 
 The real action is in the `backload-load` script, which loads items
 into the backlog from a text file. Boat Name Bot comes with a [sample backlog
-of boat names](https://github.com/leonardr/botfriend/blob/master/sample-bots/boat-names/backlog.txt), which you can load with a command like this:
+of boat names](https://github.com/leonardr/botfriend/blob/master/bots.sample/boat-names/backlog.txt), which you can load with a command like this:
 
 ```
-./backlog-load --config=sample-bots --bot=boat-names --file=sample-bots/boat-names/input.txt
+./backlog-load --config=bots.sample --bot=boat-names --file=bots.sample/boat-names/input.txt
 ```
 
 Once you've loaded a backlog, the `./post` script will start posting
@@ -331,11 +337,11 @@ operation, because you've done all the work ahead of time. The bot is
 going to post the things from that text file, one at a time.
 
 [Death Bot
-3000](https://github.com/leonardr/botfriend/tree/master/sample-bots/roller-derby)
+3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby)
 is a backlog bot that is a little more complicated. Instead of keeping
 its backlog in a text file, it expects its backlog in the form of
 [JSON
-lists](https://github.com/leonardr/botfriend/blob/master/sample-bots/roller-derby/backlog.ndjson).
+lists](https://github.com/leonardr/botfriend/blob/master/bots.sample/roller-derby/backlog.ndjson).
 To convert from a JSON list to a string, Death Bot 3000 subclasses the
 `object_to_post` method.
 
@@ -352,7 +358,7 @@ your bost posts at specific times, you can have schedule its posts at
 precise times, by subclassing `ScriptedBot`.
 
 [Frances
-Daily](https://github.com/leonardr/botfriend/tree/master/sample-bots/frances-daily)
+Daily](https://github.com/leonardr/botfriend/tree/master/bots.sample/frances-daily)
 posts journal entries on specific dates, exactly thirty years after the
 journal entries were originally written. On some days, there is no post
 at all. So there's no simple rule like "every day, publish the next
@@ -360,7 +366,7 @@ post." Each post is associated with a specific date and time.
 
 Frances Daily doesn't have any special code -- it uses [a simple JSON
 script
-format](https://github.com/leonardr/botfriend/blob/master/sample-bots/frances-daily/script.ndjson)
+format](https://github.com/leonardr/botfriend/blob/master/bots.sample/frances-daily/script.ndjson)
 to explain what should be published when. Most of the times, you can
 create schedule posts without writing any special Botfriend code at
 all. All the work goes into generating your script.
@@ -369,7 +375,7 @@ To load a list of scheduled posts, use the `scheduled-load`
 script. Here's an example that loads the script for Frances Daily:
 
 ```
-./scheduled-load --config=sample-bots --bot=frances-daily --file=sample-bots/frances-daily/script.ndjson
+./scheduled-load --config=bots.sample --bot=frances-daily --file=bots.sample/frances-daily/script.ndjson
 ```
 
 Once you load the scheduled posts, the `./post` script will start
@@ -379,7 +385,7 @@ days old.
 ### Bots can post images
 
 Bots can post images as well as text. [Roy's
-Postcards](https://github.com/leonardr/botfriend/tree/master/sample-bots/postcards)
+Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards)
 is an example of a bot that loads a combination of images and text
 into its backlog. In this case the images are loaded off disk when
 it's time to post them -- only the filenames are stored in the
@@ -391,7 +397,7 @@ posts; you can see this in action on
 # Tracking bot-specific state
 
 [I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
+Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
 gets its data by using the Twitter API to run searches on strings like
 "i am a" and "i am an". These searches take a long time and can cause
 Twitter to rate-limit the bot if you run them too often. Rather than
@@ -406,13 +412,13 @@ bot's state is accessible through the property `self.model.state`.
 You can store whatever you want in the bot's state. Anything that can
 be cached and is time-consuming to calculate is a good
 choice. [Anniversary
-Materials](https://github.com/leonardr/botfriend/tree/master/sample-bots/anniversary)
+Materials](https://github.com/leonardr/botfriend/tree/master/bots.sample/anniversary)
 is another example--it also uses the Twitter search API to gather raw
 data from Twitter, which it stores in its state.
 
 # Configuration
 
-Let's take another look at [A Dull Bot's bot.yaml](https://github.com/leonardr/botfriend/tree/master/sample-bots/a-dull-bot/bot.yaml):
+Let's take another look at [A Dull Bot's bot.yaml](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot/bot.yaml):
 
 ```
 name: "A Dull Bot"
@@ -444,14 +450,14 @@ schedule will vary widely.
 
 You can omit `schedule` if your bot schedules all of its posts ahead
 of time (like [Frances
-Daily](https://github.com/leonardr/botfriend/tree/master/sample-bots/frances-daily)
+Daily](https://github.com/leonardr/botfriend/tree/master/bots.sample/frances-daily)
 does).
 
 ### `state_update_schedule`
 
 There's a related option, `state_update_schedule`, which you only need
 to set if your bot keeps internal state, like [I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/sample-bots/ama)
+Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
 does. This option works the same way as `schedule`, but instead of
 controlling how often the bot should post, it controls how often your
 `update_state()` method is called.
@@ -544,7 +550,7 @@ will be able to post to your Mastodon account.
 
 `schedule`, and `publish` are only the most common
 configuration options.  [Best of
-RHP](https://github.com/leonardr/botfriend/tree/master/sample-bots/best-of-rhp),
+RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp),
 a subclass of `RetweetBot`, has a special configuration setting called
 `retweet-user`, which controls the Twitter account that the bot
 retweets. Your bot can have its own configuration options--the
@@ -593,7 +599,7 @@ posting. You can always access a publisher from inside a `Bot` as
 `Publisher.api`.
 
 See the [`IAmABot`
-constructor](https://github.com/leonardr/botfriend/blob/master/sample-bots/ama/__init__.py)
+constructor](https://github.com/leonardr/botfriend/blob/master/bots.sample/ama/__init__.py)
 for an example. This bot needs a Twitter API client to get its data,
 so it looks through `self.publishers` until it finds the Twitter
 publisher, and grabs its `.api`, storing it for later.

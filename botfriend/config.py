@@ -37,6 +37,14 @@ class Configuration(object):
         self._db = _db
         self.bots = bots
         self.directory = directory
+
+    @classmethod
+    def default_directory(cls):
+        if 'VIRTUAL_ENV' in os.environ:
+            env_root = os.environ['VIRTUAL_ENV']
+            env_parent, ignore = os.path.split(env_root)
+            return os.path.join(env_parent, 'bots')
+        return None
         
     @classmethod
     def from_directory(cls, directory, consider_only=None):
@@ -47,6 +55,7 @@ class Configuration(object):
 
         Default configuration settings can be kept in {directory}/default.yaml
         """
+        directory = directory or cls.default_directory()
         log = logging.getLogger("Loading configuration from %s" % directory)
         database_path = os.path.join(directory, 'botfriend.sqlite')
         _db = production_session(database_path)

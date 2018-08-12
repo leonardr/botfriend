@@ -1,7 +1,7 @@
 import json
 
-from bot import BasicBot
-from model import Post
+from botfriend.bot import BasicBot
+from botfriend.model import Post
 
 class DeathBot3000(BasicBot):
 

@@ -5,9 +5,9 @@ import random
 import re
 import sys
 from textblob import TextBlob
-from bot import TextGeneratorBot
-from olipy.corpus import Corpus
-from olipy.wordfilter import is_blacklisted
+from botfriend.bot import TextGeneratorBot
+from olipy import corpora
+from wordfilter import blacklisted
 
 class IAMAExtractor(object):
     re_parts = [
@@ -113,7 +113,7 @@ class StateManager(object):
         # In addition to searching for phrases like "I am a", we're
         # going to pick a past tense verb like "accomplished" and
         # search for (e.g.) "I accomplished".
-        past_tense = Corpus.load("past_tense")
+        past_tense = Corpora.search("past_tense")
         verb_of_the_day = random.choice(past_tense)
         random_verb = "I %s" % verb_of_the_day
         self.log.info("Today's random verb: '%s'", random_verb)
@@ -140,7 +140,7 @@ class StateManager(object):
                 # Ignore this; we already have it as a potential.
                 continue
             self.already_seen.add(text)
-            if is_blacklisted(text):
+            if blacklisted(text):
                 continue
             if 'AMA' in text or 'ask me anything' in text.lower():
                 # Don't use an actual AMA or AMA joke.

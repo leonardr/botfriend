@@ -1,5 +1,5 @@
 from entrepreneur import Announcements
-from bot import TextGeneratorBot
+from botfriend.bot import TextGeneratorBot
 
 class EntrepreneurBot(TextGeneratorBot):
 

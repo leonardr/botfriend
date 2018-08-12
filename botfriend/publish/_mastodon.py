@@ -1,6 +1,6 @@
 from nose.tools import set_trace
-from mastodon import Mastodon
-from bot import Publisher
+from botfriend.mastodon import Mastodon
+from botfriend.bot import Publisher
 
 class MastodonPublisher(Publisher):
     def __init__(self, bot, full_config, instance):

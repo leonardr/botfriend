@@ -1,2 +1,2 @@
-from bot import RSSScraperBot as Bot
+from botfriend.bot import RSSScraperBot as Bot
 

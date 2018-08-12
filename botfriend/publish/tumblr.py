@@ -4,7 +4,7 @@ import re
 from nose.tools import set_trace
 import pytumblr
 import logging
-from bot import Publisher
+from botfriend.bot import Publisher
 
 class TumblrPublisher(Publisher):
     def __init__(

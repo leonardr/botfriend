@@ -7,10 +7,10 @@ import random
 import re
 import sys
 from textblob import TextBlob
-from bot import TextGeneratorBot
+from botfriend.bot import TextGeneratorBot
 from olipy.randomness import WanderingMonsterTable
-from olipy.corpus import Corpus
-from olipy.wordfilter import is_blacklisted
+from olipy import corpora
+from wordfilter import blacklisted
 
 class MaterialExtractor(object):
     """Takes a string that mentions a phrase like "made of x",
@@ -108,7 +108,7 @@ class StateManager(object):
             quoted = '"%s"' % query
             for tweet in self.twitter.search(q=quoted):
                 text = tweet.text
-                if is_blacklisted(text):
+                if blacklisted(text):
                     # If any part of the original tweet is blacklisted, don't
                     # take the risk of using part of it.
                     continue
@@ -196,7 +196,7 @@ class Advisor(object):
 
         def load_local(x):
             """Load a data file from bot-specific storage 
-            rather than through Corpus.
+            rather than through Corpora.
             """
             base_dir = os.path.split(__file__)[0]
             path = os.path.join(base_dir, "data", x)
@@ -215,10 +215,8 @@ class Advisor(object):
         moma_materials = filtered_local("moma.txt")
         gutenberg_materials = filtered_local("gutenberg.txt")
 
-        scribblenauts_words = filter_materials(
-            Corpus.load("scribblenauts_words")
-        )
-        concrete_nouns = filter_materials(Corpus.load("concrete_nouns"))
+        scribblenauts_words = filter_materials(corpora.words.scribblenauts)
+        concrete_nouns = filter_materials(corpora.words.common_nouns['concrete_nouns'])
         
         # Put all the materials in corpus into one big list.
         corpora_materials = []
@@ -238,7 +236,7 @@ class Advisor(object):
                 'plastic-brands',
                 'sculpture-materials',
                 'technical-fabrics'):
-            corpora_materials.extend(filter_materials(Corpus.load(corpus)))
+            corpora_materials.extend(filter_materials(corpora.load(corpus)))
 
         # Unlike the other lists of materials, we need to do some
         # minimal processing here.

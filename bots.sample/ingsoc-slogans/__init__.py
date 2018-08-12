@@ -1,11 +1,12 @@
+# Note: this bot is broken -- we need a list of words and their antonyms.
 from pdb import set_trace
 import random
 import string
-from bot import TextGeneratorBot
-from olipy.corpus import Corpus
+from botfriend.bot import TextGeneratorBot
+from olipy import corpora
 
 # Requires `pip install PyDictionary`
-from PyDictionary import PyDictionary
+# from PyDictionary import PyDictionary
 
 class SloganBot(TextGeneratorBot):
 
@@ -21,7 +22,7 @@ class SloganBot(TextGeneratorBot):
         if publisher.service != 'twitter':
             raise Exception(only_twitter)
         self.twitter = publisher.api
-        self.dictionary = PyDictionary()
+        self.dictionary = {}
         
     @property
     def slogan(self):

@@ -589,17 +589,18 @@ class Publisher(object):
         # needs to import a package called 'foo' from elsewhere (see
         # _mastodon.py for an example.)
         publisher_module = None
-        names = ('publish.' + module, 'publish._' + module)
+        names = ('botfriend.publish.' + module, 'botfriend.publish._' + module)
+        errors = []
         for module_name in names:
             try:
                 publisher_module = importlib.import_module(module_name)
                 break
             except ImportError, e:
-                pass
+                errors.append(e)
         if not publisher_module:
             raise ImportError(
-                "Could not import publisher for %s; tried %s" % (
-                    module, ", ".join(names)
+                "Could not import publisher for %s; tried %s. Errors were: %r" % (
+                    module, ", ".join(names), errors
                 )
             )
         publisher_class = getattr(publisher_module, "Publisher", None)

@@ -3,8 +3,8 @@ from StringIO import StringIO
 import csv
 import json
 import re
-from bot import ScraperBot
-from model import (
+from botfriend.bot import ScraperBot
+from botfriend.model import (
     Post,
 )
 

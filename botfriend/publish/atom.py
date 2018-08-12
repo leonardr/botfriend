@@ -1,4 +1,4 @@
-from bot import Publisher
+from botfriend.bot import Publisher
 
 class AtomPublisher(Publisher):
     def __init__(self, *args, **kwargs):

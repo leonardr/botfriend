@@ -44,6 +44,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'botfriend.dashboard = botfriend.scripts:DashboardScript.run',
+            'botfriend.post = botfriend.scripts:PostScript.run',
         ]
     },
     classifiers=[
