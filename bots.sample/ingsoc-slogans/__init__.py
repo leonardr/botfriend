@@ -27,10 +27,9 @@ class SloganBot(TextGeneratorBot):
     @property
     def slogan(self):
         if random.random() < 0.25:
-            corpus = 'abstract_nouns'
+            data = corpora.words.common_nouns['abstract_nouns']
         else:
-            corpus = 'adjectives'
-        data = Corpus.load(corpus)
+            data = corpora.words.adjectives['adjectives']
         pairs = []
         while len(pairs) < 3:
             seed = random.choice(data)

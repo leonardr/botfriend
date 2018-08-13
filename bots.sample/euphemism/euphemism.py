@@ -42,7 +42,6 @@ class Grammar(object):
                 v = int(random.expovariate(1.0/mean))
             return choices[v]
 
-
 dir = os.path.split(__file__)[0]
 
 class EuphemismGrammar(Grammar):
@@ -52,15 +51,17 @@ class EuphemismGrammar(Grammar):
 
     _means = {}
     _choices = {}
-    for name, corpus_name, mean in (
-        ('gerund', 'gerunds', 0.3),
-        ('past', 'past_tense', 0.3),
-        ('present', 'present_tense', 0.3),           
-        ('noun', 'scribblenauts_words', None),
-        ('adjective', 'adjectives', 0.20),
-        ('city', 'large_cities', None),
+    verbs = corpora.words.common_verbs
+    for name, corpus, mean in (
+        ('gerund', verbs['gerund'], 0.3),
+        ('past', verbs['past_tense'], 0.3),
+        ('present', verbs['present_tense'], 0.3),           
+        ('noun', corpora.words.scribblenauts['nouns'], None),
+        ('adjective', corpora.words.adjectives['adjectives'], 0.20),
+        ('city', corpora.geography.large_cities['cities'], None),
         ):
-        _choices[name] = corpora.load(corpus_name)
+        assert isinstance(corpus, list)
+        _choices[name] = corpus
         _means[name] = mean
 
     occupations = [
@@ -107,7 +108,7 @@ class EuphemismGrammar(Grammar):
                             break
                 tries += 1
                 if tries > 100:
-                    import pdb; pdb.set_trace()
+                    break
             if add_to_chosen:
                 chosen.add(c)
             if is_assonant and not assonant_letter:
@@ -327,7 +328,7 @@ class Quote(WanderingMonsterTable):
             country = random.choice(countries)
 
         language = "English"
-        languages = Corpus.load("languages")
+        languages = corpora.language.languages['languages']
         while language == "English":
             language = random.choice(languages)
 

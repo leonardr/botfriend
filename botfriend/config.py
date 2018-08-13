@@ -41,10 +41,15 @@ class Configuration(object):
     @classmethod
     def default_directory(cls):
         if 'VIRTUAL_ENV' in os.environ:
+            # Botfriend was installed into a virtual environment.
             env_root = os.environ['VIRTUAL_ENV']
-            env_parent, ignore = os.path.split(env_root)
-            return os.path.join(env_parent, 'bots')
-        return None
+            root_dir, ignore = os.path.split(env_root)
+        else:
+            # Most likely Botfriend was installed by cloning the git
+            # repo.
+            package_dir, ignore = os.path.split(__file__)
+            root_dir, ignore = os.path.split(package_dir)
+        return os.path.join(root_dir, 'bots')
         
     @classmethod
     def from_directory(cls, directory, consider_only=None):

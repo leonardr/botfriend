@@ -1,11 +1,11 @@
-# $ apt install sqlite3-dev
-sqlalchemy
-pyyaml
-nose
-tweepy
-TextBlob
 Mastodon.py
-requests
+TextBlob
 beautifulsoup4
 feedparser
+nose
+olipy
 pytumblr
+pyyaml
+requests
+sqlalchemy
+tweepy

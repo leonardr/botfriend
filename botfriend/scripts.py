@@ -42,8 +42,9 @@ class BotScript(Script):
         self.args = parser.parse_args()
         if self.args.config:
             config_directory = self.args.config
-        elif 'VIRTUAL_ENV' in os.environ:
+        else:
             config_directory = Configuration.default_directory()
+
 
         if not os.path.exists(config_directory):
             self.log.warn(

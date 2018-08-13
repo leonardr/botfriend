@@ -12,19 +12,7 @@ from io import open
 
 import setuptools
 
-requires = [
-    'olipy',
-    'sqlalchemy',
-    'pyyaml',
-    'nose',
-    'tweepy',
-    'TextBlob',
-    'Mastodon.py',
-    'requests',
-    'beautifulsoup4',
-    'feedparser',
-    'pytumblr',
-]
+requires = [x.strip() for x in open("requirements.txt")]
 
 with open("README.md", "r") as fh:
     long_description = fh.read()

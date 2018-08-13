@@ -205,6 +205,20 @@ class Advisor(object):
         exclude = set(load_local("real_life.txt"))
         def filter_materials(materials):
             """Exclude materials that are actually used as anniversary gifts."""
+            if isinstance(materials, dict):
+                # This may be a corpora object -- extract the thing that's
+                # not the description or source.
+                if 'description' in materials:
+                    del materials['description']
+                if 'source' in materials:
+                    del materials['source']
+                if len(materials) == 1:
+                    [materials] = materials.values()
+                else:
+                    raise ValueError(
+                        "Unrecognized materials: %r" % materials
+                    )
+                        
             return [x for x in materials if x and x.lower() not in exclude]
 
         def filtered_local(filename):

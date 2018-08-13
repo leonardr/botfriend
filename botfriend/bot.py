@@ -104,11 +104,12 @@ class Bot(object):
         if not posts:
             # Create a new post
             posts = self.new_post()
-        
+
         if not posts:
-            # We didn't actually do any work. (This probably shouldn't
-            # happen.) Return immediately so as not to update the post
-            # schedule.
+            # We didn't actually do any work, possibly because the
+            # backlog is empty. Return immediately so as not to update
+            # the post schedule -- we want to post as soon as
+            # something goes into the backlog.
             return []
 
         # Schedule the next post time. This will hopefully be
@@ -159,7 +160,7 @@ class Bot(object):
         (which will be passed into object_for_post for conversion into
         a post).
         """
-        raise NothingToPost()
+        return None
 
     def object_to_post(self, obj):
         """Turn an object retrieved from backlog or from new_post(), into a
