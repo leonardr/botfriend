@@ -345,7 +345,7 @@ class BotModel(Base):
         return json.loads(self._backlog)
 
     @backlog.setter
-    def set_backlog(self, backlog):
+    def backlog(self, backlog):
         """Set the given list as the bot's backlog.
 
         :param backlog: A list that can be converted into JSON.

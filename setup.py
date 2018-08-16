@@ -33,6 +33,7 @@ setuptools.setup(
         'console_scripts': [
             'botfriend.dashboard = botfriend.scripts:DashboardScript.run',
             'botfriend.post = botfriend.scripts:PostScript.run',
+            'botfriend.backlog.load = botfriend.scripts:BacklogLoadScript.run',
         ]
     },
     classifiers=[

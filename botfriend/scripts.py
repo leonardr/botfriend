@@ -92,11 +92,10 @@ class SingleBotScript(BotScript):
         parser.add_argument(
             '--config',
             help="Directory containing the botfriend database.",
-            required=True,
         )
         parser.add_argument(
             '--bot', 
-            help='Operate on this bot.',
+            help='Do something to one specific bot.',
             required=True
         )
         return parser
@@ -140,6 +139,13 @@ class RepublicationScript(BotScript):
                     bot_model.log.info("Failure: %s" % publication.error)
                 else:
                     bot_model.log.info("Success!")
+
+
+class BotListScript(BotScript):
+    """List your bots."""
+
+    def process_bot(self, model):
+        print model.implementation.module_name
 
 
 class DashboardScript(BotScript):

@@ -156,11 +156,11 @@ won't crash or give up if those credentials are missing. When you run
 datasets from `olipy` and `corpora`, and write its idea to
 `bots.sample/anniversary/anniversary.txt`.
 
-If you run `./dashboard --config=bots.sample` after running `post`,
+If you run `botfriend.dashboard` after running `botfriend.post`,
 you'll see that everything that just happened was archived in the
-database at `bots.sample/botfriend.sqlite`.
+database at `bots/botfriend.sqlite`.
 
-The second time you run `./post --config=bots.sample`, you'll see a
+The second time you run `botfriend.post`, you'll see a
 lot less action. The bots that crashed the first time will crash the
 second time, but most of the bots will be silent. This is because they
 just posted something. Every bot has some kind of scheduling rules
@@ -171,7 +171,7 @@ If you want to force a specific bot to post, despite its schedule, you
 can use the `--force` option, like this:
 
 ```
-./post --config=bots.sample --bot=anniversary --force
+botfriend.post --bot=anniversary --force
 ```
 
 # Bot anatomy
