@@ -323,7 +323,7 @@ class BotModel(Base):
         return json.loads(self.state)
 
     @json_state.setter
-    def set_json_state(self, state):
+    def json_state(self, state):
         self.state = json.dumps(state)
 
     @hybrid_property
@@ -331,7 +331,7 @@ class BotModel(Base):
         return self._state
 
     @state.setter
-    def set_state(self, new_value):
+    def state(self, new_value):
         if not isinstance(new_value, basestring):
             new_value = json.dumps(new_value)
         self._state = new_value
@@ -426,7 +426,7 @@ class Post(Base):
         return json.loads(self.state)
 
     @json_state.setter
-    def set_json_state(self, state):
+    def json_state(self, state):
         self.state = json.dumps(state)
     
     @classmethod

@@ -113,7 +113,7 @@ class StateManager(object):
         # In addition to searching for phrases like "I am a", we're
         # going to pick a past tense verb like "accomplished" and
         # search for (e.g.) "I accomplished".
-        past_tense = Corpora.search("past_tense")
+        past_tense = corpora.words.common_verbs["past_tense"]
         verb_of_the_day = random.choice(past_tense)
         random_verb = "I %s" % verb_of_the_day
         self.log.info("Today's random verb: '%s'", random_verb)

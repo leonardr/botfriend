@@ -245,17 +245,36 @@ class PostScript(BotScript):
                 publication.post.bot.log.info(publication.display())
         self.config._db.commit()
 
+class StateAwareScript(BotScript):
 
-class StateShowScript(BotScript):
+    def _state_status(self, bot_model):
+        """Create a string describing the bot's current stored state."""
+        if bot_model.state:
+            prefix = "State"
+            suffix = ":"
+            state = "\n%s" % bot_model.state
+        else:
+            prefix = "No state"
+            suffix = "."
+            state = ""
+        update = bot_model.last_state_update_time
+        if update:
+            last_update = "(last state update %s)" % update
+        else:
+            last_update = "(state was never updated)"
+        return "%s for %s %s%s%s" % (
+            prefix, bot_model.name, last_update, suffix, state
+        )
+        
+
+class StateShowScript(StateAwareScript):
     """Show the internal state for a bot."""
 
     def process_bot(self, bot_model):
         last_update = bot_model.last_state_update_time
-        print "State for %s (last update %s)" % (bot_model.name, last_update)
-        print bot_model.state
-        
+        print self._state_status(bot_model)
 
-class StateSetScript(SingleBotScript):
+class StateSetScript(StateAwareScript):
     """Set the internal state for a bot."""
 
     @classmethod
@@ -274,20 +293,16 @@ class StateSetScript(SingleBotScript):
         else:
             fh = sys.stdin
         data = fh.read().decode("utf8")
-        bot_model.implementation.set_state(data)
+        bot_model.state = data
         print bot_model.state
 
 
-class StateRefreshScript(BotScript):
+class StateRefreshScript(StateAwareScript):
     """Refresh the internal state for a bot."""
 
     def process_bot(self, bot_model):
         bot_model.implementation.check_and_update_state(force=True)
-        print "State for %s (last update %s)" % (
-            bot_model.name, bot_model.last_state_update_time
-        )
-        print bot_model.state
-
+        print self._state_status(bot_model)
 
 class StressTestScript(BotScript):
     """Stress-test a bot's generative capabilities without posting anything."""
