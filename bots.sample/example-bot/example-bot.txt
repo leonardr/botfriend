@@ -3,3 +3,5 @@
 2018-08-20 22:15:19 | Why is 3 afraid of 4?
 Because 4 ate 6!
 2018-08-20 22:15:29 | Why is 10 afraid of 11? Because 11 ate 13!
+2018-08-20 22:37:23 | Why is 4 afraid of 5? Because 5 ate 7!
+2018-08-20 22:41:49 | Why is 9 afraid of 10? Because 10 ate 12!

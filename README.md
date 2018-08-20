@@ -173,8 +173,70 @@ Now you're ready to make the bot tell some jokes.
 
 ## `botfriend.post`
 
+The `botfriend.post` script makes each of your bots come up with a
+joke and tell it. Run it now:
+
+```
+$ botfriend.post
+# LOG 2019-01-20 | Example Bot | file | Published 2019-01-20 | Why is 4 afraid of 5… 
+```
+
+Now look at the file that Example Bot posts its jokes to. It didn't
+exist before, but now it does exist, and it's got a joke in it.
+
+```
+$ cat bots/example-bot/example-bot.txt
+2019-01-20 10:23:44 | Why is 4 afraid of 5? Because 5 ate 7!
+```
+
+Hilarious, right? You'll be running this script a lot, probably as
+part of an automated process. I run `botfriend.post` every five
+minutes. If your bot isn't scheduled to tell a joke, `botfriend.post`
+will do nothing. Run it again now -- nothing will happen.
+
+```
+$ botfriend.post
+```
+
+Example Bot just told a joke, and (remember `bot.yaml`) it isn't
+scheduled to do anything else for an hour.
+
+By specifying the directory name of the bot, you can make
+`botfriend.post` (and most other Botfriend scripts) operate on just
+one bot, not all of them. Right now, it doesn't make a difference,
+because you only have one bot, but here's how to do it:
+
+```
+$ botfriend.post example-bot
+```
+
+You can use `--force` to make a bot tell a joke even if its schedule
+wouldn't normally allow it.
+
+```
+$ botfriend.post example-bot --force
+# LOG 2019-01-20 | Example Bot | file | Published 2019-01-20 | Why is 9 afraid of 10… 
+```
+
+Now `bots/example-bot/example-bot.txt` contains two jokes.
+
+```
+$ cat bots/example-bot/example-bot.txt
+2019-01-20 10:23:44 | Why is 4 afraid of 5? Because 5 ate 7!
+2019-01-20 10:26:12 | Why is 9 afraid of 10? Because 10 ate 11!
+```
 
 ## `botfriend.dashboard`
+
+This script is good for getting an overview of your bots, what they've
+been doing lately and when they're scheduled to go again.
+
+```
+$ botfriend.dashboard example-bot
+# Example Bot | Most recent post: Why is 9 afraid of 10? Because 10 ate 12!
+# Example Bot | file posted 0m ago (2018-01-20 10:26:12)
+# Example Bot | Next post in 59m
+```
 
 ## `botfriend.bots`
 
@@ -184,12 +246,55 @@ Botfriend.
 
 ```
 $ botfriend.bots
-example-bot
+# example-bot
 ```
 
 ## `botfriend.test.publisher`
 
+The `botfriend.test.publisher` script tries out all of your bots'
+publishing credentials to make sure they work. If a bot has been
+having trouble posting, the problem will show up here. For every bot
+with a publishing technique that works, you'll get a line that starts
+with `GOOD`. For every publishing technique that's broken, you'll get
+a line that starts with `FAIL`. Here's an example where "Example Bot"
+is writing to a file just fine, but "Broken Bot" has a bad Twitter
+credential.
+
+```
+$ botfriend.test.publisher
+# GOOD Example Bot file 
+# FAIL Broken Bot twitter: [{u'message': u'Invalid or expired token.', u'code': 89}]
+```
+
 ## `botfriend.test.stress`
+
+It's difficult to test a bot that does random things. You might have a
+bug that makes the bot crash only one time in a thousand. Or your bot
+might sometimes work but take a long time to run.
+
+This is why we have the `botfriend.test.stress` script, which asks a
+bot to come up with ten thousand jokes in a row. The jokes aren't
+published anywhere; the goal is just to give a good test of all the
+possible cases that might happen inside your bot.
+
+Since Example Bot is really simple, it can generate ten thousand jokes
+with no problem, although some of them are repeats:
+
+```
+$ botfriend.test.stress example-bot
+# Why is 2 afraid of 3? Because 3 ate 5!
+# Why is 7 afraid of 8? Because 8 ate 10!
+# Why is 1 afraid of 2? Because 2 ate 4!
+# Why is 4 afraid of 5? Because 5 ate 7!
+# Why is 4 afraid of 5? Because 5 ate 7!
+# Why is 7 afraid of 8? Because 8 ate 10!
+# ... etc. etc. ...
+```
+
+If you've got a complicated bot, it can be a good idea to run
+`botfriend.test.stress` on it a couple of times before using it for real.
+
+--- stopped here
 
 # Loading up more examples
 
@@ -218,7 +323,7 @@ it's going to post. Since you just installed botfriend, running
 To tell the bots to actually post something, run the `post` script:
 
 ```
-botfriend.post
+$ botfriend.post
 ```
 
 At this point, some of the sample bots will raise a `NothingToPost`
