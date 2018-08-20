@@ -83,11 +83,117 @@ The Botfriend database itself will be stored in the bot directory as
 `botfriend.sqlite`.
 
 If you want to store your Botfriend data somewhere other than `bots/`,
-all the Botfriend scripts take a `--config` argument that points to
-your bot directory.
+every Botfriend script takes a `--config` argument that points to your
+bot directory.
 
-Each individual bot will live in a subdirectory to `bots/` named after
-the bot. To see how this works, started, check out [the `botfriend`
+Each individual bot will live in a subdirectory of `bots/` named after
+the bot. Let's get started with a simple example, called `example-bot`.
+
+```
+mkdir bots
+mkdir bots/example-bot
+```
+
+Each bot needs to contain two special files: `__init__.py` for source
+code and `bot.yaml` for configuration.
+
+## `__init__.py`: Coming up with the joke
+
+Imagine walking up to to a comedian and saying "Tell me a joke!" That
+probably won't work for a human comedian, but it works gret for bots.
+`__init__.py` is where Botfriend bots come up with their jokes.
+
+To get started, we'll make a simple bot that comes up with
+observational humor about numbers.
+
+To get started, open up `bots/example-bot/__init__.py` in a text
+editor and write this in there:
+
+```
+import random
+from botfriend.bot import TextGeneratorBot
+
+class ExampleBot(TextGeneratorBot):
+
+    def generate_text(self):
+        """Tell a joke about numbers."""
+        num = random.randint(1,10)
+        arguments = dict(
+            num=num,
+            plus_1=num+1,
+            plus_3=num+3
+        )
+        setup = "Why is %(num)d afraid of %(plus_1)d? "
+        punchline = "Because %(plus_1)d ate %(plus_3)d!"
+        return (setup + punchline) % arguments
+
+Bot = ExampleBot
+```
+
+There are a lot of things to help you write `__init__.py`, but there's
+only one hard-and-fast rule: at the end, you have to have a class
+called `Bot`. The Botfriend scripts are going to load your `Bot`
+class, instantiate it, and use it for whatever the script needs to
+do. The bot may be asked to post something, list its previous posts,
+or whatever.
+
+Some bots do a lot of work to come up with a single "joke". They might
+draw pictures, do database queries, make API calls, all sorts of
+complicated things. As befits an example, `ExampleBot` here does
+almost no work.
+
+## `bot.yaml`: Telling the joke
+
+Comedians think of jokes all the time, but if no one ever hears the
+joke, what's the point? The `bot.yaml` file explains how a Botfriend
+bot likes to tell its jokes.
+
+Open up the file `bots/example/bot.yaml` and write this in there:
+
+```
+name: "Example Bot"
+schedule: 60
+publish:
+    file:
+      filename: "example-bot.txt"
+```
+
+Like `__init__.py`, `bot.yaml` can get really complicated, but most of
+the time it's pretty simple. This file is saying:
+
+* The name of the bot is "Example Bot".
+
+* The bot should 'tell a joke' once an hour.
+
+* This bot tells jokes by writting them to the file `example-bot.txt`.
+
+Now you're ready to make the bot tell some jokes.
+
+# Basic Botfriend scripts
+
+## `botfriend.post`
+
+
+## `botfriend.dashboard`
+
+## `botfriend.bots`
+
+If you have a lot of bots, it can be annoying to remember all their
+names. The `botfriend.bots` script just lists all the bots known to
+Botfriend.
+
+```
+$ botfriend.bots
+example-bot
+```
+
+## `botfriend.test.publisher`
+
+## `botfriend.test.stress`
+
+# Loading up more examples
+
+To see how this works, started, check out [the `botfriend`
 project repository](https://github.com/leonardr/botfriend/)
 and copy its `sample-bots` directory into your virtual environment:
 
@@ -425,7 +531,7 @@ name: "A Dull Bot"
 schedule: 60
 publish:
     file:
-      filename: "a-dull-bottxt"
+      filename: "a-dull-bot.txt"
 ```
 
 The `name` option should be self-explanatory -- it's the human-readable name of
