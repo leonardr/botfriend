@@ -30,8 +30,9 @@ class BotScript(Script):
             help="Directory containing the botfriend database.",
         )
         parser.add_argument(
-            '--bot', 
+            'bots', 
             help='Operate on this bot.',
+            metavar='BOT',
             nargs='*'
         )
         return parser
@@ -53,7 +54,7 @@ class BotScript(Script):
             os.makedirs(config_directory)
 
         self.log.debug("Using config directory %s", config_directory)
-        self.config = Configuration.from_directory(config_directory, self.args.bot)
+        self.config = Configuration.from_directory(config_directory, self.args.bots)
 
     @classmethod
     def run(cls):
@@ -72,9 +73,9 @@ class BotScript(Script):
                 model.implementation.log.error(e.message, exc_info=e)
         instance.config._db.commit()
         if not found:
-            if instance.args.bot:
-                instance.log.error("Could not find any bot named %s in %s.",
-                               instance.args.bot, instance.config.directory
+            if instance.args.bots:
+                instance.log.error("Could not find any bots named %s in %s.",
+                                   instance.args.bots, instance.config.directory
                 )
             else:
                 instance.log.error("No bots in %s", instance.config.directory)
