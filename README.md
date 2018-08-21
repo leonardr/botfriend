@@ -88,11 +88,11 @@ bot directory. But most of the time, `bots/` is fine.
 
 Each individual bot will live in a subdirectory of your bot directory,
 named after the bot. Let's get started with a simple example, called
-`example-bot`.
+`number-jokes`.
 
 ```
 $ mkdir bots
-$ mkdir bots/example-bot
+$ mkdir bots/number-jokes
 ```
 
 Each bot needs to contain two special files: `__init__.py` for source
@@ -108,14 +108,14 @@ comes up with their jokes.
 To get started, we'll make a simple bot that makes up observational
 humor about numbers.
 
-To get started, open up `bots/example-bot/__init__.py` in a text
+To get started, open up `bots/number-jokes/__init__.py` in a text
 editor and write this in there:
 
 ```
 import random
 from botfriend.bot import TextGeneratorBot
 
-class ExampleBot(TextGeneratorBot):
+class NumberJokes(TextGeneratorBot):
 
     def generate_text(self):
         """Tell a joke about numbers."""
@@ -129,7 +129,7 @@ class ExampleBot(TextGeneratorBot):
         punchline = "Because %(plus_1)d ate %(plus_3)d!"
         return (setup + punchline) % arguments
 
-Bot = ExampleBot
+Bot = NumberJokes
 ```
 
 Botfriend provides a lot of utilities to help you write a good
@@ -140,7 +140,7 @@ do... whatever the bot does.
 
 Some bots do a lot of work to come up with a single "joke". They might
 draw pictures, do database queries, make API calls, all sorts of
-complicated things. As befits an example, `ExampleBot` here does
+complicated things. As befits an example, `NumberJokes` here does
 almost no work. It just picks a random number and puts it into a string.
 
 ## `bot.yaml`: Telling the joke
@@ -149,26 +149,26 @@ Comedians think of jokes all the time, but if no one ever hears the
 joke, what's the point? The `bot.yaml` file explains how a Botfriend
 bot should _tell_ its jokes.
 
-Open up the file `bots/example-bot/bot.yaml` and write this in there:
+Open up the file `bots/number-jokes/bot.yaml` and write this in there:
 
 ```
-name: "Example Bot"
+name: "Number Jokes"
 schedule: 60
 publish:
     file:
-      filename: "example-bot.txt"
+      filename: "number-jokes.txt"
 ```
 
 Like `__init__.py`, `bot.yaml` can get really complicated, but most of
 the time it's pretty simple. This file is saying:
 
-* The name of the bot is "Example Bot".
+* The name of the bot is "Number Jokes".
 
 * The bot should 'tell a joke' once an hour.
 
 * This bot tells jokes by writting them to the file
-  `example-bot.txt`. (This is inside the bot directory, so it's going
-  to be in `bots/example-bot/example-bot.txt`.)
+  `number-jokes.txt`. (This is inside the bot directory, so it's going
+  to be in `bots/number-jokes/number-jokes.txt`.)
 
 Now you're ready to make your bot tell some jokes, using some basic
 Botfriend scripts.
@@ -182,16 +182,16 @@ joke and tell it. Run it now:
 
 ```
 $ botfriend.post
-# LOG 2019-01-20 | Example Bot | file | Published 2019-01-20 | Why is 4 afraid of 5… 
+# LOG 2019-01-20 | Number Jokes | file | Published 2019-01-20 | Why is 4 afraid of 5… 
 ```
 
-Now look at the file you configured in `bot.yaml`. You told Example
-Bot to post its jokes to `bots/example-bot/example-bot.txt`. That file
+Now look at the file you configured in `bot.yaml`. You told Number
+Jokes to post its jokes to `bots/number-jokes/number-jokes.txt`. That file
 didn't exist before you ran `botfriend.post`, but now it does exist,
 and it's got a joke in it:
 
 ```
-$ cat bots/example-bot/example-bot.txt
+$ cat bots/number-jokes/number-jokes.txt
 2019-01-20 10:23:44 | Why is 4 afraid of 5? Because 5 ate 7!
 ```
 
@@ -205,7 +205,7 @@ happen.
 $ botfriend.post
 ```
 
-Example Bot just told a joke, and (as you told it in `bot.yaml`) it's
+Number Jokes just told a joke, and (as you told it in `bot.yaml`) it's
 only supposed to tell one joke an hour.
 
 By specifying a directory name on the command line, you can make
@@ -214,21 +214,21 @@ one bot, not all of your bots. Right now, it doesn't make a
 difference, because you only have one bot, but here's how to do it:
 
 ```
-$ botfriend.post example-bot
+$ botfriend.post number-jokes
 ```
 
 You can use `--force` to make a bot tell a joke even if its schedule
 wouldn't normally allow it.
 
 ```
-$ botfriend.post example-bot --force
-# LOG 2019-01-20 | Example Bot | file | Published 2019-01-20 | Why is 9 afraid of 10… 
+$ botfriend.post number-jokes --force
+# LOG 2019-01-20 | Number Jokes | file | Published 2019-01-20 | Why is 9 afraid of 10… 
 ```
 
-Now `bots/example-bot/example-bot.txt` contains two jokes.
+Now `bots/number-jokes/number-jokes.txt` contains two jokes.
 
 ```
-$ cat bots/example-bot/example-bot.txt
+$ cat bots/number-jokes/number-jokes.txt
 2019-01-20 10:23:44 | Why is 4 afraid of 5? Because 5 ate 7!
 2019-01-20 10:26:12 | Why is 9 afraid of 10? Because 10 ate 11!
 ```
@@ -239,10 +239,10 @@ This script is good for getting an overview of your bots. It shows
 what they've been up to lately and when they're scheduled to run again.
 
 ```
-$ botfriend.dashboard example-bot
-# Example Bot | Most recent post: Why is 9 afraid of 10? Because 10 ate 12!
-# Example Bot | file posted 0m ago (2018-01-20 10:26:12)
-# Example Bot | Next post in 59m
+$ botfriend.dashboard number-jokes
+# Number Jokes | Most recent post: Why is 9 afraid of 10? Because 10 ate 12!
+# Number Jokes | file posted 0m ago (2018-01-20 10:26:12)
+# Number Jokes | Next post in 59m
 ```
 
 ## `botfriend.bots`
@@ -253,7 +253,7 @@ Botfriend.
 
 ```
 $ botfriend.bots
-# example-bot
+# number-jokes
 ```
 
 ## `botfriend.test.publisher`
@@ -263,13 +263,13 @@ publishing credentials to make sure they work. If a bot has been
 having trouble posting, the problem will show up here. For every bot
 with a publishing technique that works, you'll get a line that starts
 with `GOOD`. For every publishing technique that's broken, you'll get
-a line that starts with `FAIL`. Here's an example where "Example Bot"
+a line that starts with `FAIL`. Here's an example where "Number Jokes"
 is writing to a file just fine, but "Broken Bot" has a bad Twitter
 credential.
 
 ```
 $ botfriend.test.publisher
-# GOOD Example Bot file 
+# GOOD Number Jokes file 
 # FAIL Broken Bot twitter: [{u'message': u'Invalid or expired token.', u'code': 89}]
 ```
 
@@ -277,18 +277,18 @@ $ botfriend.test.publisher
 
 It's difficult to test a bot that does random things. You might have a
 bug that makes the bot crash only one time in a thousand. Or your bot
-might sometimes work but take a long time to run.
+might never crash, but sometimes take a long time to run.
 
 This is why we have the `botfriend.test.stress` script, which asks a
 bot to come up with ten thousand jokes in a row. The jokes aren't
 published anywhere; the goal is just to give a good test of all the
 possible cases that might happen inside your bot.
 
-Since Example Bot is really simple, it can generate ten thousand jokes
+Since Number Jokes is really simple, it can generate ten thousand jokes
 with no problem, although some of them are repeats:
 
 ```
-$ botfriend.test.stress example-bot
+$ botfriend.test.stress number-jokes
 # Why is 2 afraid of 3? Because 3 ate 5!
 # Why is 7 afraid of 8? Because 8 ate 10!
 # Why is 1 afraid of 2? Because 2 ate 4!
@@ -319,20 +319,39 @@ $ mkdir bots/boat-names
 ```
 
 This bot is so simple that you don't even need an `__init__.py` to program
-its behavior. But you do need a `bot.yaml` to configure its schedule
+its behavior. But you still need a `bot.yaml` to configure its schedule
 and where it should post.
 
 Create `bots/boat-names/bot.yaml` and put this text in there:
 
 ```
 name: Boat Names
-publish: { file: boat-names.txt }
-schedule: {mean: 480, stdev: 15}
+publish:
+    file: boat-names.txt
+schedule:
+    mean: 480
+    stdev: 15
 ```
 
-Finally, create the backlog. This can go into any file, but let's keep
-it in the same directory as the rest of the bot. Open up a file
-`bots/boat-names/backlog.txt` and put this text in it:
+The schedule here is a little different than in the first example
+bot. The first example's posts will come exactly one hour apart. This
+bot posts every eight hours (480 minutes), _on average_, but there is
+some random variation--usually up to fifteen or thirty minutes in
+either direction.
+
+## `botfriend.backlog.load`
+
+Running `botfriend.post` on this bot will never do anything, because
+the backlog is empty and the bot has no logic for generating new posts.
+
+The `botfriend.backlog.load` script lets you add items to a bot's
+backlog from a file. The simplest way to do this is with a text file
+containing one post per line.
+
+Let's create a backlog file. This can go into anywhere, but I
+recommend keeping it in the same directory as the rest of the bot, in
+case something goes wrong and you need to recreate it. Open up a file
+`bots/boat-names/backlog.txt` and put some boat names in it:
 
 ```
 Honukele
@@ -350,17 +369,7 @@ SPECIAL OCASSION
 Innocent Dream
 ```
 
-Now  all the pieces are in place to launch this bot!
-
-## `botfriend.backlog.load`
-
-Running `botfriend.post` on this bot will never do anything, because
-the backlog is empty and there are no rules for generating new posts.
-
-The `botfriend.backlog.load` script lets you add items to a bot's
-backlog from a file. The simplest way to do this is with a text file,
-like the one you just created in `bots/boat-names/backlog.txt`, with
-one post per line.  Here's how to load the file:
+Now you can load the backlog:
 
 ```
 $ botfriend.backlog.load boat-names < bots/boat-names/backlog.txt
@@ -368,7 +377,7 @@ $ botfriend.backlog.load boat-names < bots/boat-names/backlog.txt
 # LOG | Backlog load script | Backlog size now 13 items
 ```
 
-Now `botfriend.post` will work:
+Once there are items in the backlog, `botfriend.post` will work:
 
 ```
 # botfriend.post
