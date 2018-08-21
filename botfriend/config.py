@@ -74,7 +74,7 @@ class Configuration(object):
             )
             open(package_init, 'w').close()
         if not directory in sys.path:
-            logging.info("Adding %s to sys.path" % directory)
+            logging.debug("Adding %s to sys.path" % directory)
             sys.path.append(directory)
         default_path = os.path.join(directory, "default.yaml")
         if os.path.exists(default_path):
@@ -86,7 +86,7 @@ class Configuration(object):
             if os.path.isdir(bot_directory):
                 # It's a directory; does it contain a bot?
                 can_load = True
-                for expect in ('__init__.py', 'bot.yaml'):
+                for expect in ('bot.yaml'),:
                     path = os.path.join(bot_directory, expect) 
                     if not os.path.exists(path):
                         logging.warn(

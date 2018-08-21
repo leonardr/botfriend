@@ -152,7 +152,7 @@ class BotModel(Base):
         return logging.getLogger(self.name)
    
     @classmethod
-    def from_directory(self, _db, directory, defaults=None):
+    def from_directory(cls, _db, directory, defaults=None):
         """Load bot code from `directory`, and find or create the
         corresponding BotModel object.
 
@@ -165,8 +165,13 @@ class BotModel(Base):
         BotModel.
         """
         path, module = os.path.split(directory)
-        bot_module = importlib.import_module(module)
-        bot_class = getattr(bot_module, "Bot", None)
+        try:
+            bot_module = importlib.import_module(module)
+            bot_class = getattr(bot_module, "Bot", None)
+        except ImportError:
+            logging.getLogger().debug("%s is not a module, assuming generic Bot class is OK.", module)
+            from botfriend.bot import Bot
+            bot_class = Bot
         if not bot_class:
             raise Exception(
                 "Loaded module %s but could not find a class called Bot inside." % bot_module

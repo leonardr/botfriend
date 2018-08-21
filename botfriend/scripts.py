@@ -20,7 +20,11 @@ class Script(object):
 class BotScript(Script):
     """A script that operates on one or more bots."""
 
-    log = logging.getLogger("Bot script")
+    NAME = "Bot script"
+
+    @property
+    def log(self):
+        return logging.getLogger(self.NAME)
     
     @classmethod
     def parser(cls):
@@ -94,10 +98,12 @@ class SingleBotScript(BotScript):
             '--config',
             help="Directory containing the botfriend database.",
         )
+        # TODO: this should show up as 'bot' in descriptions but be
+        # stored as a one-item list.
         parser.add_argument(
-            '--bot', 
+            'bots',
             help='Do something to one specific bot.',
-            required=True
+            nargs=1,
         )
         return parser
 
@@ -371,6 +377,8 @@ class BacklogShowScript(BotScript):
 
 class BacklogLoadScript(SingleBotScript):
 
+    NAME = "Backlog load script"
+    
     @classmethod
     def parser(cls):
         parser = SingleBotScript.parser()

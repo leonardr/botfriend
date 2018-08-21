@@ -6,7 +6,7 @@ that post to a number of different services.
 I think the primary features of Botfriend are these:
 
 * Minimal Python coding -- just write the interesting part of your bot.
-* Simple YAML-based configuration.
+* Simple configuration based on YAML.
 * Easy scheduling of posts.
 * Each bot can post to Twitter and/or Mastodon. (Tumblr support is planned.)
 * Built-in access to art supplies through [Olipy](https://github.com/leonardr/olipy).
@@ -50,14 +50,14 @@ your bots, I hope you'll consider Botfriend.
 
 # Setup
 
-I recommend you run Botfriend in a virtual environment. Here's how to
-create a virtual environment called `env` and install Botfriend into
-it.
+I recommend you run Botfriend in a Python virtual environment. Here's
+how to create a virtual environment called `env` and install Botfriend
+into it.
 
 ```
-virtualenv env
-source env/bin/activate
-pip install botfriend
+$ virtualenv env
+$ source env/bin/activate
+$ pip install botfriend
 ```
 
 From this point on I'll be giving lots of example command-line
@@ -65,7 +65,7 @@ scripts. All of my examples assume you've entered the Botfriend
 virtual environment by running this command beforehand:
 
 ```
-source env/bin/activate
+$ source env/bin/activate
 ```
 
 # Getting started
@@ -84,14 +84,15 @@ The Botfriend database itself will be stored in the bot directory as
 
 If you want to store your Botfriend data somewhere other than `bots/`,
 every Botfriend script takes a `--config` argument that points to your
-bot directory.
+bot directory. But most of the time, `bots/` is fine.
 
-Each individual bot will live in a subdirectory of `bots/` named after
-the bot. Let's get started with a simple example, called `example-bot`.
+Each individual bot will live in a subdirectory of your bot directory,
+named after the bot. Let's get started with a simple example, called
+`example-bot`.
 
 ```
-mkdir bots
-mkdir bots/example-bot
+$ mkdir bots
+$ mkdir bots/example-bot
 ```
 
 Each bot needs to contain two special files: `__init__.py` for source
@@ -99,12 +100,13 @@ code and `bot.yaml` for configuration.
 
 ## `__init__.py`: Coming up with the joke
 
-Imagine walking up to to a comedian and saying "Tell me a joke!" That
-probably won't work for a human comedian, but it works gret for bots.
-`__init__.py` is where Botfriend bots come up with their jokes.
+Imagine walking up to to a comedian and saying "Tell me a joke!" A
+human comedian probably won't appreciate it, but this is what bots
+live for. For a Botfriend bot, `__init__.py` is where the comedian
+comes up with their jokes.
 
-To get started, we'll make a simple bot that comes up with
-observational humor about numbers.
+To get started, we'll make a simple bot that makes up observational
+humor about numbers.
 
 To get started, open up `bots/example-bot/__init__.py` in a text
 editor and write this in there:
@@ -130,25 +132,24 @@ class ExampleBot(TextGeneratorBot):
 Bot = ExampleBot
 ```
 
-There are a lot of things to help you write `__init__.py`, but there's
-only one hard-and-fast rule: at the end, you have to have a class
-called `Bot`. The Botfriend scripts are going to load your `Bot`
-class, instantiate it, and use it for whatever the script needs to
-do. The bot may be asked to post something, list its previous posts,
-or whatever.
+Botfriend provides a lot of utilities to help you write a good
+`__init__.py`, but there's only one hard-and-fast rule: by the end of
+the file, you have to have a class called `Bot`. The Botfriend scripts
+are going to load your `Bot` class, instantiate it, and use it to
+do... whatever the bot does.
 
 Some bots do a lot of work to come up with a single "joke". They might
 draw pictures, do database queries, make API calls, all sorts of
 complicated things. As befits an example, `ExampleBot` here does
-almost no work.
+almost no work. It just picks a random number and puts it into a string.
 
 ## `bot.yaml`: Telling the joke
 
 Comedians think of jokes all the time, but if no one ever hears the
 joke, what's the point? The `bot.yaml` file explains how a Botfriend
-bot likes to tell its jokes.
+bot should _tell_ its jokes.
 
-Open up the file `bots/example/bot.yaml` and write this in there:
+Open up the file `bots/example-bot/bot.yaml` and write this in there:
 
 ```
 name: "Example Bot"
@@ -165,11 +166,14 @@ the time it's pretty simple. This file is saying:
 
 * The bot should 'tell a joke' once an hour.
 
-* This bot tells jokes by writting them to the file `example-bot.txt`.
+* This bot tells jokes by writting them to the file
+  `example-bot.txt`. (This is inside the bot directory, so it's going
+  to be in `bots/example-bot/example-bot.txt`.)
 
-Now you're ready to make the bot tell some jokes.
+Now you're ready to make your bot tell some jokes, using some basic
+Botfriend scripts.
 
-# Basic Botfriend scripts
+# The basic scripts
 
 ## `botfriend.post`
 
@@ -181,8 +185,10 @@ $ botfriend.post
 # LOG 2019-01-20 | Example Bot | file | Published 2019-01-20 | Why is 4 afraid of 5… 
 ```
 
-Now look at the file that Example Bot posts its jokes to. It didn't
-exist before, but now it does exist, and it's got a joke in it.
+Now look at the file you configured in `bot.yaml`. You told Example
+Bot to post its jokes to `bots/example-bot/example-bot.txt`. That file
+didn't exist before you ran `botfriend.post`, but now it does exist,
+and it's got a joke in it:
 
 ```
 $ cat bots/example-bot/example-bot.txt
@@ -190,21 +196,22 @@ $ cat bots/example-bot/example-bot.txt
 ```
 
 Hilarious, right? You'll be running this script a lot, probably as
-part of an automated process. I run `botfriend.post` every five
-minutes. If your bot isn't scheduled to tell a joke, `botfriend.post`
-will do nothing. Run it again now -- nothing will happen.
+part of an automated process. On my site run `botfriend.post` every
+five minutes. If your bot isn't scheduled to tell a joke,
+`botfriend.post` will do nothing. Run it again now -- nothing will
+happen.
 
 ```
 $ botfriend.post
 ```
 
-Example Bot just told a joke, and (remember `bot.yaml`) it isn't
-scheduled to do anything else for an hour.
+Example Bot just told a joke, and (as you told it in `bot.yaml`) it's
+only supposed to tell one joke an hour.
 
-By specifying the directory name of the bot, you can make
+By specifying a directory name on the command line, you can make
 `botfriend.post` (and most other Botfriend scripts) operate on just
-one bot, not all of them. Right now, it doesn't make a difference,
-because you only have one bot, but here's how to do it:
+one bot, not all of your bots. Right now, it doesn't make a
+difference, because you only have one bot, but here's how to do it:
 
 ```
 $ botfriend.post example-bot
@@ -228,8 +235,8 @@ $ cat bots/example-bot/example-bot.txt
 
 ## `botfriend.dashboard`
 
-This script is good for getting an overview of your bots, what they've
-been doing lately and when they're scheduled to go again.
+This script is good for getting an overview of your bots. It shows
+what they've been up to lately and when they're scheduled to run again.
 
 ```
 $ botfriend.dashboard example-bot
@@ -294,7 +301,105 @@ $ botfriend.test.stress example-bot
 If you've got a complicated bot, it can be a good idea to run
 `botfriend.test.stress` on it a couple of times before using it for real.
 
---- stopped here
+# Backlog bots
+
+Some comedians can come up with original content on the fly, over and
+over again again. Others keep a Private Joke File: a list of jokes
+assembled ahead of time which they can dip into as necessary.
+
+Instead of putting a bunch of generator code in a Botfriend bot, you
+can generate (or write) a _backlog_ of posts, and create a bot that
+simply posts things from the backlog, one at a time.
+
+Let's make a simple backlog bot that posts names of boats. First, make
+a directory for the bot:
+
+```
+$ mkdir bots/boat-names
+```
+
+This bot is so simple that you don't even need an `__init__.py` to program
+its behavior. But you do need a `bot.yaml` to configure its schedule
+and where it should post.
+
+Create `bots/boat-names/bot.yaml` and put this text in there:
+
+```
+name: Boat Names
+publish: { file: boat-names.txt }
+schedule: {mean: 480, stdev: 15}
+```
+
+Finally, create the backlog. This can go into any file, but let's keep
+it in the same directory as the rest of the bot. Open up a file
+`bots/boat-names/backlog.txt` and put this text in it:
+
+```
+Honukele
+LA PARISIENNE
+Stryss
+Cozy Cat
+Hull # 14
+Always On Vacation
+Sea Deuce
+Bay Viewer
+Tanden
+Clean Livin'
+Goodnight Moon
+SPECIAL OCASSION
+Innocent Dream
+```
+
+Now  all the pieces are in place to launch this bot!
+
+## `botfriend.backlog.load`
+
+Running `botfriend.post` on this bot will never do anything, because
+the backlog is empty and there are no rules for generating new posts.
+
+The `botfriend.backlog.load` script lets you add items to a bot's
+backlog from a file. The simplest way to do this is with a text file,
+like the one you just created in `bots/boat-names/backlog.txt`, with
+one post per line.  Here's how to load the file:
+
+```
+$ botfriend.backlog.load boat-names < bots/boat-names/backlog.txt
+# LOG | Backlog load script | Appended 13 items to backlog.
+# LOG | Backlog load script | Backlog size now 13 items
+```
+
+Now `botfriend.post` will work:
+
+```
+# botfriend.post
+# LOG | Boat Names | file | Published 2019-01-20 03:15 | Honukele
+```
+
+## `botfriend.backlog.show`
+
+The `botfriend.backlog.show` script will summarize a bot's current
+backlog. It'll show you how many items are in the backlog and what the
+next item is.
+
+```
+$ botfriend.backlog.show boat-names
+# Boat Names | 12 posts in backlog
+# Boat Names | LA PARISIENNE
+```
+
+## `botfriend.backlog.clear`
+
+The `botfriend.backlog.clear` script will completely erase a bot's
+backlog.
+
+```
+$ bin/backlog.clear boat-names
+# Boat Names | About to clear the backlog for Boat Names.
+# Boat Names | Sleeping for 2 seconds to give you a chance to Ctrl-C.
+
+$ bin/backlog.show boat-names
+#  Boat Names | No backlog.
+```
 
 # Loading up more examples
 
