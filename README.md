@@ -309,18 +309,18 @@ assembled ahead of time which they can dip into as necessary.
 
 Instead of putting a bunch of generator code in a Botfriend bot, you
 can generate (or write) a _backlog_ of posts, and create a bot that
-simply posts things from the backlog, one at a time.
+simply posts things from the backlog, in a certain order, one at a time.
 
-Let's make a simple backlog bot that posts names of boats. First, make
-a directory for the bot:
+Let's make a simple backlog bot that posts interesting names for
+boats. First, make a directory for the bot:
 
 ```
 $ mkdir bots/boat-names
 ```
 
-This bot is so simple that you don't even need an `__init__.py` to program
-its behavior. But you still need a `bot.yaml` to configure its schedule
-and where it should post.
+As you'll see, this bot is so simple that you don't even need an
+`__init__.py` to program its behavior. But you still need a `bot.yaml`
+to configure its schedule and where it should post.
 
 Create `bots/boat-names/bot.yaml` and put this text in there:
 
@@ -339,10 +339,19 @@ bot posts every eight hours (480 minutes), _on average_, but there is
 some random variation--usually up to fifteen or thirty minutes in
 either direction.
 
-## `botfriend.backlog.load`
+Now, running `botfriend.bots` will list both of your bots.
 
-Running `botfriend.post` on this bot will never do anything, because
-the backlog is empty and the bot has no logic for generating new posts.
+```
+$ botfriend.bots
+# boat-names
+# number-jokes
+```
+
+Running `botfriend.post` will tell both bots to post something if they
+want, but Boat Names can never post anything, because it has no
+backlog and no logic for generating new posts.
+
+## `botfriend.backlog.load`
 
 The `botfriend.backlog.load` script lets you add items to a bot's
 backlog from a file. The simplest way to do this is with a text file
@@ -372,7 +381,7 @@ Innocent Dream
 Now you can load the backlog:
 
 ```
-$ botfriend.backlog.load boat-names < bots/boat-names/backlog.txt
+$ botfriend.backlog.load boat-names --file=bots/boat-names/backlog.txt
 # LOG | Backlog load script | Appended 13 items to backlog.
 # LOG | Backlog load script | Backlog size now 13 items
 ```
