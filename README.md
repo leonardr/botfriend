@@ -312,7 +312,10 @@ can generate (or write) a _backlog_ of posts, and create a bot that
 simply posts things from the backlog, in a certain order, one at a time.
 
 Let's make a simple backlog bot that posts interesting names for
-boats. First, make a directory for the bot:
+boats. (This is exactly how my real bot [Boat
+Names](https://botsin.space/@BoatNames) works.)
+
+First, make a directory for the bot:
 
 ```
 $ mkdir bots/boat-names
@@ -418,6 +421,169 @@ $ bin/backlog.clear boat-names
 $ bin/backlog.show boat-names
 #  Boat Names | No backlog.
 ```
+
+# Bots that keep state
+
+Sometimes a bot needs to do something that takes a long time, or
+something that might be annoying to someone else if it happened
+frequently. Botfriend allows this difficult or annoying thing to be
+done rarely, and the results stored in the bot's _state_ for
+consultation later.
+
+Let's create one more example bot. This one's called "Web Words". Its
+job is to download random web pages and pick random phrases from them.
+
+```
+$ mkdir bots/web-words
+```
+
+We're going to split the "download a random web page" part of the bot
+from the "pick a random phrase" part. The "pick a random phrase" part
+will run every time the bot is asked to post something, but the
+"download a random web page" part will run once a day.
+
+This time let's start with the `bot.yaml` file:
+
+```
+name: "Web Words"
+schedule: 60
+state_update_schedule: 1440
+publish:
+    file:
+      filename: "web-words.txt"
+```
+
+This bot will post according to its `schedule`, once an hour. But
+there's another thing that's going to happen once a day (every 1440
+minutes): a "state update".
+
+Here's the `__init__.py` file:
+
+```
+import random
+import re
+from olipy import corpora
+import requests
+from botfriend.bot import TextGeneratorBot
+
+class WebWords(TextGeneratorBot):
+    """A bot that pulls random words from a random webpage."""
+
+    def update_state(self):
+        """Choose random domain names until we find one that hosts a web page
+        larger than ten kilobytes.
+        """
+        new_state = None
+        while not new_state:
+
+            # Make up a random URL.
+            word = random.choice(corpora.words.english_words['words'])
+            domain = random.choice(["com", "net", "org"])
+            url = "http://www.%s.%s/" % (word, domain)
+            
+            try:
+                self.log.info("Trying to get new state from %s" % url)
+                response = requests.get(url, timeout=5)
+                potential_new_state = response.content
+                if len(potential_new_state) < 1024 * 10:
+                    # This is probably a generic domain parking page.
+                    self.log.info("That was too small, trying again.")
+                    continue
+                new_state = response.content
+                self.log.info("Success!")
+            except Exception, e:
+                self.log.info("That didn't work, trying again.")
+        return new_state
+
+    def generate_text(self):
+        """Choose some words at random from a webpage."""
+        webpage = self.model.state
+       
+        # Choose a random point in the web page that's not right at the end.
+        total_size = len(webpage)
+        near_the_end = int(total_size * 0.9)
+        starting_point = random.randint(0, near_the_end)
+
+        # Find some stuff in the webpage that looks like words, rather than HTML.
+        some_words = re.compile("([A-Za-z\s]{10,})")
+
+        match = some_words.search(webpage[starting_point:])
+        if not match:
+            # Because we didn't find anything, we're choosing not to post
+            # anything right now.
+            return None
+        data = match.groups()[0].strip()
+        return data
+
+Bot = WebWords
+```
+
+The first time you tell Botfriend to post something for this bot,
+Botfriend will call the `update_state()` method. This method may try
+several times to find a web page it can use, but it will eventually
+succeed.
+
+```
+$ botfriend.post web-words
+Web Words | Trying to get new state from http://www.stenographical.com/
+Web Words | That was too small, trying again.
+Web Words | Trying to get new state from http://www.bronchologic.org/
+Web Words | That didn't work, trying again.
+Web Words | Trying to get new state from http://www.dentonomy.org/
+Web Words | That was too small, trying again.
+Web Words | Trying to get new state from http://www.crummy.com/
+Web Words | Success!
+Web Words | file | Published 2019-01-10 01:45 | e experimental group
+```
+
+Once the state is in place, running `botfriend.post` again won't
+download a whole new web page every time. Instead, Web Words will
+choose another random string from the webpage it's already downloaded.
+
+```
+$ botfriend.post web-words --force
+Web Words | file | Published 2019-01-10 01:46 an old superstition
+```
+
+This bot's state expires in one day (this was set in its
+`bot.yaml`). 24 hours after `update_state()` is called for the first
+time, running `botfriend.post` will cause Botfriend to call that
+method again. A brand new web page will be downloaded, and for the
+next 24 horus all of the Web Words posts will come from that web page.
+
+## `botfriend.state.show` - Showing the state
+
+This script simply prints out a bot's current state.
+
+```
+$ botfriend.state.show web-words
+```
+
+## `botfriend.state.refresh` - Refreshing the state
+
+You can use this script to forcibly refresh a bot's state, even if the
+bot's configured `state_update_schedule` says it's not time yet.
+
+```
+$ botfriend.state.refresh web-words
+```
+
+## `botfriend.state.set` - Setting the state to a specific value
+
+You can use this script to set a bot's state to a specific value,
+rather than setting the state by calling the `update_state()`
+method. Here, instead of telling Web Words to pick random strings from
+a web page, we're telling it to pick random strings from its own
+source code.
+
+```
+$ bin/state.set web-words --file=bots/web-words/__init__.py
+
+$ bin/post web-words --force
+Web Words | file | Published 2018-01-21 1:56 | while not new
+```
+
+--- Stopping here
 
 # Loading up more examples
 

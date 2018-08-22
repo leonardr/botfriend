@@ -1,0 +1,6 @@
+name: "Web Words"
+schedule: 60
+state_update_schedule: 1440
+publish:
+    file:
+      filename: "web-words.txt"

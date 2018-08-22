@@ -2,7 +2,7 @@ name: "AMA Bot"
 schedule:
     mean: 240
     stdev: 45
-state_update_frequency: 480
+state_update_schedule: 480
 publish:
     twitter:
         consumer_key: "hijk"
