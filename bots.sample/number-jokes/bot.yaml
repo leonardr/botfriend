@@ -1,5 +1,5 @@
-name: "Example Bot"
+name: Number Jokes
 schedule: 60
 publish:
-    file:
-      filename: "example-bot.txt"
+  file:
+    filename: number-jokes.txt

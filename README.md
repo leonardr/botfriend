@@ -42,11 +42,14 @@ save everyone time.
 
 So I went through my thirty bots, rewrote everything, and moved all of
 the reusable code into Botfriend. Now my bots are a lot smaller and
-easier to manage. They can still post to Twitter if I want them to,
-but they also post to Mastodon with no extra code.
+easier to manage. All of the tedious code is in one place, and I can
+focus on the fun part of bot-writing. My bots can still post to
+Twitter if I want them to, but they also post to Mastodon with no
+extra code.
 
-If you want to save code on your own projects, or expand the reach of
-your bots, I hope you'll consider Botfriend.
+If you want to save code on your own bot projects, port your bots from
+Twitter to Mastodon, or just expand the reach of your bots, I hope
+you'll consider Botfriend.
 
 # Setup
 
@@ -60,24 +63,22 @@ $ source env/bin/activate
 $ pip install botfriend
 ```
 
-From this point on I'll be giving lots of example command-line
-scripts. All of my examples assume you've entered the Botfriend
-virtual environment by running this command beforehand:
+You'll interact with Botfriend exclusively through command-line
+scripts. From this point on I'll be giving lots of example command
+lines. All of my examples assume you've entered the Botfriend virtual
+environment by running this command beforehand:
 
 ```
 $ source env/bin/activate
 ```
 
-# Getting started
-
-You'll interact with Botfriend exclusively through command-line
-scripts.
+# A simple example: Number Jokes
 
 By default, Botfriend expects you to put the source code for the bots
 in a directory `bots/`, located in the same directory as your virtual
 environment. So if your virtual environment is located in
-`/home/myusername/botfriend/env`, Botfriend will expect your bots to live
-underneath `/home/myusername/botfriend/bots`.
+`/home/myusername/botfriend/env`, Botfriend will expect your bots to
+live underneath `/home/myusername/botfriend/bots`.
 
 The Botfriend database itself will be stored in the bot directory as
 `botfriend.sqlite`.
@@ -208,6 +209,8 @@ $ botfriend.post
 Number Jokes just told a joke, and (as you told it in `bot.yaml`) it's
 only supposed to tell one joke an hour.
 
+## Running a script on just one bot
+
 By specifying a directory name on the command line, you can make
 `botfriend.post` (and most other Botfriend scripts) operate on just
 one bot, not all of your bots. Right now, it doesn't make a
@@ -256,23 +259,6 @@ $ botfriend.bots
 # number-jokes
 ```
 
-## `botfriend.test.publisher`
-
-The `botfriend.test.publisher` script tries out all of your bots'
-publishing credentials to make sure they work. If a bot has been
-having trouble posting, the problem will show up here. For every bot
-with a publishing technique that works, you'll get a line that starts
-with `GOOD`. For every publishing technique that's broken, you'll get
-a line that starts with `FAIL`. Here's an example where "Number Jokes"
-is writing to a file just fine, but "Broken Bot" has a bad Twitter
-credential.
-
-```
-$ botfriend.test.publisher
-# GOOD Number Jokes file 
-# FAIL Broken Bot twitter: [{u'message': u'Invalid or expired token.', u'code': 89}]
-```
-
 ## `botfriend.test.stress`
 
 It's difficult to test a bot that does random things. You might have a
@@ -301,15 +287,118 @@ $ botfriend.test.stress number-jokes
 If you've got a complicated bot, it can be a good idea to run
 `botfriend.test.stress` on it a couple of times before using it for real.
 
-# Backlog bots
+# How to publish
+
+There are a few more interesting features of Botfriend, but let's take
+a minute to talk about the boring features. It's easy to make a bot
+write its posts to a file, but nobody's going to see that. What you
+really need is to get some Twitter or Mastodon credentials.
+
+TODO: link to instructions on how to actually do this.
+
+In your bot's `bot.yaml` file, add your credentials to the `publish`
+configuration setting. This will give your bot additional ways to
+publish its posts to the Internet.
+
+Here's an example. This is what the configuration for Number Jokes
+would look like if it had Twitter and Mastodon connections set up, in
+addition to writing everything to a file.
+
+```
+name: Number Jokes
+schedule: 60
+publish:
+  file:
+    filename: number-jokes.txt
+  mastodon:
+    api_base_url: 'https://botsin.space/'
+    client_id: cc13bf3de67fb399475c315e4a9bf5dd4dfb7ea0f3a521fca72a9c8bf02075ab
+    client_secret: 0946d2634d7b6aa1ea93af4b183fccf14e9df2e2b55db8fcdb0c8a5f267ff312
+    access_token: c76eb18c5c0dc7c1fe09b53ac175b3b9ed081b0e43ea4d60e94ee721b83c1eda
+  twitter:
+    consumer_key: t7CfbbNLB3jfoAKI
+    consumer_secret: 2teOyqqgFpFpytFanuOXzfjvR3vEmYH3
+    access_token: 3341062559-SbUlEDFCDn6k6vHHDWGwqlK0wyZ0fKRegaZMyS9lwBa4L5VXY5fdl
+    access_token_secret: ALc2CPkkrSBf33swYluxEgdC0GNueQK3x6D4pEr8GGDpqrmed
+```
+
+(These credentials won't work -- I made them up to resemble real
+Twitter and Mastodon credentials.)
+
+## `botfriend.test.publisher`: test your publishing credentials
+
+The `botfriend.test.publisher` script tries out all of your bots'
+publishing credentials to make sure they work. If a bot is having
+trouble posting, the problem will show up here.
+
+For every bot with a publishing technique that works, you'll get a
+line that starts with `GOOD`. For every publishing technique that's
+broken, you'll get a line that starts with `FAIL`.
+
+In this example, writing to a file works fine, but since the Twitter
+and Mastodon credentials are made up, Twitter and Mastodon won't
+actually accept them.
+
+```
+$ botfriend.test.publisher
+# GOOD Number Jokes file
+# FAIL Number Jokes twitter: [{u'message': u'Bad Authentication data.', u'code': 215}]
+# FAIL Number Jokes mastodon: {u'error': u'The access token is invalid'}
+```
+
+## Publish to a file
+
+This is the simplest publication technique, and it's really only good
+for testing and for keeping a log. The `file` publisher takes one
+configuration setting: `filename`, the name of the file to write to.
+
+```
+publish:
+    file:
+        filename: "anniversary.txt"
+```
+
+## Twitter
+
+To get your bot on Twitter, you need to create a Twitter account for
+the bot, and then get four different values: `consumer_key`,
+`consumer_secret`, `access_token` and `access_token_secret`. These
+four values, when inserted into `bot.yaml`, give you the ability to
+post to a specific Twitter account using the Twitter API.
+
+There's help on the web for getting these four values;  the
+[Build-a-Bot
+Workshop](https://spinecone.gitbooks.io/build-a-bot-workshop/content/set_up_twitter.html)
+has some good instructions.
+
+## Mastodon
+
+To connect your bot to Mastodon, you create a Mastodon account for the
+bot, and then get four values. First, `api_base_url`-- this is easy,
+it's just the URL to the Mastodon instance that hosts the account you
+created. I like to use [botsin.space](https://botsin.space/), a
+Mastodon instance created especially for bots.
+
+Then you need to get `client_id`, `client_secret`, and
+`access_token`. Allison Parrish has [a useful
+tutorial](https://gist.github.com/aparrish/661fca5ce7b4882a8c6823db12d42d26)
+for getting these three values for your Mastodon account.
+
+Once you have these four values, put them into `bot.yaml`, and your bot
+will be able to post to your Mastodon account.
+
+Okay, now back to the cool bots you can write with Botfriend.
+
+# Bots that keep a backlog: Boat Names
 
 Some comedians can come up with original content on the fly, over and
 over again again. Others keep a Private Joke File: a list of jokes
 assembled ahead of time which they can dip into as necessary.
 
 Instead of putting a bunch of generator code in a Botfriend bot, you
-can generate (or write) a _backlog_ of posts, and create a bot that
-simply posts things from the backlog, in a certain order, one at a time.
+can generate a _backlog_ of posts, however you like -- you can even
+write the backlog yourself in a text editor. It's easy to create a bot
+that simply posts items from its backlog, in order, one at a time.
 
 Let's make a simple backlog bot that posts interesting names for
 boats. (This is exactly how my real bot [Boat
@@ -422,7 +511,7 @@ $ bin/backlog.show boat-names
 #  Boat Names | No backlog.
 ```
 
-# Bots that keep state
+# Bots that keep state: Web Words
 
 Sometimes a bot needs to do something that takes a long time, or
 something that might be annoying to someone else if it happened
@@ -593,10 +682,11 @@ and copy its `sample-bots` directory into your virtual environment:
 
 ```
 git clone git@github.com:leonardr/botfriend.git
-cp -r botfriend/bots.sample bots
+cp -r botfriend/bots.sample/* bots
 ```
-in the project repository. This directory structure contains about ten
-sample bots, all of them based on real bots that I run.
+
+The `bots.sample` directory contains over ten sample bots--the ones I
+describe in this document and several based on real bots that I run.
 
 You can see what your bots are up to with the `botfriend.dashboard` script. 
 
@@ -962,90 +1052,6 @@ does. This option works the same way as `schedule`, but instead of
 controlling how often the bot should post, it controls how often your
 `update_state()` method is called.
 
-## Publication
-
-Underneath the `publish` configuration setting, list the various
-techniques you want your bot to use when publishing its posts to the
-Internet. Almost all of my bots post to both Twitter and Mastodon; one
-posts to Tumblr as well.
-
-Here's an example. This is what the configuration for A Dull Bot would
-look like if it had Twitter and Mastodon connections set up:
-
-```
-name: A Dull Bot
-schedule: 60
-publish:
-  file:
-    filename: "A Dull Bot.txt"
-  mastodon:
-    api_base_url: 'https://botsin.space/',
-    client_id: cc13bf3de67fb399475c315e4a9bf5dd4dfb7ea0f3a521fca72a9c8bf02075ab
-    client_secret: 0946d2634d7b6aa1ea93af4b183fccf14e9df2e2b55db8fcdb0c8a5f267ff312
-    access_token: c76eb18c5c0dc7c1fe09b53ac175b3b9ed081b0e43ea4d60e94ee721b83c1eda
-  twitter:
-    consumer_key: t7CfbbNLB3jfoAKI
-    consumer_secret: 2teOyqqgFpFpytFanuOXzfjvR3vEmYH3
-    access_token: 3341062559-SbUlEDFCDn6k6vHHDWGwqlK0wyZ0fKRegaZMyS9lwBa4L5VXY5fdl
-    access_token_secret: ALc2CPkkrSBf33swYluxEgdC0GNueQK3x6D4pEr8GGDpqrmed
-```
-
-(These credentials won't work -- I made them up to resemble real
-Twitter and Mastodon credentials.)
-
-You can run the `test-publisher` script to test that you've set up
-your credentials correctly.
-
-```
-./test-publisher --config=bots
-```
-
-For each bot, and for each publication technique associated with that
-bot, the `test-publisher` script will try to establish a connection
-using the credentials. If it's able to authenticate, it will print out
-"GOOD"; if there's a problem it will print out "FAIL".
-
-## Publish to a file
-
-This is the simplest publication technique, and it's really only good
-for testing and for keeping a log. The `file` publisher takes one
-configuration setting: `filename`, the name of the file to write to.
-
-```
-publish:
-    file:
-        filename: "anniversary.txt"
-```
-
-## Twitter
-
-To create a Twitter bot you need to create a Twitter account for the
-bot, and then get four different values: `consumer_key`,
-`consumer_secret`, `access_token` and `access_token_secret`. These
-four values, when inserted into `bot.yaml`, give you the ability to
-post to a specific Twitter account using the Twitter API.
-
-There's help on the web for getting these four values;  the
-[Build-a-Bot
-Workshop](https://spinecone.gitbooks.io/build-a-bot-workshop/content/set_up_twitter.html)
-has some good instructions.
-
-## Mastodon
-
-To connect your bot to Mastodon you create a Mastodon account for the
-bot, and then get four values. First, `api_base_url`-- this is easy,
-it's just the URL to the Mastodon instance that hosts the account you
-created. I like to use [botsin.space](https://botsin.space/), a Mastodon
-instance created especially for bots.
-
-Then you need to get `client_id`, `client_secret`, and
-`access_token`. Allison Parrish has [a useful
-tutorial](https://gist.github.com/aparrish/661fca5ce7b4882a8c6823db12d42d26)
-for getting these three values for your Mastodon account.
-
-Once you have these four values, put them into `bot.yaml` and your bot
-will be able to post to your Mastodon account.
-
 ## Other publication options
 
 `schedule`, and `publish` are only the most common
@@ -1119,17 +1125,17 @@ Here's what my cron script looks like:
 #!/bin/bash
 export ROOT=$HOME/scripts/botfriend
 source $ROOT/env/bin/activate
-$ROOT/post --config=$ROOT/bots
+$ROOT/post
 ```
 
-Here's how I use a cron job to run it once a minute:
+Here's how I use a cron job to run it every five minutes
 
 ```
-* * * * * /home/leonardr/scripts/botfriend/cron 2> /home/leonardr/scripts/botfriend_err
+*/5 * * * * /home/leonardr/scripts/botfriend/cron 2> /home/leonardr/scripts/botfriend_err
 ```
 
-That appends any errors that happen during the run to a file which I
-can check periodically.
+Any errors that happen during the run are appended to a file,
+`botfriend_err`, which I can check periodically.
 
 # Conclusion
 

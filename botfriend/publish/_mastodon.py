@@ -1,5 +1,5 @@
 from nose.tools import set_trace
-from botfriend.mastodon import Mastodon
+from mastodon import Mastodon
 from botfriend.bot import Publisher
 
 class MastodonPublisher(Publisher):
@@ -28,7 +28,12 @@ class MastodonPublisher(Publisher):
         # Do something that will raise an exception if the credentials are invalid.
         # Return a string that will let the user know if they somehow gave
         # credentials to the wrong account.
-        return self.api.account_verify_credentials()['username']
+        verification = self.api.account_verify_credentials()
+        if 'username' in verification:
+            return ['username']
+        else:
+            # error
+            raise Exception(repr(verification))
         
     def publish(self, post, publication):
         media_ids = []
