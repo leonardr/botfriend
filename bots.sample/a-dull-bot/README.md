@@ -7,6 +7,6 @@ an hour.
 
 To make it post, run the post script.
 
-$ ./post --config=sample-bots --bot=a-dull-bot
+$ botfriend.post a-dull-bot
 
-The output will be published to sample-bots/a-dull-bot/a-dull-bot.txt.
+The output will be published to bots.sample/a-dull-bot/a-dull-bot.txt.

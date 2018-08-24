@@ -43,9 +43,15 @@ save everyone time.
 So I went through my thirty bots, rewrote everything, and moved all of
 the reusable code into Botfriend. Now my bots are a lot smaller and
 easier to manage. All of the tedious code is in one place, and I can
-focus on the fun part of bot-writing. My bots can still post to
-Twitter if I want them to, but they also post to Mastodon with no
-extra code.
+focus on the fun part of bot-writing.
+
+Consider at a bot like [A Dull Bot](https://botsin.space/@ADullBot)
+([source](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot)). Creating
+this bot was a fair amount of work. But all of the work went into the
+fun part: creating an accurate software model of the typewriter from
+_The Shining_. There's no code for making sure the bot posts once an
+hour, or for pushing the typewritten text through the Twitter or
+Mastodon APIs. Botfriend takes care of all that stuff.
 
 If you want to save code on your own bot projects, port your bots from
 Twitter to Mastodon, or just expand the reach of your bots, I hope
@@ -146,9 +152,9 @@ almost no work. It just picks a random number and puts it into a string.
 
 ## `bot.yaml`: Telling the joke
 
-Comedians think of jokes all the time, but if no one ever hears the
-joke, what's the point? The `bot.yaml` file explains how a Botfriend
-bot should _tell_ its jokes.
+Like most comedians, bots are constantly coming up with jokes. But if
+no one ever hears the joke, what's the point? The `bot.yaml` file
+explains how a Botfriend bot should _tell_ its jokes.
 
 Open up the file `bots/number-jokes/bot.yaml` and write this in there:
 
@@ -650,11 +656,15 @@ $ botfriend.state.show web-words
 
 ## `botfriend.state.refresh` - Refreshing the state
 
-You can use this script to forcibly refresh a bot's state, even if the
-bot's configured `state_update_schedule` says it's not time yet.
+You can use this script to forcibly refresh a bot's state by calling
+`update_state()`, even if the bot's configured `state_update_schedule`
+says it's not time to call that method yet.
 
 ```
 $ botfriend.state.refresh web-words
+
+# Web Words | Trying to get new state from http://www.choristoblastoma.org/
+# ...
 ```
 
 ## `botfriend.state.set` - Setting the state to a specific value
@@ -672,350 +682,73 @@ $ bin/post web-words --force
 Web Words | file | Published 2018-01-21 1:56 | while not new
 ```
 
---- Stopping here
+## `botfriend.state.clear` - Clearing the state
 
-# Loading up more examples
-
-To see how this works, started, check out [the `botfriend`
-project repository](https://github.com/leonardr/botfriend/)
-and copy its `sample-bots` directory into your virtual environment:
+This script will completely erase a bot's script, making it as though
+`update_state()` had never been called.
 
 ```
-git clone git@github.com:leonardr/botfriend.git
-cp -r botfriend/bots.sample/* bots
+$ bin/state.clear web-words
 ```
 
-The `bots.sample` directory contains over ten sample bots--the ones I
-describe in this document and several based on real bots that I run.
+# More examples
 
-You can see what your bots are up to with the `botfriend.dashboard` script. 
-
-```
-botfriend.dashboard
-```
-
-This script will tell you the last time each bot posted, the next time
-it's going to post, what it last posted, and (if known) the next thing
-it's going to post. Since you just installed botfriend, running
-`dashboard` won't do much.
-
-To tell the bots to actually post something, run the `post` script:
+The [the `botfriend` source
+repository](https://github.com/leonardr/botfriend/) includes complete
+source code for about ten bots, including the three covered in this
+document and several actual bots that I run. To try them out, check
+out the repository and copy the contents of its `bots.sample`
+directory into your `bots` directory.
 
 ```
-$ botfriend.post
+$ git clone git@github.com:leonardr/botfriend.git
+$ cp -r botfriend/bots.sample/* bots
+$ ls bots
+# a-dull-bot   boat-names         frances-daily   postcards
+# ama          botfriend.sqlite   __init__.py     roller-derby
+# anniversary  crowd-board-games  link-relations  serial-entrepreneur
+# best-of-rhp  euphemism          number-jokes    web-words
 ```
 
-At this point, some of the sample bots will raise a `NothingToPost`
-exception. [Roy's
-Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards)
-and [Deathbot
-3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby)
-are examples. These bots can't just make up something to post--they
-can only post from a backlog. Since they start out with an empty
-backlog, they have nothing to post.
+Every bot directory contains a `README.md` file explaining how that
+bot works and which special features of Botfriend (if any) it uses.
 
-Other bots, like [Best of
-RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp)
-and [Ingsoc Party
-Slogans](https://github.com/leonardr/botfriend/tree/master/bots.sample/ingsoc-slogans),
-will raise `TweepError` at this point. These bots need working Twitter
-credentials to function, and none of the sample bots are supplied with
-valid Twitter credentials.
+Here are the example bots:
 
-But most of the bots in `bots.sample` will work fine. They will
-generate one or more posts and publish them. These posts won't be
-published to Twitter or Mastodon, since none of the sample bots have
-working credentials. Instead, the posts will be published to files in
-the bot subdirectories.
-
-For example, [A Dull
-Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot)
-will write one post at a time to
-`bots.sample/a-dull-bot/a-dull-bot.txt`.
-
-[Crowd Board
-Games](https://github.com/leonardr/botfriend/tree/master/bots.sample/crowd-board-games)
-will convert an entire RSS feed into a series of posts, and write them
-all to `bots.sample/crowd-board-games/crowd-board-games.txt`.
-
-[Anniversary
-Materials](https://github.com/leonardr/botfriend/tree/master/bots.sample/anniversary)
-can get extra data from Twitter if it has Twitter credentials, but it
-won't crash or give up if those credentials are missing. When you run
-`post` this bot will come up with a gift idea using the built-in
-datasets from `olipy` and `corpora`, and write its idea to
-`bots.sample/anniversary/anniversary.txt`.
-
-If you run `botfriend.dashboard` after running `botfriend.post`,
-you'll see that everything that just happened was archived in the
-database at `bots/botfriend.sqlite`.
-
-The second time you run `botfriend.post`, you'll see a
-lot less action. The bots that crashed the first time will crash the
-second time, but most of the bots will be silent. This is because they
-just posted something. Every bot has some kind of scheduling rules
-that limit how often it posts. Generally you don't want bots to post
-more than once an hour.
-
-If you want to force a specific bot to post, despite its schedule, you
-can use the `--force` option, like this:
-
-```
-botfriend.post --bot=anniversary --force
-```
-
-# Bot anatomy
-
-So, you've got about ten examples to look at in `bots.sample/`. Each
-bot directory contains two special files: `bot.yaml` for configuration
-and `__init__.py` for source code.
-
-# `bot.yaml`
-
-This is a YAML file which contains all the information necessary to
-configure your bot. You can put anything you want in here, but you
-need to supply three pieces of information:
-
-* The name of your bot
-* How often the bot should post things
-* The specific services to post to, and API credentials that can be used
-  on those services.
-
-Configuration options are covered in more detail below, but here's a
-simple example: the `bot.yaml` for [A Dull Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot).
-
-```
-name: "A Dull Bot"
-schedule: 60
-publish:
-    file:
-      filename: "a-dull-bot.txt"
-```
-
-This is saying:
-
-* The name of the bot is "A Dull Bot".
-
-* The bot should publish something exactly once an hour.
-
-* When it's time for the bot to publish something, the 'something'
-  should be written to the file `a-dull-bot.txt`.
-
-# `__init__.py`
-
-This is where the bot's source code lives. There's only one rule here:
-you have to define a class called `Bot`. The Botfriend scripts are
-going to load that class, instantiate it, and use it to make that
-bot's contribution to whatever the script is supposed to do. The bot
-may be asked to post something, list previous posts, or whatever.
-
-For a complex bot, you can subclass `BasicBot` and override its
-`new_post` method.
-
-```
-from bot import BasicBot
-class Bot(BasicBot):
-    def new_post(self):
-      # Generate a new Post object
-      ...
-```
-
-But for most common types of bot, there's a more specific class you
-can subclass, which will eliminate most of the work and any need to
-deal with the Botfriend object model.
-
-## Bots that generate posts on demand
-
-The simplest type of bot generates a totally new string every time
-it's invoked. There's no connection between one post and the
-next. Each post is the result of running the same random process.
-
-To create this kind of bot, subclass
-[`TextGeneratorBot`](https://github.com/leonardr/botfriend/blob/master/bot.py)
-and implement the `generate_text()` method to return the string you
-want to post. Every time your bot needs to post something, Botfriend
-will call its `generate_text()` method, and post whatever is returned.
-
-Several examples of `TextGeneratorBot` are included with botfriend,
-the simplest being [A Dull
-Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot).
-Here's the _entire_ code of A Dull Bot:
-
-```
-from olipy.typewriter import Typewriter
-from olipy.integration import pad
-from bot import TextGeneratorBot
-
-class TypewriterBot(TextGeneratorBot):
-
-    def generate_text(self):
-        typewriter = Typewriter()
-        text = typewriter.type("All work and no play makes Jack a dull boy.")
-        return pad(text)
-        
-Bot = TypewriterBot
-```
-
-Whenever it's time to post something, A Dull Bot instantiates a
-simulated typewriter, types a phrase on the typewriter (which usually
-introduces some typos), and returns the phrase (typos and all). You
-can see the results on [Twitter](https://twitter.com/a_dull_bot) or
-[Mastodon](http://botsin.space/adullbot). 
-
-Although it's very simple, creating this bot was a fair amount of
-work. But all of the work went into the fun part: creating an accurate
-software model of the typewriter from _The Shining_. There's no code
-for making sure the bot posts once an hour, or for pushing the
-typewritten text through the Twitter or Mastodon APIs. Botfriend takes
-care of all that stuff.
-
-[Euphemism
-Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/euphemism)
-and [Serial
-Entrepreneur](https://github.com/leonardr/botfriend/tree/master/bots.sample/serial-entrepreneur)
-have more complex generative logic, but they're still very simple
-`TextGeneratorBot`s.
-
-[I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
-is a more complicated `TextGeneratorBot` that stores state between
-invocations to minimize load on the Twitter API.
-
-## Bots that know what they'll post in advance
-
-Instead of creating a new post every time it's time for the bot to
-act, you can list out all the things the bot should post ahead of
-time, and have the bot post items off the list as appropriate.
-
-There are two ways to do this. If you need posts to be published at
-specific dates and times, you can schedule posts with
-`ScriptedBot`. Most of the time, though, you need posts to be
-published at rough intervals but not at specific times. In that case,
-it's easier to subclass the base `Bot` class and load in a backlog from a text file.
-
-### Bots that post from a backlog
-
-When you have a large number of posts and the exact timing isn't
-particularly important, the best thing to do is to create an empty
-subclass of `Bot` and use the command line to dump all those posts
-into your bot's backlog. Every time your bot is asked to post
-something, it will pick the top item off the backlog and send it to be
-published.
-
-[Boat Name
-Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/boat-names)
-is a bot that has no custom code whatsoever. It does nothing but post
-strings from its backlog. The `__init__.py` for Boat Name Bot contains
-no code, just a placeholder:
-
-```
-from bot import Bot
-```
-
-The real action is in the `backload-load` script, which loads items
-into the backlog from a text file. Boat Name Bot comes with a [sample backlog
-of boat names](https://github.com/leonardr/botfriend/blob/master/bots.sample/boat-names/backlog.txt), which you can load with a command like this:
-
-```
-./backlog-load --config=bots.sample --bot=boat-names --file=bots.sample/boat-names/input.txt
-```
-
-Once you've loaded a backlog, the `./post` script will start posting
-items off the backlog, gradually, one at a time. With a backlog bot,
-there's almost no risk of something going wrong while the bot is in
-operation, because you've done all the work ahead of time. The bot is
-going to post the things from that text file, one at a time.
-
-[Death Bot
-3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby)
-is a backlog bot that is a little more complicated. Instead of keeping
-its backlog in a text file, it expects its backlog in the form of
-[JSON
-lists](https://github.com/leonardr/botfriend/blob/master/bots.sample/roller-derby/backlog.ndjson).
-To convert from a JSON list to a string, Death Bot 3000 subclasses the
-`object_to_post` method.
-
-### Bots that act out a script
-
-The default assumption of Botfriend is that a bot should post at a
-certain interval, but that the exact times aren't important. Most of
-the time you _want_ a little variation in the posting time, so that
-your bot doesn't post at the exact same time all the time, like a
-clock striking the hour.
-
-But sometimes the exact timing _is_ important. If it's important that
-your bost posts at specific times, you can have schedule its posts at
-precise times, by subclassing `ScriptedBot`.
-
-[Frances
-Daily](https://github.com/leonardr/botfriend/tree/master/bots.sample/frances-daily)
-posts journal entries on specific dates, exactly thirty years after the
-journal entries were originally written. On some days, there is no post
-at all. So there's no simple rule like "every day, publish the next
-post." Each post is associated with a specific date and time.
-
-Frances Daily doesn't have any special code -- it uses [a simple JSON
-script
-format](https://github.com/leonardr/botfriend/blob/master/bots.sample/frances-daily/script.ndjson)
-to explain what should be published when. Most of the times, you can
-create schedule posts without writing any special Botfriend code at
-all. All the work goes into generating your script.
-
-To load a list of scheduled posts, use the `scheduled-load`
-script. Here's an example that loads the script for Frances Daily:
-
-```
-./scheduled-load --config=bots.sample --bot=frances-daily --file=bots.sample/frances-daily/script.ndjson
-```
-
-Once you load the scheduled posts, the `./post` script will start
-posting them. Note that it won't post items that are more than a few
-days old.
-
-### Bots can post images
-
-Bots can post images as well as text. [Roy's
-Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards)
-is an example of a bot that loads a combination of images and text
-into its backlog. In this case the images are loaded off disk when
-it's time to post them -- only the filenames are stored in the
-database backlog. The images will be uploaded as attachments to the
-posts; you can see this in action on
-[Twitter](https://twitter.com/RoyPostcards/) or
-[Mastodon](https://botsin.space/@RoysPostcards).
-
-# Tracking bot-specific state
-
-[I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
-gets its data by using the Twitter API to run searches on strings like
-"i am a" and "i am an". These searches take a long time and can cause
-Twitter to rate-limit the bot if you run them too often. Rather than
-go through this process every single time the bot wants to post, the
-`IAmABot` class implements the `update_state` method. This method
-performs the searches against the Twitter API, and returns the raw data
-in a JSON string that's stored in the database.
-
-When it's time for the bot to post something, the current value of the
-bot's state is accessible through the property `self.model.state`. 
-
-You can store whatever you want in the bot's state. Anything that can
-be cached and is time-consuming to calculate is a good
-choice. [Anniversary
-Materials](https://github.com/leonardr/botfriend/tree/master/bots.sample/anniversary)
-is another example--it also uses the Twitter search API to gather raw
-data from Twitter, which it stores in its state.
+* [A Dull
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot) - A simple text generation bot.
+* [I Am A
+Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama) - A bot that keeps complex state for the sake of not repeating a joke.
+* [Anniversary
+Materials](https://github.com/leonardr/botfriend/tree/master/bots.sample/anniversary) - A text generation bot that uses a lot of different types of input.
+* [Best of
+RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp) - A Twitter-specific bot that does nothing but selectively retweet another account.
+* [Boat Names](https://github.com/leonardr/botfriend/tree/master/bots.sample/boat-names) - A simple bot that posts from a backlog. The second example bot described in this document.
+* [Crowd Board
+Games](https://github.com/leonardr/botfriend/tree/master/bots.sample/crowd-board-games) - A bot that parses an RSS feed and creates a post for every entry.
+* [Euphemism
+Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/euphemism) - A text generation bot that builds its posts from a grammar.
+* [Frances Daily](https://github.com/leonardr/botfriend/tree/master/bots.sample/frances-daily) - A bot whose posts are scheduled for specific dates and times, rather than randomly or every-so-often. On some days, there are no posts at all.
+* [Link Relations](https://github.com/leonardr/botfriend/tree/master/bots.sample/link-relations) - A bot that periodically scrapes a web page and posts about anything new it finds.
+* [Number Jokes](https://github.com/leonardr/botfriend/tree/master/bots.sample/number-jokes) - The first example bot described in this help document, a simple text generator bot.
+* [Roy's
+Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards) - A bot that posts images as well as text.
+* [Deathbot
+3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby) - A backlog-based bot that loads its backlog in a custom format and formats it dynamically, rather than loading in strings and posting the strings.
+* [Serial
+Entrepreneur](https://github.com/leonardr/botfriend/tree/master/bots.sample/serial-entrepreneur) - A complex text generator bot.
+* [Web Words] - The third example bot described in this help document. A bot that keeps randomly selected web pages as state.
 
 # Configuration
 
-Let's take another look at [A Dull Bot's bot.yaml](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot/bot.yaml):
+Let's take another look at the `bot.yaml` file for the "Number Jokes" bot:
 
 ```
-name: "A Dull Bot"
+name: Number Jokes
 schedule: 60
 publish:
-    file:
-      filename: "a-dull-bot.txt"
+  file:
+    filename: number-jokes.txt
 ```
 
 The `name` option should be self-explanatory -- it's the human-readable name of
@@ -1026,7 +759,7 @@ the bot. Now let's take a detailed look at the other two options.
 The `schedule` configuration option controls how often your bot should
 post. There are basically three strategies.
 
-1. Set `schedule` to a number of minutes. (This is what A Dull Bot
+1. Set `schedule` to a number of minutes. (This is what Number Jokes
 does.) Your bot will post at exact
 intervals, with that number of minutes between posts.
 2. Give `schedule` a `mean` number of minutes. Your bot will post at
@@ -1046,23 +779,22 @@ does).
 ### `state_update_schedule`
 
 There's a related option, `state_update_schedule`, which you only need
-to set if your bot keeps internal state, like [I Am A
-Bot. AMA!](https://github.com/leonardr/botfriend/tree/master/bots.sample/ama)
-does. This option works the same way as `schedule`, but instead of
-controlling how often the bot should post, it controls how often your
+to set if your bot keeps internal state, like Web Words does. This
+option works the same way as `schedule`, but instead of controlling
+how often the bot should post, it controls how often your
 `update_state()` method is called.
 
-## Other publication options
+## Other configuration settings
 
-`schedule`, and `publish` are only the most common
-configuration options.  [Best of
+Certain types of bots have other specific configuration settings. A
+subclass of `RetweetBot`, like [Best of
 RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp),
-a subclass of `RetweetBot`, has a special configuration setting called
-`retweet-user`, which controls the Twitter account that the bot
-retweets. Your bot can have its own configuration options--the
-configuration object is parsed as YAML and passed into the `Bot`
-constructor as the `config` argument. You can look in there and pick
-out whatever information you want.
+will use a special configuration setting called `retweet-user`. This
+controls which Twitter account the bot retweets. Your bot can define
+its own custom configuration options--the configuration object is
+parsed as YAML and passed into the `Bot` constructor as the `config`
+argument. You can look in there and pick out whatever information you
+want.
 
 ## Defaults
 
@@ -1099,9 +831,11 @@ schedule:
 
 ## Programmatic access to an API
 
-Sometimes you'll need to communicate with an API for more than just
-posting. You can always access a publisher from inside a `Bot` as
-`self.publishers`, and the raw API will always be available as
+Sometimes you'll need to use a site's API for more than just posting
+to the site. Every bot has a number of publishers configured through
+its `publish` settings, and the corresponding `Publisher objects are
+available from inside a `Bot` as `self.publishers`. Once you have a
+`Publisher` object, the raw API client will always be available as
 `Publisher.api`.
 
 See the [`IAmABot`
@@ -1112,20 +846,19 @@ publisher, and grabs its `.api`, storing it for later.
 
 # Posting on a regular basis
 
-Once you have a few bots, you'll need to run the `post` script
+Once you have a few bots, you'll need to run the `botfriend.post` script
 regularly to keep new content flowing. The best way to do this is to
-set up a cron job to schedule the `post` script to run every few
+set up a cron job to schedule the `botfriend.post` script to run every few
 minutes. Don't worry about posting too often. Bots that need to post
 something will post when they're ready. Bots that don't need to post
-anything right when `post` is run will be quiet, and bide their time.
+anything right when `botfriend.post` is run will be quiet, and bide their time.
 
 Here's what my cron script looks like:
 
 ```
 #!/bin/bash
-export ROOT=$HOME/scripts/botfriend
-source $ROOT/env/bin/activate
-$ROOT/post
+source $HOME/scripts/botfriend/env/bin/activate
+botfriend.post
 ```
 
 Here's how I use a cron job to run it every five minutes
@@ -1142,9 +875,7 @@ Any errors that happen during the run are appended to a file,
 There are a lot of features of Botfriend that I've barely touched or
 not mentioned at all: bots that retweet other Twitter accounts, bots
 that get their posts by scraping a web page for their content, scripts
-for showing or clearing the backlog, scripts for managing the stored
-state if it should get screwed up, scripts for republishing posts that
-weren't posted properly the first time.
+for republishing posts that weren't posted properly the first time.
 
 But the features I've covered are the main ones you need to get
 started and to see the power of Botfriend. I hope you enjoy it!

@@ -304,6 +304,14 @@ class StateSetScript(StateAwareScript):
         print bot_model.state
 
 
+class StateClearScript(StateAwareScript):
+    """Clear the internal state for a bot."""
+   
+    def process_bot(self, bot_model):
+        bot_model.state = None
+        bot_model.last_state_update_time = None
+
+
 class StateRefreshScript(StateAwareScript):
     """Refresh the internal state for a bot."""
 
