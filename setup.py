@@ -31,9 +31,22 @@ setuptools.setup(
     install_requires=requires,
     entry_points={
         'console_scripts': [
+            'botfriend.backlog.clear = botfriend.scripts:BacklogClearScript.run',
+            'botfriend.backlog.load = botfriend.scripts:BacklogLoadScript.run',
+            'botfriend.backlog.show = botfriend.scripts:BacklogShowScript.run',
+            'botfriend.bots = botfriend.scripts:BotListScript.run',
             'botfriend.dashboard = botfriend.scripts:DashboardScript.run',
             'botfriend.post = botfriend.scripts:PostScript.run',
-            'botfriend.backlog.load = botfriend.scripts:BacklogLoadScript.run',
+            'botfriend.republish = botfriend.scripts:RepublicationScript.run',
+            'botfriend.schedule.clear = botfriend.scripts:ScheduledPostsClearScript.run',
+            'botfriend.schedule.load = botfriend.scripts:ScheduledPostsLoadScript.run',
+            'botfriend.schedule.show = botfriend.scripts:ScheduledPostsShowScript.run',
+            'botfriend.state.clear = botfriend.scripts:StateClearScript.run',
+            'botfriend.state.refresh = botfriend.scripts:StateRefreshScript.run',
+            'botfriend.state.set = botfriend.scripts:StateSetScript.run',
+            'botfriend.state.show = botfriend.scripts:StateShowScript.run',
+            'botfriend.test.publisher = botfriend.scripts:PublisherTestScript.run',
+            'botfriend.test.stress = botfriend.scripts:StressTestScript.run',
         ]
     },
     classifiers=[

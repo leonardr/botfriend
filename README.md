@@ -13,9 +13,10 @@ I think the primary features of Botfriend are these:
 
 Botfriend is a Python library that runs on a server. If you're not
 comfortable with setting up a cron job, or writing Python code, I
-recommend you check out [Cheap Bots, Done
-Quick](http://cheapbotsdonequick.com/) instead as a simpler way to
-express your creativity.
+recommend you instead check out [Cheap Bots, Done
+Quick](http://cheapbotsdonequick.com/) or [Cheap Bots, Toot
+Sweet!"](https://cheapbotstootsweet.com/), as a simpler way to express
+your creativity.
 
 # The Story
 
@@ -24,9 +25,9 @@ bots](https://www.crummy.com/features/) that I created. I found myself
 constantly copying and pasting, writing the same code over and
 over. Every bot does something different, but they all have certain
 basic needs: connecting to various services and APIs, deciding when to
-post something, managing backlogs, and so on. There's no reason each
-bot needs its own code for this. The only part of a bot that needs
-different _code_ is the creative bit.
+post something, managing backlogs of content, and so on. There's no
+reason each bot needs its own code for this stuff. The only part of a
+bot that needs different _code_ is the creative bit.
 
 My other big problem was, I've come to dislike Twitter. It's a great
 platform for creative bots, but every time I created a bot, I felt
@@ -45,7 +46,7 @@ the reusable code into Botfriend. Now my bots are a lot smaller and
 easier to manage. All of the tedious code is in one place, and I can
 focus on the fun part of bot-writing.
 
-Consider at a bot like [A Dull Bot](https://botsin.space/@ADullBot)
+Consider a bot like [A Dull Bot](https://botsin.space/@ADullBot)
 ([source](https://github.com/leonardr/botfriend/tree/master/bots.sample/a-dull-bot)). Creating
 this bot was a fair amount of work. But all of the work went into the
 fun part: creating an accurate software model of the typewriter from
