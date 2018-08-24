@@ -204,17 +204,23 @@ $ cat bots/number-jokes/number-jokes.txt
 ```
 
 Hilarious, right? You'll be running this script a lot, probably as
-part of an automated process. On my site run `botfriend.post` every
-five minutes. If your bot isn't scheduled to tell a joke,
-`botfriend.post` will do nothing. Run it again now -- nothing will
-happen.
+part of an automated process. On my site I run `botfriend.post` every
+five minutes. (I show an example of how to do this at the end of this
+document.)
+
+If your bot isn't scheduled to tell a joke, `botfriend.post` will do
+nothing. Run it again now -- nothing will happen.
 
 ```
 $ botfriend.post
 ```
 
-Number Jokes just told a joke, and (as you told it in `bot.yaml`) it's
-only supposed to tell one joke an hour.
+Number Jokes told a joke the first time you ran it, and (as you told
+it in `bot.yaml`) it's only supposed to tell one joke an hour. So, no
+new joke.
+
+If you were to wait an hour and run `botfriend.post` again, you'd get
+another joke. But don't wait -- keep going through this tutorial!
 
 ## Running a script on just one bot
 
@@ -226,6 +232,8 @@ difference, because you only have one bot, but here's how to do it:
 ```
 $ botfriend.post number-jokes
 ```
+
+## Forcing a bot to post
 
 You can use `--force` to make a bot tell a joke even if its schedule
 wouldn't normally allow it.
@@ -246,7 +254,7 @@ $ cat bots/number-jokes/number-jokes.txt
 ## `botfriend.dashboard`
 
 This script is good for getting an overview of your bots. It shows
-what they've been up to lately and when they're scheduled to run again.
+what they've been up to lately and when they're scheduled to post again.
 
 ```
 $ botfriend.dashboard number-jokes
@@ -265,6 +273,8 @@ Botfriend.
 $ botfriend.bots
 # number-jokes
 ```
+
+Still only one bot so far.
 
 ## `botfriend.test.stress`
 
@@ -299,13 +309,13 @@ If you've got a complicated bot, it can be a good idea to run
 There are a few more interesting features of Botfriend, but let's take
 a minute to talk about the boring features. It's easy to make a bot
 write its posts to a file, but nobody's going to see that. What you
-really need is to get some Twitter or Mastodon credentials.
+really need is to get some Twitter or Mastodon credentials. (Specific
+instructions are below.)
 
-TODO: link to instructions on how to actually do this.
-
-In your bot's `bot.yaml` file, add your credentials to the `publish`
-configuration setting. This will give your bot additional ways to
-publish its posts to the Internet.
+Once you have some credentials, open up your bot's `bot.yaml` file,
+add your credentials to the `publish` configuration setting. This will
+give your bot additional ways to publish its posts, rather than just
+writing them to a file.
 
 Here's an example. This is what the configuration for Number Jokes
 would look like if it had Twitter and Mastodon connections set up, in
@@ -368,31 +378,37 @@ publish:
 ## Twitter
 
 To get your bot on Twitter, you need to create a Twitter account for
-the bot, and then get four different values: `consumer_key`,
-`consumer_secret`, `access_token` and `access_token_secret`. These
-four values, when inserted into `bot.yaml`, give you the ability to
-post to a specific Twitter account using the Twitter API.
+the bot, log in as the bot, and then get four different values:
+`consumer_key`, `consumer_secret`, `access_token` and
+`access_token_secret`. These four values, when inserted into
+`bot.yaml`, give you the ability to post to a specific Twitter account
+using the Twitter API.
 
-There's help on the web for getting these four values;  the
-[Build-a-Bot
-Workshop](https://spinecone.gitbooks.io/build-a-bot-workshop/content/set_up_twitter.html)
-has some good instructions.
+Getting those four values can be tricky, and Twitter periodically
+changes up the rules and the processes. [Bot Wiki links to various
+tutorials](https://botwiki.org/resource/tutorial/how-to-make-a-twitter-bot-the-definitive-guide/) for setting this stuff up.
+
+Once you have these four values, put them into `bot.yaml`, and your bot
+will be able to post to its Twitter account.
 
 ## Mastodon
 
 To connect your bot to Mastodon, you create a Mastodon account for the
-bot, and then get four values. First, `api_base_url`-- this is easy,
-it's just the URL to the Mastodon instance that hosts the account you
-created. I like to use [botsin.space](https://botsin.space/), a
-Mastodon instance created especially for bots.
+bot, log in as the bot, and then get four values.
 
-Then you need to get `client_id`, `client_secret`, and
-`access_token`. Allison Parrish has [a useful
-tutorial](https://gist.github.com/aparrish/661fca5ce7b4882a8c6823db12d42d26)
-for getting these three values for your Mastodon account.
+First, `api_base_url`-- this is easy, it's just the URL to the
+Mastodon instance that hosts your bot's Mastodon account. I like to
+use [botsin.space](https://botsin.space/), a Mastodon instance created
+especially for bots.
+
+Then you need to get `client_id`, `client_secret`, and `access_token`.
+You can get these values by logging in as your bot, going to the
+Settings page, clicking "Development", and creating a new
+application. (If that's not working for you, try [Darius Kazemi's
+instructions](https://tinysubversions.com/notes/mastodon-bot/index.html).)
 
 Once you have these four values, put them into `bot.yaml`, and your bot
-will be able to post to your Mastodon account.
+will be able to post to its Mastodon account.
 
 Okay, now back to the cool bots you can write with Botfriend.
 
