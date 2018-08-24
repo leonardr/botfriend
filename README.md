@@ -314,8 +314,7 @@ instructions are below.)
 
 Once you have some credentials, open up your bot's `bot.yaml` file,
 add your credentials to the `publish` configuration setting. This will
-give your bot additional ways to publish its posts, rather than just
-writing them to a file.
+give your bot additional ways to publish its posts.
 
 Here's an example. This is what the configuration for Number Jokes
 would look like if it had Twitter and Mastodon connections set up, in
@@ -342,6 +341,55 @@ publish:
 (These credentials won't work -- I made them up to resemble real
 Twitter and Mastodon credentials.)
 
+## Publish to a file
+
+This is the simplest publication technique, and it's really only good
+for testing and for keeping a log. The `file` publisher takes one
+configuration setting: `filename`, the name of the file to write to.
+
+```
+publish:
+    file:
+        filename: "anniversary.txt"
+```
+
+## Publish to Twitter
+
+To get your bot on Twitter, you need to create a Twitter account for
+the bot, log in as the bot, and then get four different values:
+`consumer_key`, `consumer_secret`, `access_token` and
+`access_token_secret`. These four values, when inserted into
+`bot.yaml`, give you the ability to post to a specific Twitter account
+using the Twitter API.
+
+Getting those four values can be tricky, and Twitter periodically
+changes up the rules and the processes. [Bot Wiki links to various
+tutorials](https://botwiki.org/resource/tutorial/how-to-make-a-twitter-bot-the-definitive-guide/) for setting this stuff up.
+
+Once you have these four values, put them into `bot.yaml`, and your bot
+will be able to post to its Twitter account.
+
+## Publish to a Mastodon instance
+
+To connect your bot to Mastodon, you create a Mastodon account for the
+bot, log in as the bot, and then get four values.
+
+First, `api_base_url`-- this is easy, it's just the URL to the
+Mastodon instance you used to create the account. I like to use
+[botsin.space](https://botsin.space/), a Mastodon instance created
+especially for bots.
+
+Then you need to get `client_id`, `client_secret`, and `access_token`.
+You can get these values by logging in as your bot, going to the
+Settings page, clicking "Development", and creating a new
+application. (If that's not working for you, try [Darius Kazemi's
+instructions](https://tinysubversions.com/notes/mastodon-bot/index.html).)
+
+Once you have these four values, put them into `bot.yaml`, and your bot
+will be able to post to its Mastodon account.
+
+Okay, now back to the cool bots you can write with Botfriend.
+
 ## `botfriend.test.publisher`: test your publishing credentials
 
 The `botfriend.test.publisher` script tries out all of your bots'
@@ -363,68 +411,23 @@ $ botfriend.test.publisher
 # FAIL Number Jokes mastodon: {u'error': u'The access token is invalid'}
 ```
 
-## Publish to a file
-
-This is the simplest publication technique, and it's really only good
-for testing and for keeping a log. The `file` publisher takes one
-configuration setting: `filename`, the name of the file to write to.
-
-```
-publish:
-    file:
-        filename: "anniversary.txt"
-```
-
-## Twitter
-
-To get your bot on Twitter, you need to create a Twitter account for
-the bot, log in as the bot, and then get four different values:
-`consumer_key`, `consumer_secret`, `access_token` and
-`access_token_secret`. These four values, when inserted into
-`bot.yaml`, give you the ability to post to a specific Twitter account
-using the Twitter API.
-
-Getting those four values can be tricky, and Twitter periodically
-changes up the rules and the processes. [Bot Wiki links to various
-tutorials](https://botwiki.org/resource/tutorial/how-to-make-a-twitter-bot-the-definitive-guide/) for setting this stuff up.
-
-Once you have these four values, put them into `bot.yaml`, and your bot
-will be able to post to its Twitter account.
-
-## Mastodon
-
-To connect your bot to Mastodon, you create a Mastodon account for the
-bot, log in as the bot, and then get four values.
-
-First, `api_base_url`-- this is easy, it's just the URL to the
-Mastodon instance that hosts your bot's Mastodon account. I like to
-use [botsin.space](https://botsin.space/), a Mastodon instance created
-especially for bots.
-
-Then you need to get `client_id`, `client_secret`, and `access_token`.
-You can get these values by logging in as your bot, going to the
-Settings page, clicking "Development", and creating a new
-application. (If that's not working for you, try [Darius Kazemi's
-instructions](https://tinysubversions.com/notes/mastodon-bot/index.html).)
-
-Once you have these four values, put them into `bot.yaml`, and your bot
-will be able to post to its Mastodon account.
-
-Okay, now back to the cool bots you can write with Botfriend.
-
 # Bots that keep a backlog: Boat Names
 
 Some comedians can come up with original content on the fly, over and
 over again again. Others keep a Private Joke File: a list of jokes
 assembled ahead of time which they can dip into as necessary.
 
-Instead of putting a bunch of generator code in a Botfriend bot, you
-can generate a _backlog_ of posts, however you like -- you can even
-write the backlog yourself in a text editor. It's easy to create a bot
-that simply posts items from its backlog, in order, one at a time.
+Instead of writing a bunch of generator code in a Botfriend bot, you
+can generate a _backlog_ of posts, however you like. It's easy to
+create a bot that simply posts items from its backlog, in order, one
+at a time.
+
+If your style is more writing than programming, you can just write the
+backlog in a text editor. This way you can create a Botfriend bot
+without writing any code at all.
 
 Let's make a simple backlog bot that posts interesting names for
-boats. (This is exactly how my real bot [Boat
+boats. (What I'm about to describe is exactly how my real bot [Boat
 Names](https://botsin.space/@BoatNames) works.)
 
 First, make a directory for the bot:
@@ -464,7 +467,8 @@ $ botfriend.bots
 
 Running `botfriend.post` will tell both bots to post something if they
 want, but Boat Names can never post anything, because it has no
-backlog and no logic for generating new posts.
+backlog and no logic for generating new posts. It can't come up with
+its own jokes -- you have to help it.
 
 ## `botfriend.backlog.load`
 
@@ -511,8 +515,8 @@ Once there are items in the backlog, `botfriend.post` will work:
 ## `botfriend.backlog.show`
 
 The `botfriend.backlog.show` script will summarize a bot's current
-backlog. It'll show you how many items are in the backlog and what the
-next item is.
+backlog. It'll show you how many items are in the backlog and what's
+coming up next.
 
 ```
 $ botfriend.backlog.show boat-names
@@ -537,10 +541,10 @@ $ bin/backlog.show boat-names
 # Bots that keep state: Web Words
 
 Sometimes a bot needs to do something that takes a long time, or
-something that might be annoying to someone else if it happened
+something that might be annoying to someone if it happened
 frequently. Botfriend allows this difficult or annoying thing to be
-done rarely, and the results stored in the bot's _state_ for
-consultation later.
+done rarely. The results are stored in the bot's _state_ for later
+reference.
 
 Let's create one more example bot. This one's called "Web Words". Its
 job is to download random web pages and pick random phrases from them.
@@ -551,8 +555,11 @@ $ mkdir bots/web-words
 
 We're going to split the "download a random web page" part of the bot
 from the "pick a random phrase" part. The "pick a random phrase" part
-will run every time the bot is asked to post something, but the
-"download a random web page" part will run once a day.
+will run every time the bot is asked to post something. Once you have
+a web page downloaded, it's quick and easy to pull a random chunk out
+of it. But the "download a random web page" part will run once a day,
+because it involves making a bunch of HTTP requests to random domain
+names.
 
 This time let's start with the `bot.yaml` file:
 
@@ -565,11 +572,12 @@ publish:
       filename: "web-words.txt"
 ```
 
-This bot will post according to its `schedule`, once an hour. But
-there's another thing that's going to happen once a day (every 1440
-minutes): a "state update".
+This bot will post according to its `schedule`, once an hour (60
+minutes). But there's another thing that's going to happen once a day
+(every 1440 minutes): a "state update".
 
-Here's the `__init__.py` file:
+Here's the code for Web Words. Put this in
+`bots/web-words/__init__.py`:
 
 ```
 import random
@@ -661,7 +669,7 @@ This bot's state expires in one day (this was set in its
 `bot.yaml`). 24 hours after `update_state()` is called for the first
 time, running `botfriend.post` will cause Botfriend to call that
 method again. A brand new web page will be downloaded, and for the
-next 24 horus all of the Web Words posts will come from that web page.
+next 24 hours all of the Web Words posts will come from that new web page.
 
 ## `botfriend.state.show` - Showing the state
 
@@ -679,7 +687,6 @@ says it's not time to call that method yet.
 
 ```
 $ botfriend.state.refresh web-words
-
 # Web Words | Trying to get new state from http://www.choristoblastoma.org/
 # ...
 ```
@@ -696,13 +703,13 @@ source code.
 $ bin/state.set web-words --file=bots/web-words/__init__.py
 
 $ bin/post web-words --force
-Web Words | file | Published 2018-01-21 1:56 | while not new
+Web Words | file | Published 2018-01-21 1:56 | olipy import corpora
 ```
 
 ## `botfriend.state.clear` - Clearing the state
 
 This script will completely erase a bot's script, making it as though
-`update_state()` had never been called.
+`update_state()` has never been called.
 
 ```
 $ bin/state.clear web-words
@@ -754,9 +761,39 @@ Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcar
 3000](https://github.com/leonardr/botfriend/tree/master/bots.sample/roller-derby) - A backlog-based bot that loads its backlog in a custom format and formats it dynamically, rather than loading in strings and posting the strings.
 * [Serial
 Entrepreneur](https://github.com/leonardr/botfriend/tree/master/bots.sample/serial-entrepreneur) - A complex text generator bot.
-* [Web Words] - The third example bot described in this help document. A bot that keeps randomly selected web pages as state.
+* [Web Words](https://github.com/leonardr/botfriend/tree/master/bots.sample/web-words) - The third example bot described in this help document. A bot that keeps randomly selected web pages as state.
 
-# Configuration
+# Posting on a regular basis
+
+Once you have a few bots, you'll need to run the `botfriend.post` script
+regularly to keep new content flowing. The best way to do this is to
+set up a cron job to schedule the `botfriend.post` script to run every few
+minutes. Don't worry about posting too often. Bots that need to post
+something will post when they're ready. Bots that don't need to post
+anything right when `botfriend.post` is run will be quiet, and bide their time.
+
+Here's what my cron script looks like:
+
+```
+#!/bin/bash
+source $HOME/scripts/botfriend/env/bin/activate
+botfriend.post
+```
+
+Here's how I use a cron job to run it every five minutes
+
+```
+*/5 * * * * /home/leonardr/scripts/botfriend/cron 2> /home/leonardr/scripts/botfriend_err
+```
+
+Any errors that happen during the run are appended to a file,
+`botfriend_err`, which I can check periodically.
+
+That's pretty much it. The rest of this document is just talking about
+some advanced features of Botfriend, which you probably won't need
+your first time out.
+
+# Sophisticated configuration
 
 Let's take another look at the `bot.yaml` file for the "Number Jokes" bot:
 
@@ -800,6 +837,7 @@ to set if your bot keeps internal state, like Web Words does. This
 option works the same way as `schedule`, but instead of controlling
 how often the bot should post, it controls how often your
 `update_state()` method is called.
+
 
 ## Other configuration settings
 
@@ -860,32 +898,6 @@ constructor](https://github.com/leonardr/botfriend/blob/master/bots.sample/ama/_
 for an example. This bot needs a Twitter API client to get its data,
 so it looks through `self.publishers` until it finds the Twitter
 publisher, and grabs its `.api`, storing it for later.
-
-# Posting on a regular basis
-
-Once you have a few bots, you'll need to run the `botfriend.post` script
-regularly to keep new content flowing. The best way to do this is to
-set up a cron job to schedule the `botfriend.post` script to run every few
-minutes. Don't worry about posting too often. Bots that need to post
-something will post when they're ready. Bots that don't need to post
-anything right when `botfriend.post` is run will be quiet, and bide their time.
-
-Here's what my cron script looks like:
-
-```
-#!/bin/bash
-source $HOME/scripts/botfriend/env/bin/activate
-botfriend.post
-```
-
-Here's how I use a cron job to run it every five minutes
-
-```
-*/5 * * * * /home/leonardr/scripts/botfriend/cron 2> /home/leonardr/scripts/botfriend_err
-```
-
-Any errors that happen during the run are appended to a file,
-`botfriend_err`, which I can check periodically.
 
 # Conclusion
 
