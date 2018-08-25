@@ -9,9 +9,9 @@ This TextGeneratorBot illustrates some advanced features of botfriend:
 * Optional use of publisher credentials (Twitter) to maintain state.
 * Extensive use of corpora datasets.
 
-To make it post, run the post script.
+To make it post, run the botfriend.post script.
 
-$ ./post --config=sample-bots --bot=anniversary
+$ botfriend.post anniversary
 
 The output will be published to sample-bots/anniversary/anniversary.txt.
 

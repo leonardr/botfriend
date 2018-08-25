@@ -5,8 +5,8 @@ https://botsin.space/@CrowdBoardGames
 This is a stock RSSScraperBot. It creates a post for every item found
 in an RSS feed.
 
-To make it post, run the post script.
+To make it post, run the botfriend.post script.
 
-$ ./post --config=sample-bots --bot=crowd-board-games
+$ botfriend.post crowd-board-games
 
 The output will be published to sample-bots/crowd-board-games/crowd-board-games.txt.

@@ -28,12 +28,12 @@ This example demonstrates some advanced features of botfriend:
   it empties, it's expected that identical posts will appear about
   three years apart.
 
-Use the backlog-load script to load the backlog.
+Use the botfriend.backlog-load script to load the backlog.
 
-$ ./backlog-load --config=sample-bots --bot=postcards --file=sample-bots/postcards/backlog.ndjson
+$ botfriend.backlog-load postcards --file=bots.sample/postcards/backlog.ndjson
 
-Then you can use the post script to post items:
+Then you can use botfriend.post to post items:
 
-$ ./post --config=sample-bots --bot=postcards
+$ botfriend.post postcards
 
 The posts will show up in sample-bots/postcards/Roy's Postcards.txt.
