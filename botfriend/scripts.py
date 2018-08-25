@@ -64,7 +64,10 @@ class BotScript(Script):
     def run(cls):
         instance = cls()
         found = False
-        for model in instance.config.bots:
+        for model in sorted(
+                instance.config.bots,
+                key=lambda x: x.implementation.module_name
+        ):
             try:
                 found = True
                 instance.process_bot(model)

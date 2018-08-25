@@ -165,17 +165,15 @@ class BotModel(Base):
         BotModel.
         """
         path, module = os.path.split(directory)
-        try:
-            bot_module = importlib.import_module(module)
-            bot_class = getattr(bot_module, "Bot", None)
-        except ImportError:
-            logging.getLogger().debug("%s is not a module, assuming generic Bot class is OK.", module)
+        bot_module = None
+        bot_class = None
+        logger = logging.getLogger()
+        bot_module = importlib.import_module(module)
+        bot_class = getattr(bot_module, "Bot", None)
+        if not bot_class:
             from botfriend.bot import Bot
             bot_class = Bot
-        if not bot_class:
-            raise Exception(
-                "Loaded module %s but could not find a class called Bot inside." % bot_module
-            )
+            logger.debug("No Bot class defined in %s/__init__.py. Assuming the default implementation is okay.", directory)
         bot_config_file = os.path.join(directory, "bot.yaml")
         if not os.path.exists(bot_config_file):
             raise Exception(

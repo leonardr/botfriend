@@ -155,7 +155,7 @@ almost no work. It just picks a random number and puts it into a string.
 
 Like most comedians, bots are constantly coming up with jokes. But if
 no one ever hears the joke, what's the point? The `bot.yaml` file
-explains how a Botfriend bot should _tell_ its jokes.
+explains how a Botfriend bot should _tell_ its jokes to the public.
 
 Open up the file `bots/number-jokes/bot.yaml` and write this in there:
 
@@ -175,7 +175,7 @@ the time it's pretty simple. This file is saying:
 * The bot should 'tell a joke' once an hour.
 
 * This bot tells jokes by writting them to the file
-  `number-jokes.txt`. (This is inside the bot directory, so it's going
+  `number-jokes.txt`. (This is relative to the bot directory, so it's going
   to be in `bots/number-jokes/number-jokes.txt`.)
 
 Now you're ready to make your bot tell some jokes, using some basic
@@ -190,7 +190,7 @@ joke and tell it. Run it now:
 
 ```
 $ botfriend.post
-# LOG 2019-01-20 | Number Jokes | file | Published 2019-01-20 | Why is 4 afraid of 5… 
+# Number Jokes | file | Published 2019-01-20 | Why is 4 afraid of 5… 
 ```
 
 Now look at the file you configured in `bot.yaml`. You told Number
@@ -436,11 +436,17 @@ First, make a directory for the bot:
 $ mkdir bots/boat-names
 ```
 
-As you'll see, this bot is so simple that you don't even need an
-`__init__.py` to program its behavior. But you still need a `bot.yaml`
-to configure its schedule and where it should post.
+This bot is so simple that you don't need any code to program its
+behavior. Just create an empty `__init__.py` file, so that Botfriend
+knows this is a bot, and not just some random directory.
 
-Create `bots/boat-names/bot.yaml` and put this text in there:
+```
+$ touch bots/boat-names/__init__.py
+```
+
+Just like Number Jokes, Boat Names needs a `bot.yaml` to tell it where
+to post and how often. Create `bots/boat-names/bot.yaml` and put this
+text in there:
 
 ```
 name: Boat Names
@@ -541,7 +547,7 @@ $ bin/backlog.show boat-names
 # Bots that keep state: Web Words
 
 Sometimes a bot needs to do something that takes a long time, or
-something that might be annoying to someone if it happened
+something that might be annoying if it happened
 frequently. Botfriend allows this difficult or annoying thing to be
 done rarely. The results are stored in the bot's _state_ for later
 reference.
@@ -555,11 +561,11 @@ $ mkdir bots/web-words
 
 We're going to split the "download a random web page" part of the bot
 from the "pick a random phrase" part. The "pick a random phrase" part
-will run every time the bot is asked to post something. Once you have
-a web page downloaded, it's quick and easy to pull a random chunk out
-of it. But the "download a random web page" part will run once a day,
-because it involves making a bunch of HTTP requests to random domain
-names.
+will run every time the bot is asked to post something. The "download
+a random web page" part will only run once a day, because it involves
+making a bunch of HTTP requests to random domain names. But once you
+have a web page downloaded, it's quick and easy to pull a random chunk
+out of it.
 
 This time let's start with the `bot.yaml` file:
 
@@ -770,7 +776,7 @@ regularly to keep new content flowing. The best way to do this is to
 set up a cron job to schedule the `botfriend.post` script to run every few
 minutes. Don't worry about posting too often. Bots that need to post
 something will post when they're ready. Bots that don't need to post
-anything right when `botfriend.post` is run will be quiet, and bide their time.
+anything right when `botfriend.post` is run, will be quiet, and bide their time.
 
 Here's what my cron script looks like:
 

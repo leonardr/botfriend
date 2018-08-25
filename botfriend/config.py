@@ -89,11 +89,12 @@ class Configuration(object):
                 for expect in ('bot.yaml'),:
                     path = os.path.join(bot_directory, expect) 
                     if not os.path.exists(path):
-                        logging.warn(
-                            "Not loading %s: missing %s",
-                            f, expect
-                        )
                         can_load = False
+                        if not f.startswith('.'):
+                            logging.warn(
+                                "Not loading %s: missing %s",
+                                f, expect
+                            )
                         break
                 if can_load:
                     botmodel = BotModel.from_directory(_db, bot_directory, defaults)
