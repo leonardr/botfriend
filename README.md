@@ -414,8 +414,8 @@ $ botfriend.test.publisher
 # Bots that keep a backlog: Boat Names
 
 Some comedians can come up with original jokes on the fly, over and
-over again again. Others keep a Private Joke File: a list of jokes
-assembled ahead of time which they can dip into as necessary.
+over again. Others keep a Private Joke File: a list of jokes assembled
+ahead of time which they can dip into as necessary.
 
 Instead of writing a bunch of generator code in a Botfriend bot, you
 can generate a _backlog_ of posts, however you like. It's easy to
@@ -440,7 +440,7 @@ $ mkdir bots/boat-names
 
 This bot is so simple that you don't need any code to program its
 behavior. Just create an empty `__init__.py` file, so that Botfriend
-knows this is a bot, and not just some random directory.
+knows this is a bot and not some random directory.
 
 ```
 $ touch bots/boat-names/__init__.py
