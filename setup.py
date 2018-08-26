@@ -6,10 +6,6 @@ from os.path import join, relpath
 
 from setuptools import setup
 
-#!/usr/bin/env python
-import sys
-from io import open
-
 import setuptools
 
 requires = [x.strip() for x in open("requirements.txt")]
@@ -24,7 +20,7 @@ setuptools.setup(
     author_email='leonardr@segfault.org',
     url="https://github.com/leonardr/botfriend/",
     description="A server-side framework that makes it easy to manage artistic bots that post to social media.",
-    license='GPLv3',
+    license='MIT',
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -50,7 +46,7 @@ setuptools.setup(
         ]
     },
     classifiers=[
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Text Processing',
