@@ -15,7 +15,7 @@ Botfriend is a Python library that runs on a server. If you're not
 comfortable with setting up a cron job, or writing Python code, I
 recommend you instead check out [Cheap Bots, Done
 Quick](http://cheapbotsdonequick.com/) or [Cheap Bots, Toot
-Sweet!"](https://cheapbotstootsweet.com/), as a simpler way to express
+Sweet!](https://cheapbotstootsweet.com/), as a simpler way to express
 your creativity.
 
 # The Story
@@ -26,8 +26,8 @@ constantly copying and pasting, writing the same code over and
 over. Every bot does something different, but they all have certain
 basic needs: connecting to various services and APIs, deciding when to
 post something, managing backlogs of content, and so on. There's no
-reason each bot needs its own code for this stuff. The only part of a
-bot that needs different _code_ is the creative bit.
+reason each bot needs its own version of this code. The only part of a
+bot that needs new code is the creative bit.
 
 My other big problem was, I've come to dislike Twitter. It's a great
 platform for creative bots, but every time I created a bot, I felt
@@ -259,7 +259,7 @@ what they've been up to lately and when they're scheduled to post again.
 ```
 $ botfriend.dashboard number-jokes
 # Number Jokes | Most recent post: Why is 9 afraid of 10? Because 10 ate 12!
-# Number Jokes | file posted 0m ago (2018-01-20 10:26:12)
+# Number Jokes | file posted 0m ago (2019-01-20 10:26:12)
 # Number Jokes | Next post in 59m
 ```
 
@@ -413,7 +413,7 @@ $ botfriend.test.publisher
 
 # Bots that keep a backlog: Boat Names
 
-Some comedians can come up with original content on the fly, over and
+Some comedians can come up with original jokes on the fly, over and
 over again again. Others keep a Private Joke File: a list of jokes
 assembled ahead of time which they can dip into as necessary.
 
@@ -427,8 +427,10 @@ backlog in a text editor. This way you can create a Botfriend bot
 without writing any code at all.
 
 Let's make a simple backlog bot that posts interesting names for
-boats. (What I'm about to describe is exactly how my real bot [Boat
-Names](https://botsin.space/@BoatNames) works.)
+boats, taken from the website [Ten Thousand Boat
+Names](http://www.10000boatnames.com/). (What I'm about to describe is
+exactly how my real bot [Boat Names](https://botsin.space/@BoatNames)
+works.)
 
 First, make a directory for the bot:
 
@@ -482,10 +484,10 @@ The `botfriend.backlog.load` script lets you add items to a bot's
 backlog from a file. The simplest way to do this is with a text file
 containing one post per line.
 
-Let's create a backlog file. This can go into anywhere, but I
+Let's create a backlog file. This can go anywhere, but I
 recommend keeping it in the same directory as the rest of the bot, in
 case something goes wrong and you need to recreate it. Open up a file
-`bots/boat-names/backlog.txt` and put some boat names in it:
+`bots/boat-names/backlog.txt` and put a few boat names in it:
 
 ```
 Honukele
@@ -709,7 +711,7 @@ source code.
 $ bin/state.set web-words --file=bots/web-words/__init__.py
 
 $ bin/post web-words --force
-Web Words | file | Published 2018-01-21 1:56 | olipy import corpora
+Web Words | file | Published 2019-01-21 1:56 | olipy import corpora
 ```
 
 ## `botfriend.state.clear` - Clearing the state

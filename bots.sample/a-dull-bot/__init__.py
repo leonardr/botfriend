@@ -10,7 +10,7 @@ def pad(s, destination_size=None):
     if not destination_size:
         destination_size = min(len(s) + max(len(s)*0.1, 5), 140)
     padding = ''
-    for i in range(len(s), destination_size):
+    for i in range(len(s), int(destination_size)):
         padding += Alphabet.random_whitespace()
     return s + padding
 
