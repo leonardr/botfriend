@@ -42,7 +42,7 @@ class MastodonPublisher(Publisher):
                 path = self.attachment_path(attachment.filename)
                 arguments = dict(media_file=path)
             else:
-                arguments = dict(media_file=attachment.contents,
+                arguments = dict(media_file=attachment.content,
                                  mime_type=attachment.media_type)
             media = self.api.media_post(**arguments)
             if media:
