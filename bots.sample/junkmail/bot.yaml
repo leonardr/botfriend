@@ -1,0 +1,5 @@
+name: "Junk Mail"
+schedule: 480
+publish:
+    file:
+      filename: "junkmail.txt"

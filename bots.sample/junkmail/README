@@ -1,0 +1,11 @@
+Junk Mail
+https://botsin.space/@junkmail
+
+This bot keeps track of items present in an Internet Archive collection.
+Whenever it posts, it will choose a random page from a random item in that
+collection, and fetch it as an image.
+
+$ ia configure
+$ botfriend.post --config=bots.sample --bot=junkmail
+
+The posts will show up in bots.sample/junkmail/junkmail.txt
