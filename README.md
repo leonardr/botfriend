@@ -761,6 +761,7 @@ Games](https://github.com/leonardr/botfriend/tree/master/bots.sample/crowd-board
 * [Euphemism
 Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/euphemism) - A text generation bot that builds its posts from a grammar.
 * [Frances Daily](https://github.com/leonardr/botfriend/tree/master/bots.sample/frances-daily) - A bot whose posts are scheduled for specific dates and times, rather than randomly or every-so-often. On some days, there are no posts at all.
+* [Junk Mail](https://github.com/leonardr/botfriend/tree/master/bots.sample/junkmail) - A bot that keeps track of new additions to a collection on Internet Archive, and posts randomly selected pages from random texts in that collection.
 * [Link Relations](https://github.com/leonardr/botfriend/tree/master/bots.sample/link-relations) - A bot that periodically scrapes a web page and posts about anything new it finds.
 * [Number Jokes](https://github.com/leonardr/botfriend/tree/master/bots.sample/number-jokes) - The first example bot described in this help document, a simple text generator bot.
 * [Roy's
