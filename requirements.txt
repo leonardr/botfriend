@@ -1,6 +1,7 @@
 Mastodon.py
 TextBlob
 beautifulsoup4
+feedgen
 feedparser
 nose
 olipy

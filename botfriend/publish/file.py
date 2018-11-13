@@ -1,6 +1,7 @@
 """A publisher that just writes output to a file.
 
-Useful mainly for testing.
+By itself, this is mainly used for testing, but it's also the basis for
+classes like PodcastPublisher.
 """
 import os
 from nose.tools import set_trace
