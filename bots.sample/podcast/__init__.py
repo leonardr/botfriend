@@ -47,8 +47,8 @@ class PodcastBot(BasicBot):
         description = meta.get('description')
         creator = meta.get('creator')
         
-        template = '<p><b>%(title)s</b></p>\n<p>Originally published by %(creator)s on %(date)s.</p>\n%(description)s'
-        description = template % dict(
+        description = '<p>Originally published by %(creator)s on %(date)s.</p>%(description)s'
+        description = summary % dict(
             title=title,
             description=description,
             date=date,
