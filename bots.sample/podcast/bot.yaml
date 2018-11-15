@@ -1,0 +1,7 @@
+name: Podcast Roulette
+description: "A randomly selected recent podcast from the Internet Archive."
+url: "http://example.com/roulette.xml"
+publish:
+  podcast: {filename: podcast.xml}
+schedule: 86400
+
