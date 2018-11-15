@@ -1,24 +1,32 @@
+from pdb import set_trace
 import datetime
 import feedparser
+import os
+import json
+import pytz
+
 from feedgen.feed import FeedGenerator
+
+from botfriend.bot import (
+    Bot,
+    Publisher,
+)
 from botfriend.feed import Converter
-from botfriend.bot import Publisher
 from botfriend.model import (
     Post,
-    Bot,
 )
-from file import FileOutputPublisher
+from .file import FileOutputPublisher
 
 class PodcastPublisher(FileOutputPublisher):
 
     def __init__(
             self, bot, full_config, module_config
     ):
-        super(PodcastPubliser, self).__init__(bot, full_config, module_config)
+        super(PodcastPublisher, self).__init__(bot, full_config, module_config)
+        self.title = full_config['name']
         self.url = module_config['url']
-        self.description = module_config.get('description')
         self.archive_size = module_config.get('archive_size', 10)
-
+        self.description = module_config.get('description')
 
     @classmethod
     def make_post(self, bot, title, media_url, description=None, 
@@ -29,14 +37,15 @@ class PodcastPublisher(FileOutputPublisher):
         if isinstance(bot, Bot):
             bot = bot.model
         id = id or media_url
-        post = Post.for_external_key(bot_model, id)
+        post, is_new = Post.for_external_key(bot, id)
+        post.content = id
         post.state = json.dumps(
             dict(
                 id=id, title=title, description=description,
                 media_url=media_url, media_type=media_type
             )
         )
-        return post
+        return post, is_new
 
     def publish(self, post, publication):
         """Publish a new podcast entry.
@@ -45,28 +54,34 @@ class PodcastPublisher(FileOutputPublisher):
         """
         # Load or create the feed.
         if os.path.exists(self.path):
-            feed = Converter(open(self.path))
+            feed = Converter(open(self.path)).feed
         else:
             feed = FeedGenerator()
         feed.load_extension('podcast')
 
         # Set feed-level metadata.
-        feed.title(self.name)
-        feed.link(self.url)
+        feed.title(self.title)
+        feed.link(dict(href=self.url))
         feed.description(self.description)
-        feed.updated(datetime.datetime.utcnow())
+        utc = pytz.timezone("UTC")
+        feed.updated(utc.localize(datetime.datetime.utcnow()))
         feed.generator("Botfriend")
-        
         # Add one item.
         state = json.loads(post.state)
         item = feed.add_entry()
-        item.id(post['id'])
-        item.title(post['title'])
-        item.description(post['description'])
-        item.enclosure(post['url'], 0, post['media_type'])
+        item.id(state['id'])
+        item.title(state['title'])
+        item.description(state['description'])
+        item.enclosure(state['media_url'], 0, state['media_type'])
 
         # Trim to archive_size items
-        feed = feed[:self.archive_size]
+        entries = feed._FeedGenerator__feed_entries
+        while len(entries) > self.archive_size:
+            # Remove old entries from consideration.
+            entries.pop(-1)
 
         # Write the feed back out.
-        fg.rss_file(self.path)
+        feed.rss_file(self.path)
+        publication.report_success()
+
+Publisher = PodcastPublisher
