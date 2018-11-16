@@ -4,7 +4,7 @@ import random
 
 from olipy.ia import Audio
 
-from botfriend.bot import BasicBot 
+from botfriend.bot import BasicBot
 from botfriend.publish.podcast import PodcastPublisher
 
 class PodcastBot(BasicBot):
@@ -30,10 +30,11 @@ class PodcastBot(BasicBot):
             if f.format == format_name:
                 return f
         return None
-                
-    def new_post(self):
-        podcast = random.choice(self.model.json_state)
-        podcast = Audio(podcast)
+
+    def make_post(self, podcast):
+        """Convert an Audio object into a post compatible with
+        the PodcastPublisher.
+        """
         meta = podcast.metadata
 
         mp3 = self.file(podcast, "VBR MP3")
@@ -44,20 +45,31 @@ class PodcastBot(BasicBot):
         date = parser.parse(
             meta.get('date') or meta.get('publicdate')
         ).strftime("%d %b %Y")
-        description = meta.get('description')
+        description = meta.get('description', '')
         creator = meta.get('creator')
-        
-        description = '<p>Originally published by %(creator)s on %(date)s.</p>%(description)s'
-        description = summary % dict(
+        if creator:
+            byline = " by %s" % creator
+        else:
+            byline = ""
+        detail_url = 'https://archive.org/details/%s' % meta['identifier']
+        detail_link='<p>Archived at <a href="%s">%s</a>' % (detail_url, detail_url)
+        template = '<p>Originally published%(byline)s on %(date)s.</p>\n\n%(description)s\n\n%(details)s'
+        description = template % dict(
+            details=detail_link,
             title=title,
             description=description,
             date=date,
-            creator=creator
+            byline=byline
         )
         # Create a post compatible with the PodcastPublisher.
-        post, is_new = PodcastPublisher.make_post(
+        return PodcastPublisher.make_post(
             self.model, title, mp3.url, description,
+            media_size=mp3.size, guid=detail_url
         )
+
+    def new_post(self):
+        podcast = random.choice(self.model.json_state)
+        post, is_new = self.make_post(Audio(podcast))
         return post
 
 Bot = PodcastBot
