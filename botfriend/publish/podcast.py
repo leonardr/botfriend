@@ -30,19 +30,20 @@ class PodcastPublisher(FileOutputPublisher):
 
     @classmethod
     def make_post(self, bot, title, media_url, description=None, 
-                  media_type='audio/mpeg', id=None):
+                  media_type='audio/mpeg', media_size=None, guid=None):
         """A helper to make Post objects compatible with 
         the PodcastPublisher.
         """
         if isinstance(bot, Bot):
             bot = bot.model
-        id = id or media_url
-        post, is_new = Post.for_external_key(bot, id)
-        post.content = id
+        guid = guid or media_url
+        post, is_new = Post.for_external_key(bot, guid)
+        post.content = guid
         post.state = json.dumps(
             dict(
-                id=id, title=title, description=description,
-                media_url=media_url, media_type=media_type
+                guid=guid, title=title, description=description,
+                media_url=media_url, media_size=media_size,
+                media_type=media_type
             )
         )
         return post, is_new
@@ -64,15 +65,24 @@ class PodcastPublisher(FileOutputPublisher):
         feed.link(dict(href=self.url))
         feed.description(self.description)
         utc = pytz.timezone("UTC")
-        feed.updated(utc.localize(datetime.datetime.utcnow()))
+        now = utc.localize(datetime.datetime.utcnow())
+        feed.updated(now)
         feed.generator("Botfriend")
         # Add one item.
         state = json.loads(post.state)
         item = feed.add_entry()
-        item.id(state['id'])
+        guid = state['guid']
+        is_permalink = any(guid.startswith(x) for x in ('http:', 'https:'))
+        item.guid(state['guid'], is_permalink)
         item.title(state['title'])
         item.description(state['description'])
-        item.enclosure(state['media_url'], 0, state['media_type'])
+        item.enclosure(
+            state['media_url'], 
+            str(state.get('media_size', 0)),
+            state['media_type']
+        )
+        item.published(now)
+        item.updated(now)
 
         # Trim to archive_size items
         entries = feed._FeedGenerator__feed_entries
@@ -81,7 +91,7 @@ class PodcastPublisher(FileOutputPublisher):
             entries.pop(-1)
 
         # Write the feed back out.
-        feed.rss_file(self.path)
+        feed.rss_file(self.path, pretty=True)
         publication.report_success()
 
 Publisher = PodcastPublisher
