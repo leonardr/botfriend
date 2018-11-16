@@ -7,7 +7,7 @@ import sys
 import feedparser
 from feedgen.feed import FeedGenerator
 
-class Converter(object):
+class Bridge(object):
 
     NO_VALUE = object()
     
@@ -83,5 +83,5 @@ class Converter(object):
             del feedparser_obj[field]        
     
 if __name__ == '__main__':
-    converter = Converter(sys.stdin)
+    converter = Bridge(sys.stdin)
     print converter.feed.atom_str(pretty=True)
