@@ -11,7 +11,7 @@ from botfriend.bot import (
     Bot,
     Publisher,
 )
-from botfriend.feed import Converter
+from botfriend.feedbridge import Bridge
 from botfriend.model import (
     Post,
 )
