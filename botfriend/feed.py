@@ -39,7 +39,6 @@ class Converter(object):
             image_kwargs = {}
             for image_field in 'url', 'title', 'link', 'width', 'height', 'description':
                 ignore, value = self._setter(f.image, self.feed, image_field)
-                print image_field, value
                 if value is not self.NO_VALUE:
                     image_kwargs[image_field] = value
                 
@@ -77,7 +76,6 @@ class Converter(object):
         if not isinstance(value, list):
             value = [value]
         for v in value:
-            print field, v
             setter(v)
         if field in feedparser_obj: # Temporary cleanup
             del feedparser_obj[field]        
