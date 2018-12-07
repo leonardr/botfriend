@@ -53,21 +53,25 @@ class Bridge(object):
         built = self.feed.add_entry(order='append')
 
         # TODO: 'tag' is not supported in feedgen
-
         for field in [
-                'id', 'title', 'updated', 'summary', 'published',
-                ('links', 'link')
+            'id', 'title', 'updated', 'summary', 'published',
+            ('links', 'link')
         ]:
             self._copy(parsed, built, field)
+
+        permalink = parsed.get('link')
+        guid_is_link = parsed['guidislink']
+        if permalink:
+            built.guid(permalink, guid_is_link)
         
     def _setter(self, feedparser_obj, feedgen_obj, field):
-            if isinstance(field, tuple):
-                field, method_name = field
-            else:
-                method_name = field
-            setter = getattr(feedgen_obj, method_name, None)
-            value = feedparser_obj.get(field, self.NO_VALUE)
-            return setter, value
+        if isinstance(field, tuple):
+            field, method_name = field
+        else:
+            method_name = field
+        setter = getattr(feedgen_obj, method_name, None)
+        value = feedparser_obj.get(field, self.NO_VALUE)
+        return setter, value
             
     def _copy(self, feedparser_obj, feedgen_obj, field):
         setter, value = self._setter(feedparser_obj, feedgen_obj, field)
