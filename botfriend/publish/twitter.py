@@ -36,9 +36,9 @@ class TwitterPublisher(Publisher):
         content = self.twitter_safe(content)
         arguments = dict(status=content)
         if post.attachments:
-            # Looks like we can only add one attachment?
-            # TODO: Try to find one we know is an image, since
-            # only images are allowed.
+            # The update_with_media API endpoint is deprecated.
+            # Here are the new docs:
+            # https://developer.twitter.com/en/docs/media/upload-media/overview
             attachment = post.attachments[0]
             method = self.api.update_with_media
             if attachment.filename:

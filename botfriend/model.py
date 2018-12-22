@@ -474,7 +474,8 @@ class Post(Base):
         else:
             return "[no textual content]"
 
-    def attach(self, media_type=None, filename=None, content=None):
+    def attach(self, media_type=None, filename=None, content=None,
+               alt=None):
         if not filename and not content:            
             raise ValueError(
                 "Either filename or content must be provided."
@@ -501,10 +502,11 @@ class Post(Base):
                 _db, Attachment, post=self, filename=filename
             )
             attachment.media_type = media_type
+            attachment.alt = alt
         elif content:
             attachment = create(
                 _db, Attachment, post=self, media_type=media_type,
-                content=content
+                content=content, alt=alt
             )
 
 
@@ -588,3 +590,6 @@ class Attachment(Base):
    
     # You can store the attachment directly in the database instead.
     content = Column(Binary)
+
+    # The attachment may have alt text associated.
+    alt = Column(String)

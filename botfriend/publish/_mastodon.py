@@ -44,10 +44,12 @@ class MastodonPublisher(Publisher):
             else:
                 arguments = dict(media_file=attachment.content,
                                  mime_type=attachment.media_type)
+            if attachment.alt:
+                arguments['description'] = attachment.alt
+        try:
             media = self.api.media_post(**arguments)
             if media:
                 media_ids.append(media['id'])
-        try:
             content = publication.content or post.content
             content = self.mastodon_safe(content)
             response = self.api.status_post(

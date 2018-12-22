@@ -1,0 +1,10 @@
+# 0.6.0
+
+It's now possible to specify an image description when attaching
+an image to a post. The keyword is `alt`, like in HTML.
+
+To upgrade from a prior version, you'll need to run the migration
+script `migration/20181221-add-attachment-alt.sql`. Something like
+this should work:
+
+$ sqlite3 bots/botfriend.sqlite < migration/20181221-add-attachment-alt.sql

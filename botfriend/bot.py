@@ -218,7 +218,8 @@ class Bot(object):
                 else:
                     path = attachment['path']
                     media_type = attachment.get('type', default_type)
-                post.attach(media_type, path)
+                    alt = attachment.get('alt', None)
+                post.attach(media_type, path, alt=alt)
                 self.log.info(
                     " Added attachment: %s", self.local_path(path)
                 )
@@ -320,10 +321,9 @@ class Bot(object):
             scheduled = [scheduled]
         now = _now()
         for post in scheduled:
-            continue
-            if post.publish_at and post.publish_at < now:
+            if post.publish_at and post.publish_at < (now - datetime.timedelta(days=1)):
                 raise InvalidPost(
-                    "A new post can't be scheduled for the past. (%s was scheduled for %s)" % (
+                    "A new post can't be scheduled for more than a day in the past. (%s was scheduled for %s)" % (
                         post.content.encode("ascii", errors="replace"), post.publish_at
                     )
                 )
@@ -477,7 +477,8 @@ class Bot(object):
                 raise InvalidPost("%s not found on disk" % expect)
                         
             media_type = attachment.get('type', 'image/png')
-            new_attachments.append(dict(path=path, type=media_type))
+            alt = attachment.get('alt')
+            new_attachments.append(dict(path=path, type=media_type, alt=alt))
         return attachments
 
     
