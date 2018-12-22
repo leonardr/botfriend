@@ -7,7 +7,7 @@ import sys
 import feedparser
 from feedgen.feed import FeedGenerator
 
-class Converter(object):
+class Bridge(object):
 
     NO_VALUE = object()
     
@@ -39,7 +39,6 @@ class Converter(object):
             image_kwargs = {}
             for image_field in 'url', 'title', 'link', 'width', 'height', 'description':
                 ignore, value = self._setter(f.image, self.feed, image_field)
-                print image_field, value
                 if value is not self.NO_VALUE:
                     image_kwargs[image_field] = value
                 
@@ -54,21 +53,25 @@ class Converter(object):
         built = self.feed.add_entry(order='append')
 
         # TODO: 'tag' is not supported in feedgen
-
         for field in [
-                'id', 'title', 'updated', 'summary', 'published',
-                ('links', 'link')
+            'id', 'title', 'updated', 'summary', 'published',
+            ('links', 'link')
         ]:
             self._copy(parsed, built, field)
+
+        permalink = parsed.get('link')
+        guid_is_link = parsed['guidislink']
+        if permalink:
+            built.guid(permalink, guid_is_link)
         
     def _setter(self, feedparser_obj, feedgen_obj, field):
-            if isinstance(field, tuple):
-                field, method_name = field
-            else:
-                method_name = field
-            setter = getattr(feedgen_obj, method_name, None)
-            value = feedparser_obj.get(field, self.NO_VALUE)
-            return setter, value
+        if isinstance(field, tuple):
+            field, method_name = field
+        else:
+            method_name = field
+        setter = getattr(feedgen_obj, method_name, None)
+        value = feedparser_obj.get(field, self.NO_VALUE)
+        return setter, value
             
     def _copy(self, feedparser_obj, feedgen_obj, field):
         setter, value = self._setter(feedparser_obj, feedgen_obj, field)
@@ -77,11 +80,10 @@ class Converter(object):
         if not isinstance(value, list):
             value = [value]
         for v in value:
-            print field, v
             setter(v)
         if field in feedparser_obj: # Temporary cleanup
             del feedparser_obj[field]        
     
 if __name__ == '__main__':
-    converter = Converter(sys.stdin)
+    converter = Bridge(sys.stdin)
     print converter.feed.atom_str(pretty=True)

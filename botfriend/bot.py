@@ -267,12 +267,14 @@ class Bot(object):
         if self.state_update_schedule is None:
             # This bot doesn't update state on a schedule.
             return False
+        last_update = self.model.last_state_update_time
+        if not last_update:
+            return True
         now = _now()
-        update_at = now + datetime.timedelta(
+        update_at = last_update + datetime.timedelta(
             minutes=self.state_update_schedule
         )
-        last_update = self.model.last_state_update_time
-        return not last_update or now > update_at
+        return now > update_at
 
     def update_state(self):
         """Update a bot's internal state.

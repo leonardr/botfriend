@@ -764,6 +764,7 @@ Bot](https://github.com/leonardr/botfriend/tree/master/bots.sample/euphemism) - 
 * [Junk Mail](https://github.com/leonardr/botfriend/tree/master/bots.sample/junkmail) - A bot that keeps track of new additions to a collection on Internet Archive, and posts randomly selected pages from random texts in that collection.
 * [Link Relations](https://github.com/leonardr/botfriend/tree/master/bots.sample/link-relations) - A bot that periodically scrapes a web page and posts about anything new it finds.
 * [Number Jokes](https://github.com/leonardr/botfriend/tree/master/bots.sample/number-jokes) - The first example bot described in this help document, a simple text generator bot.
+* [Podcast Roulette](https://github.com/leonardr/botfriend/tree/master/bots.sample/podcast) - A bot that generates an RSS podcast feed made up of episodes from other podcasts.
 * [Roy's
 Postcards](https://github.com/leonardr/botfriend/tree/master/bots.sample/postcards) - A bot that posts images as well as text.
 * [Deathbot
@@ -854,11 +855,12 @@ Certain types of bots have other specific configuration settings. A
 subclass of `RetweetBot`, like [Best of
 RHP](https://github.com/leonardr/botfriend/tree/master/bots.sample/best-of-rhp),
 will use a special configuration setting called `retweet-user`. This
-controls which Twitter account the bot retweets. Your bot can define
-its own custom configuration options--the configuration object is
-parsed as YAML and passed into the `Bot` constructor as the `config`
-argument. You can look in there and pick out whatever information you
-want.
+controls which Twitter account the bot retweets. [Podcast Roulette](https://github.com/leonardr/botfriend/tree/master/bots.sample/podcast) has a number of configuration settings like `description` that are copied into the RSS feed.
+
+Your bot can define its own custom configuration options--the
+configuration object is parsed as YAML and passed into the `Bot`
+constructor as the `config` argument. You can look in there and pick
+out whatever information you want.
 
 ## Defaults
 
