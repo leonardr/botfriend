@@ -15,7 +15,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='botfriend',
-    version='0.6.0',
+    version='0.7.0',
     author='Leonard Richardson',
     author_email='leonardr@segfault.org',
     url="https://github.com/leonardr/botfriend/",
@@ -48,6 +48,7 @@ setuptools.setup(
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Text Processing',
         'Topic :: Artistic Software',
