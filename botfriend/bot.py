@@ -6,13 +6,14 @@ import os
 import random
 import requests
 from nose.tools import set_trace
-from model import (
+from .model import (
     get_one_or_create,
     InvalidPost,
     Post,
     Publication,
     _now,
 )
+from .util import isstr
 from sqlalchemy.orm.session import Session
 
 class NothingToPost(Exception):
@@ -137,7 +138,7 @@ class Bot(object):
             # It's already a list of Posts.
             return obj
         posts = self.object_to_post(obj)
-        if isinstance(posts, basestring):
+        if isstr(posts):
             post, is_new = Post.from_content(
                 self.model, posts, reuse_existing=self.duplicate_filter
             )
@@ -170,7 +171,7 @@ class Bot(object):
         as the content of the post, or a dictionary of the sort returned by
         prepare_input.
         """
-        if isinstance(obj, basestring):
+        if isstr(obj):
             return obj
 
         if isinstance(obj, Post):
@@ -212,7 +213,7 @@ class Bot(object):
             self.log.info("New post: %s", content)
             for attachment in obj.get('attachments', []):
                 default_type = 'image/png'
-                if isinstance(attachment, basestring):
+                if isstr(attachment):
                     path = attachment
                     media_type = default_type
                 else:
@@ -394,7 +395,7 @@ class Bot(object):
                 continue
             try:
                 self.post_to_publisher(publisher, post, publication)
-            except Exception, e:
+            except Exception as e:
                 message = repr(e.message)
                 publication.report_failure("Uncaught exception: %s" % e.message)
             publications.append(publication)
@@ -421,7 +422,7 @@ class Bot(object):
         """Turn input data into a dictionary which can be used to
         create a scheduled Post or populate a backlog.
         """
-        if isinstance(line, basestring):
+        if isstr(line):
             try:
                 obj = json.loads(line.strip())
             except ValueError:
@@ -506,7 +507,7 @@ class TextGeneratorBot(Bot):
 
     def stress_test(self, rounds):
         for i in range(rounds):
-            print self.generate_text()
+            print(self.generate_text())
 
 
 class ScriptedBot(Bot):
@@ -575,7 +576,7 @@ class ScriptedBot(Bot):
             try:
                 parsed = datetime.datetime.strptime(date, format)
                 return parsed
-            except ValueError, e:
+            except ValueError as e:
                 continue
         raise ValueError("Could not parse time: %s" % date)
 
@@ -599,7 +600,7 @@ class Publisher(object):
             try:
                 publisher_module = importlib.import_module(module_name)
                 break
-            except ImportError, e:
+            except ImportError as e:
                 errors.append(e)
         if not publisher_module:
             raise ImportError(
@@ -614,7 +615,7 @@ class Publisher(object):
             )
         try:
             publisher = publisher_class(bot, full_config, module_config)
-        except Exception, e:
+        except Exception as e:
             raise Exception(
                 "Could not import %s publisher for %s: %s" % (
                     module_name, bot.name, e.message
@@ -703,7 +704,7 @@ class ScraperBot(Bot):
 class RSSScraperBot(ScraperBot):
     """Scrapes an RSS or Atom feed and creates a Post for each item."""
 
-    TWEET_TEMPLATE = u"‘%(title)s’: %(link)s"
+    TWEET_TEMPLATE = "‘%(title)s’: %(link)s"
     
     def scrape(self, response):
         import feedparser

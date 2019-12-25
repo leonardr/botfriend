@@ -1,7 +1,7 @@
 from nose.tools import set_trace
 from datetime import datetime
 from sqlalchemy.orm.session import Session
-from model import (
+from .model import (
     create,
     get_one_or_create,
     engine,
@@ -10,7 +10,7 @@ from model import (
     Post,
     Publication,
 )
-from bot import (
+from .bot import (
     Bot,
 )
 
@@ -23,7 +23,7 @@ class HasCounter(object):
 
     @property
     def _str(self):
-        return unicode(self._id)
+        return str(self._id)
 
 class MockBot(Bot, HasCounter):
 

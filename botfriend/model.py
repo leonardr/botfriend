@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import yaml
+from util import isstr
 from nose.tools import set_trace
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import (
@@ -70,7 +71,7 @@ def get_one(db, model, on_multiple='error', **kwargs):
     q = db.query(model).filter_by(**kwargs)
     try:
         return q.one()
-    except MultipleResultsFound, e:
+    except MultipleResultsFound as e:
         if on_multiple == 'error':
             raise e
         elif on_multiple == 'interchangeable':
@@ -101,7 +102,7 @@ def get_one_or_create(db, model, create_method='',
                     del kwargs[key]
             obj = create(db, model, create_method, create_method_kwargs, **kwargs)
             return obj
-        except IntegrityError, e:
+        except IntegrityError as e:
             logging.info(
                 "INTEGRITY ERROR on %r %r, %r: %r", model, create_method_kwargs, 
                 kwargs, e)
@@ -183,7 +184,7 @@ class BotModel(Base):
 
         # If any key is present in the default bot configuration but
         # missing here, fill in the value.
-        for k, v in defaults.items():
+        for k, v in list(defaults.items()):
             if k == 'publish':
                 # Handled separately, below.
                 continue
@@ -196,14 +197,14 @@ class BotModel(Base):
             bot_publishers = config.get('publish')
             if bot_publishers:
                 # This bot has publishers whose configuration may be incomplete.
-                for publisher, default_publisher_config in defaults['publish'].items():
+                for publisher, default_publisher_config in list(defaults['publish'].items()):
                     publisher_config = bot_publishers.get(publisher)
                     if not publisher_config:
                         # The bot config does not use this publisher. Don't fill in its
                         # configuration, that will make it look like the bot _does_ use this
                         # publisher and the configuration is incomplete.
                         continue
-                    for k, v in default_publisher_config.items():
+                    for k, v in list(default_publisher_config.items()):
                         if not k in publisher_config:
                             publisher_config[k] = v
             
@@ -335,7 +336,7 @@ class BotModel(Base):
 
     @state.setter
     def state(self, new_value):
-        if not isinstance(new_value, basestring):
+        if not isstr(new_value):
             new_value = json.dumps(new_value)
         self._state = new_value
         self.last_state_update_time = _now()
@@ -436,7 +437,7 @@ class Post(Base):
     def for_external_key(cls, bot, key):
         """Find or create the Post  with the given external key.
         """
-        from bot import Bot
+        from .bot import Bot
         if isinstance(bot, Bot):
             bot = bot.model
         _db = Session.object_session(bot)
@@ -469,7 +470,7 @@ class Post(Base):
         "A small string of content suitable for logging."
         if self.content:
             if len(self.content) > 20:
-                return self.content[:20] + u"…"
+                return self.content[:20] + "…"
             return self.content
         else:
             return "[no textual content]"
