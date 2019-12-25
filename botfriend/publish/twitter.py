@@ -52,14 +52,15 @@ class TwitterPublisher(Publisher):
         try:
             response = method(**arguments)
             publication.report_success(response.id)
-        except tweepy.error.TweepError, e:
+        except tweepy.error.TweepError as e:
             publication.report_failure(e)
 
 def _twitter_safe(content):
     """Turn a string into something that won't get rejected by Twitter."""
-    content = unicode(content)
+    if isinstance(content, bytes):
+        content = content.decode("utf8")
     content = unicodedata.normalize('NFC', content)
-    for bad, replace in ('D', u'𝙳'), ('M', u'𝙼'):
+    for bad, replace in ('D', '𝙳'), ('M', '𝙼'):
         if any(content.startswith(x) for x in (bad + ' ', bad + '.')):
             content = re.compile("^%s" % bad).sub(replace, content)
             content = content.encode("utf8")

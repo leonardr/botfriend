@@ -56,14 +56,14 @@ class MastodonPublisher(Publisher):
                 content, media_ids=media_ids, sensitive=post.sensitive
             )
             publication.report_success(response['id'])
-        except Exception, e:
+        except Exception as e:
             publication.report_failure(e)
 
     def mastodon_safe(self, content):
         # TODO: What counts as 'safe' depends on the mastodon instance and
         # in the worst case can require arbitrary plugins. But at least in
         # some cases the maximum length might be different.
-        if isinstance(content, unicode):
+        if isinstance(content, str):
             content = content.encode("utf8")
         return content[:500]
 
