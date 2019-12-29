@@ -1,5 +1,6 @@
 # encoding: utf-8
 """Twitter delivery mechanism for botfriend."""
+from io import BytesIO
 import re
 import unicodedata
 from nose.tools import set_trace
@@ -45,7 +46,7 @@ class TwitterPublisher(Publisher):
                 path = self.attachment_path(attachment.filename)
                 arguments['filename'] = path
             else:
-                arguments['file'] = StringIO(attachment.content)
+                arguments['file'] = BytesIO(attachment.content)
         else:
             # Just a regular tweet.
             method = self.api.update_status
