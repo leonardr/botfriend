@@ -1,7 +1,7 @@
 import random
 from botfriend.bot import TextGeneratorBot
 
-class ExampleBot(TextGeneratorBot):
+class NumberJokes(TextGeneratorBot):
 
     def generate_text(self):
         """Tell a joke about numbers."""
@@ -15,4 +15,4 @@ class ExampleBot(TextGeneratorBot):
         punchline = "Because %(plus_1)d ate %(plus_3)d!"
         return (setup + punchline) % arguments
 
-Bot = ExampleBot
+Bot = NumberJokes
