@@ -31,9 +31,15 @@ class FileOutputPublisher(Publisher):
         output = publish_at.strftime("%Y-%m-%d %H:%M:%S")
         parts = [content]
         for attach in post.attachments:
-            parts.append(
-                "%s-byte %s" % (len(attach.content), attach.media_type)
-            )
+            if attach.content:
+                parts.append(
+                    "%s-byte %s" % (len(attach.content or ""), attach.media_type)
+                )
+            else:
+                parts.append(
+                    "Local %s: %s " % (attach.media_type, attach.filename)
+                )
+
         output = output + " | " + (" | ".join(parts)) + "\n"
         with open(self.path, 'a') as out:
             out.write(output)

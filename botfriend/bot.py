@@ -256,6 +256,8 @@ class Bot(object):
         if force or self.state_needs_update:
             result = self.update_state()
             if result:
+                if isinstance(result, bytes):
+                    result = result.decode("utf8")
                 self.model.state = result
             _db = Session.object_session(self.model)
             _db.commit()
@@ -281,6 +283,9 @@ class Bot(object):
         """Update a bot's internal state.
 
         By default, does nothing.
+
+        :return: A string. If a bytestring is returned it will be automatically
+            decoded as UTF-8.
         """
         pass
 
@@ -393,6 +398,7 @@ class Bot(object):
                 # There was a previous, successful attempt to publish
                 # this Post. Skip this Publisher.
                 continue
+            self.post_to_publisher(publisher, post, publication)
             try:
                 self.post_to_publisher(publisher, post, publication)
             except Exception as e:
@@ -421,12 +427,17 @@ class Bot(object):
     def prepare_input(self, line):
         """Turn input data into a dictionary which can be used to
         create a scheduled Post or populate a backlog.
+
+        :param line: An item of input. In most cases this should be 
+           a dictionary, a string containing JSON, or some other string.
         """
         if isstr(line):
             try:
                 obj = json.loads(line.strip())
             except ValueError:
                 # Assume the content is just a normal string.
+                if isinstance(line, bytes):
+                    line = line.decode("utf8")
                 return line
         else:
             obj = line

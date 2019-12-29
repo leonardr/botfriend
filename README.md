@@ -633,7 +633,7 @@ class WebWords(TextGeneratorBot):
         starting_point = random.randint(0, near_the_end)
 
         # Find some stuff in the webpage that looks like words, rather than HTML.
-        some_words = re.compile(b"([A-Za-z\s]{10,})")
+        some_words = re.compile("([A-Za-z\s]{10,})")
         match = some_words.search(webpage[starting_point:])
 
         if not match:

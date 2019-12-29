@@ -302,7 +302,9 @@ class StateSetScript(StateAwareScript):
             fh = open(self.args.file)
         else:
             fh = sys.stdin
-        data = fh.read().decode("utf8")
+        data = fh.read()
+        if isinstance(data, bytes):
+            data = data.decode("utf8")
         bot_model.state = data
         print(bot_model.state)
 
@@ -381,7 +383,7 @@ class BacklogShowScript(BotScript):
             bot_model.log.info("%d %s in backlog" % (count, item))
             for i, content in enumerate(backlog):
                 bot_model.log.info(content)
-                if i > max_i:
+                if max_i is not None and i > max_i:
                     break
         else:
             bot_model.log.info("No backlog.")
@@ -409,12 +411,14 @@ class BacklogLoadScript(SingleBotScript):
         # Process one backlog item per line of the input file.
         items = []
         for line in fh.readlines():
-            line = line.strip().decode("utf8")
+            line = line.strip()
+            if isinstance(line, bytes):
+                line = line.decode("utf8")
             try:
                 items.append(bot.prepare_input(line))
             except InvalidPost as e:
                 self.log.error(
-                    "Could not import %s: %s", line, e.message
+                    "Could not import %s: %s", line, str(e)
                 )
         bot.extend_backlog(items)
         self.log.info("Appended %d items to backlog." % len(items))
