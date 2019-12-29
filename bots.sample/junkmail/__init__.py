@@ -36,7 +36,7 @@ class JunkMailBot(BasicBot):
             self.model, text, reuse_existing=False
         )
 
-        # Attache the image.
+        # Attach the image.
         if not image_url:
             return None
         response = requests.get(image_url)
