@@ -250,4 +250,4 @@ class Announcements(WanderingMonsterTable):
 if __name__ == '__main__':
     a = Announcements()
     for i in range(50):
-        print a.choice()
+        print(a.choice())

@@ -396,8 +396,8 @@ class Bot(object):
             try:
                 self.post_to_publisher(publisher, post, publication)
             except Exception as e:
-                message = repr(e.message)
-                publication.report_failure("Uncaught exception: %s" % e.message)
+                message = str(e)
+                publication.report_failure("Uncaught exception: %s" % message)
             publications.append(publication)
 
         # Update the time at which we will try to publish the next post.

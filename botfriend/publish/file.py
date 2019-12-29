@@ -29,7 +29,7 @@ class FileOutputPublisher(Publisher):
         publish_at = post.publish_at or _now()
         content = publication.content or post.content or "[no textual content]"
         output = publish_at.strftime("%Y-%m-%d %H:%M:%S")
-        parts = [content.encode("utf8")]
+        parts = [content]
         for attach in post.attachments:
             parts.append(
                 "%s-byte %s" % (len(attach.content), attach.media_type)

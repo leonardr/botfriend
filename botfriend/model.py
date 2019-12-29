@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import yaml
-from util import isstr
+from .util import isstr
 from nose.tools import set_trace
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import (

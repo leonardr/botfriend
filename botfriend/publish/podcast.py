@@ -55,7 +55,7 @@ class PodcastPublisher(FileOutputPublisher):
         """
         # Load or create the feed.
         if os.path.exists(self.path):
-            feed = Converter(open(self.path)).feed
+            feed = Bridge(open(self.path)).feed
         else:
             feed = FeedGenerator()
         feed.load_extension('podcast')

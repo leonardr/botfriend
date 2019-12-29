@@ -35,7 +35,7 @@ class MaterialExtractor(object):
         tweet = cls.emoji.sub("", string)
         blob = TextBlob(string)
 
-        # print query, string, "/".join(blob.noun_phrases)
+        # print(query, string, "/".join(blob.noun_phrases))
         # Try to find a noun phrase that looks like a material.
         for noun_phrase in blob.noun_phrases:
             if cls.looks_like_material(string, query, noun_phrase):
@@ -72,7 +72,7 @@ class MaterialExtractor(object):
             return False
         try:
             expect = re.compile(query + "\s+" + potential)
-        except Exception, e:
+        except Exception as e:
             # We can't even build the regular expression to search for it.
             return False
         if not expect.search(string):
@@ -200,7 +200,7 @@ class Advisor(object):
             """
             base_dir = os.path.split(__file__)[0]
             path = os.path.join(base_dir, "data", x)
-            return [x.strip().decode("utf8") for x in open(path)]
+            return [x.strip() for x in open(path)]
                     
         exclude = set(load_local("real_life.txt"))
         def filter_materials(materials):
@@ -411,6 +411,6 @@ class AnniversaryBot(TextGeneratorBot):
         """
         advisor = Advisor(self.model.json_state)
         for i in range(runs):
-            print advisor.choose()
+            print(advisor.choose())
     
 Bot = AnniversaryBot

@@ -77,7 +77,7 @@ class BotScript(Script):
                 raise e
             except Exception as e:
                 # Don't let a 'normal' error crash the whole script.
-                model.implementation.log.error(e.message, exc_info=e)
+                model.implementation.log.error(str(e), exc_info=e)
         instance.config._db.commit()
         if not found:
             if instance.args.bots:

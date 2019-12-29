@@ -1,4 +1,4 @@
-from entrepreneur import Announcements
+from .entrepreneur import Announcements
 from botfriend.bot import TextGeneratorBot
 
 class EntrepreneurBot(TextGeneratorBot):

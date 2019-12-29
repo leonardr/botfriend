@@ -6,7 +6,7 @@ from pdb import set_trace
 import sys
 import feedparser
 from feedgen.feed import FeedGenerator
-from util import isstr
+from .util import isstr
 
 class Bridge(object):
 
