@@ -15,7 +15,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     Integer,
-    String,
+    Unicode,
     DateTime,
     ForeignKey,
 )
@@ -130,18 +130,18 @@ class BotModel(Base):
 
     # The name of the directory containing the bot's configuration and
     # code.
-    name = Column(String)
+    name = Column(Unicode)
 
     # If this is set, the bot will not post anything until this time.
     next_post_time = Column(DateTime)
 
     # The bot's implementation may store a backlog of unscheduled
     # posts in this field.
-    _backlog = Column(String, name='backlog')
+    _backlog = Column(Unicode, name='backlog')
     
     # The bot's implementation may store anything it wants in this field
     # to keep track of state between posts.
-    _state = Column(String, name="state")
+    _state = Column(Unicode, name="state")
 
     # The last time update_state() was called.
     last_state_update_time = Column(DateTime)
@@ -391,7 +391,7 @@ class Post(Base):
     # The original content of the post. This may need to be cut down
     # for specific publication mechanisms, but that's okay -- we know how
     # to do that automatically.
-    content = Column(String)
+    content = Column(Unicode)
 
     # A post may be marked as containing sensitive material.
     sensitive = Column(Boolean)
@@ -402,15 +402,15 @@ class Post(Base):
     )
 
     # Or it might be a reply to another post on some other service.
-    reply_to_foreign_id = Column(String, index=True)
+    reply_to_foreign_id = Column(Unicode, index=True)
 
     # A Post may have some item of state associated with it.
-    state = Column(String, index=True, name="state")
+    state = Column(Unicode, index=True, name="state")
 
-    # A Post may also have some small piece _unique_ state associated
+    # A Post may also have some small piece of _unique_ state associated
     # with it. This is useful when a Post corresponds to a unique
     # piece of data obtained from some other source.
-    external_key = Column(String, index=True, unique=True, nullable=True)
+    external_key = Column(Unicode, index=True, unique=True, nullable=True)
     
     replies = relationship(
         "Post", backref=backref("reply_to", remote_side=[id])
@@ -447,10 +447,16 @@ class Post(Base):
     def from_content(cls, bot, content, publish_at=None, reuse_existing=True):
         """Turn a string of content into a Post.
 
+        :param content: A string. If this is a bytestring it will be decoded as UTF-8
+            before being stored.
+        :param publish_at: A datetime. If provided, the post will not be published until
+            this time.
         :param reuse_existing: If a Post already exists with this content,
-        return it rather than creating a new one.
+            return it rather than creating a new one.
         """
         _db = Session.object_session(bot)
+        if isinstance(content, bytes):
+            content = content.decode("utf8")
         if reuse_existing:
             post, is_new = get_one_or_create(
                 _db, Post, bot=bot, on_multiple='interchangeable',
@@ -522,11 +528,11 @@ class Publication(Base):
     )
 
     # The service we published this post to.
-    service = Column(String)
+    service = Column(Unicode)
 
     # The service uses this ID to refer to the post.
     # (e.g. Twitter assigns the post an ID when it becomes a tweet).
-    external_id = Column(String, index=True)
+    external_id = Column(Unicode, index=True)
     
     # The first time we tried to publish this post.
     first_attempt = Column(DateTime)
@@ -536,11 +542,11 @@ class Publication(Base):
 
     # The content that was posted to this service, if different from
     # the content stored in Post.content
-    content = Column(String)
+    content = Column(Unicode)
     
     # The reason, if any, we couldn't publish this post. If this
     # is None, it is assumed the post was successfully published.
-    error = Column(String)
+    error = Column(Unicode)
 
     def display(self):
         if self.error:
@@ -583,14 +589,14 @@ class Attachment(Base):
     )
 
     # The media type of the attachment.
-    media_type = Column(String)
+    media_type = Column(Unicode)
     
     # You may store the file on disk and track it with its filename,
     # relative to the bot's directory.
-    filename = Column(String, index=True)
+    filename = Column(Unicode, index=True)
    
     # You can store the attachment directly in the database instead.
     content = Column(Binary)
 
     # The attachment may have alt text associated.
-    alt = Column(String)
+    alt = Column(Unicode)
