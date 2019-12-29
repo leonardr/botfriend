@@ -180,7 +180,7 @@ class BotModel(Base):
             raise Exception(
                 "Bot config file %s not found." % bot_config_file
             )
-        config = yaml.load(open(bot_config_file))
+        config = yaml.safe_load(open(bot_config_file))
 
         # If any key is present in the default bot configuration but
         # missing here, fill in the value.
