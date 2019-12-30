@@ -398,7 +398,6 @@ class Bot(object):
                 # There was a previous, successful attempt to publish
                 # this Post. Skip this Publisher.
                 continue
-            self.post_to_publisher(publisher, post, publication)
             try:
                 self.post_to_publisher(publisher, post, publication)
             except Exception as e:
@@ -629,7 +628,7 @@ class Publisher(object):
         except Exception as e:
             raise Exception(
                 "Could not import %s publisher for %s: %s" % (
-                    module_name, bot.name, e.message
+                    module_name, bot.name, str(e)
                 )
             )
         publisher.service = module

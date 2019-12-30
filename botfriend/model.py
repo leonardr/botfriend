@@ -575,7 +575,7 @@ class Publication(Base):
         
     def report_failure(self, error="Unknown error."):
         if isinstance(error, Exception):
-            error = str(error.message)
+            error = str(error)
         self.report_attempt(error)
 
 
