@@ -34,7 +34,7 @@ class PodcastPublisher(FileOutputPublisher):
         """A helper to make Post objects compatible with 
         the PodcastPublisher.
         """
-        print "in PodcastPublisher.make_post"
+        #print("in PodcastPublisher.make_post")
         if isinstance(bot, Bot):
             bot = bot.model
         guid = guid or media_url
@@ -56,21 +56,20 @@ class PodcastPublisher(FileOutputPublisher):
         """
         try:
             self._publish(post, publication)
-        except Exception, e:
-            print "oops", e
+        except Exception as e:
+            #print("oops", e)
             publication.report_failure(e)
 
     def _publish(self, post, publication):
-        print "In _publish"
+        #print("In _publish"_)
         # Load or create the feed.
         if os.path.exists(self.path):
             feed = Bridge(open(self.path)).feed
-            print "converted feed"
         else:
             feed = FeedGenerator()
-            print "new feed"
+            #print("new feed")
         feed.load_extension('podcast')
-        print "got feed"
+        #print("got feed")
         # Set feed-level metadata.
         feed.title(self.title)
         feed.link(dict(href=self.url))
@@ -94,7 +93,7 @@ class PodcastPublisher(FileOutputPublisher):
         )
         item.published(now)
         item.updated(now)
-        print "updated item"
+        #print("updated item")
         # Trim to archive_size items
         entries = feed._FeedGenerator__feed_entries
         while len(entries) > self.archive_size:
@@ -103,7 +102,7 @@ class PodcastPublisher(FileOutputPublisher):
 
         # Write the feed back out.
         feed.rss_file(self.path, pretty=True)
-        print "wrote to %s" % self.path
+        #print("wrote to %s" % self.path)
         publication.report_success()
 
 Publisher = PodcastPublisher

@@ -7,6 +7,6 @@ class EchoPublisher(Publisher):
         pass
 
     def publish(self, post, publication):
-        print post.content
+        print(post.content)
         
 Publisher = EchoPublisher

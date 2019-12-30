@@ -5,8 +5,8 @@ import os
 import sys
 import time
 
-from config import Configuration
-from model import (
+from .config import Configuration
+from .model import (
     _now,
     InvalidPost,
     Post,
@@ -71,13 +71,13 @@ class BotScript(Script):
             try:
                 found = True
                 instance.process_bot(model)
-            except InvalidPost, e:
+            except InvalidPost as e:
                 # This _should_ crash the whole script -- we don't
                 # want to commit invalid posts to the database.
                 raise e
-            except Exception, e:
+            except Exception as e:
                 # Don't let a 'normal' error crash the whole script.
-                model.implementation.log.error(e.message, exc_info=e)
+                model.implementation.log.error(str(e), exc_info=e)
         instance.config._db.commit()
         if not found:
             if instance.args.bots:
@@ -155,7 +155,7 @@ class BotListScript(BotScript):
     """List your bots."""
 
     def process_bot(self, model):
-        print model.implementation.module_name
+        print(model.implementation.module_name)
 
 
 class DashboardScript(BotScript):
@@ -205,7 +205,7 @@ class DashboardScript(BotScript):
             if backlog:
                 first = backlog[0]
                 announce_list(len(backlog), first, "in backlog")
-        except ValueError, e:
+        except ValueError as e:
             pass
         
         if next_post_time:
@@ -243,10 +243,10 @@ class PostScript(BotScript):
             bot_model.next_post_time = _now()
         posts = implementation.publishable_posts
         if self.args.dry_run:
-            print bot_model.name
+            print(bot_model.name)
             for post in posts:
-                print post.content
-                print "-" * 80
+                print(post.content)
+                print("-" * 80)
                 return
 
         # We're doing this for real.
@@ -282,7 +282,7 @@ class StateShowScript(StateAwareScript):
 
     def process_bot(self, bot_model):
         last_update = bot_model.last_state_update_time
-        print self._state_status(bot_model)
+        print(self._state_status(bot_model))
 
 class StateSetScript(StateAwareScript):
     """Set the internal state for a bot."""
@@ -302,9 +302,11 @@ class StateSetScript(StateAwareScript):
             fh = open(self.args.file)
         else:
             fh = sys.stdin
-        data = fh.read().decode("utf8")
+        data = fh.read()
+        if isinstance(data, bytes):
+            data = data.decode("utf8")
         bot_model.state = data
-        print bot_model.state
+        print(bot_model.state)
 
 
 class StateClearScript(StateAwareScript):
@@ -320,7 +322,7 @@ class StateRefreshScript(StateAwareScript):
 
     def process_bot(self, bot_model):
         bot_model.implementation.check_and_update_state(force=True)
-        print self._state_status(bot_model)
+        print(self._state_status(bot_model))
 
 class StressTestScript(BotScript):
     """Stress-test a bot's generative capabilities without posting anything."""
@@ -346,11 +348,11 @@ class PublisherTestScript(BotScript):
         for publisher in bot_model.implementation.publishers:
             try:
                 result = publisher.self_test() or ""
-                print "GOOD %s %s %s" % (bot_model.name, publisher.service, result)
-            except Exception, e:
-                print "FAIL %s %s: %s" % (
+                print("GOOD %s %s %s" % (bot_model.name, publisher.service, result))
+            except Exception as e:
+                print("FAIL %s %s: %s" % (
                     bot_model.name, publisher.service, e
-                )        
+                ))        
 
 class BacklogShowScript(BotScript):
     """Show the backlog posts for a bot."""
@@ -381,7 +383,7 @@ class BacklogShowScript(BotScript):
             bot_model.log.info("%d %s in backlog" % (count, item))
             for i, content in enumerate(backlog):
                 bot_model.log.info(content)
-                if i > max_i:
+                if max_i is not None and i > max_i:
                     break
         else:
             bot_model.log.info("No backlog.")
@@ -409,12 +411,14 @@ class BacklogLoadScript(SingleBotScript):
         # Process one backlog item per line of the input file.
         items = []
         for line in fh.readlines():
-            line = line.strip().decode("utf8")
+            line = line.strip()
+            if isinstance(line, bytes):
+                line = line.decode("utf8")
             try:
                 items.append(bot.prepare_input(line))
-            except InvalidPost, e:
+            except InvalidPost as e:
                 self.log.error(
-                    "Could not import %s: %s", line, e.message
+                    "Could not import %s: %s", line, str(e)
                 )
         bot.extend_backlog(items)
         self.log.info("Appended %d items to backlog." % len(items))

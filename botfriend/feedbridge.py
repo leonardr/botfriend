@@ -6,13 +6,14 @@ from pdb import set_trace
 import sys
 import feedparser
 from feedgen.feed import FeedGenerator
+from .util import isstr
 
 class Bridge(object):
 
     NO_VALUE = object()
     
     def __init__(self, filelike):
-        if isinstance(filelike, basestring):
+        if isstr(filelike):
             feed = filelike
         else:
             feed = filelike.read()
@@ -86,4 +87,4 @@ class Bridge(object):
     
 if __name__ == '__main__':
     converter = Bridge(sys.stdin)
-    print converter.feed.atom_str(pretty=True)
+    print(converter.feed.atom_str(pretty=True))

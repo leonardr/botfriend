@@ -619,7 +619,7 @@ class WebWords(TextGeneratorBot):
                     continue
                 new_state = response.content
                 self.log.info("Success!")
-            except Exception, e:
+            except Exception as e:
                 self.log.info("That didn't work, trying again.")
         return new_state
 
@@ -634,8 +634,8 @@ class WebWords(TextGeneratorBot):
 
         # Find some stuff in the webpage that looks like words, rather than HTML.
         some_words = re.compile("([A-Za-z\s]{10,})")
-
         match = some_words.search(webpage[starting_point:])
+
         if not match:
             # Because we didn't find anything, we're choosing not to post
             # anything right now.

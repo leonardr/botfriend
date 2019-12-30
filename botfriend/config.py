@@ -9,10 +9,10 @@ def construct_yaml_str(self, node):
     # Override the default string handling function 
     # to always return unicode objects
     return self.construct_scalar(node)
-Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
-SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+Loader.add_constructor('tag:yaml.org,2002:str', construct_yaml_str)
+SafeLoader.add_constructor('tag:yaml.org,2002:str', construct_yaml_str)
 
-from model import (
+from .model import (
     production_session,
     BotModel,
     TIME_FORMAT,
@@ -78,7 +78,7 @@ class Configuration(object):
             sys.path.append(directory)
         default_path = os.path.join(directory, "default.yaml")
         if os.path.exists(default_path):
-            defaults = yaml.load(open(default_path))
+            defaults = yaml.safe_load(open(default_path))
         else:
             defaults = {}
         for f in os.listdir(directory):

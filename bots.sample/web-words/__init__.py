@@ -29,7 +29,7 @@ class WebWords(TextGeneratorBot):
                     continue
                 new_state = response.content
                 self.log.info("Success!")
-            except Exception, e:
+            except Exception as e:
                 self.log.info("That didn't work, trying again.")
         return new_state
 

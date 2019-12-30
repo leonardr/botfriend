@@ -1,4 +1,4 @@
-from euphemism import Quote
+from .euphemism import Quote
 from botfriend.bot import TextGeneratorBot
 
 class EuphemismBot(TextGeneratorBot):

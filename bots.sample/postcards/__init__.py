@@ -9,7 +9,7 @@ from botfriend.model import (
 class PostcardBot(BasicBot):
     
     def post_to_publisher(self, publisher, post, publication):
-        """The thing we post to Mastadon is significantly different from the
+        """The thing we post to Mastodon is significantly different from the
         thing we post to Twitter.
         """
         state = post.json_state

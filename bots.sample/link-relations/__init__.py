@@ -1,5 +1,5 @@
 from pdb import set_trace
-from StringIO import StringIO
+from io import StringIO
 import csv
 import json
 import re
@@ -24,7 +24,7 @@ class LinkRelationBot(ScraperBot):
         return d
     
     def scrape(self, response):
-        data = self.to_dict(StringIO(response.content))
+        data = self.to_dict(StringIO(response.content.decode("utf8")))
 
         # Grab the list of link relations we've already learned about.
         posts = []
@@ -39,7 +39,6 @@ class LinkRelationBot(ScraperBot):
         return posts
 
     def format(self, name, description, ref, notes):
-        description = description.decode("utf8")
         match = self.link_re.search(ref)
         link = ''
         if match:

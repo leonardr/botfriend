@@ -362,4 +362,4 @@ class Quote(WanderingMonsterTable):
 if __name__ == '__main__':
     a = Quote()
     for i in range(10000):
-        print a.choice()
+        print(a.choice())
