@@ -37,6 +37,7 @@ class MastodonPublisher(Publisher):
         
     def publish(self, post, publication):
         media_ids = []
+        arguments = dict()
         for attachment in post.attachments:
             if attachment.filename:
                 path = self.attachment_path(attachment.filename)
@@ -47,7 +48,9 @@ class MastodonPublisher(Publisher):
             if attachment.alt:
                 arguments['description'] = attachment.alt
         try:
-            media = self.api.media_post(**arguments)
+            media = None
+            if arguments:
+                media = self.api.media_post(**arguments)
             if media:
                 media_ids.append(media['id'])
             content = publication.content or post.content

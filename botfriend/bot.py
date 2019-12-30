@@ -194,7 +194,7 @@ class Bot(object):
         if is_new:
             post.content = content
             post.publish_at = publish_at_datetime
-
+            
             # Store the original object as the Post's state in case
             # it's got extra information that is used during the publication
             # process.
