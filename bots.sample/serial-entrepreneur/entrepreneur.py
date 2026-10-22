@@ -1,7 +1,7 @@
 import os
 import json
 import random
-from nose.tools import set_trace
+from pdb import set_trace
 from olipy.randomness import WanderingMonsterTable
 from olipy import corpora 
 us_states = corpora.geography.us_states['states']

@@ -7,11 +7,11 @@ import os
 import sys
 import yaml
 from .util import isstr
-from nose.tools import set_trace
+from pdb import set_trace
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import (
     create_engine,
-    Binary,
+    LargeBinary,
     Boolean,
     Column,
     Integer,
@@ -596,7 +596,7 @@ class Attachment(Base):
     filename = Column(Unicode, index=True)
    
     # You can store the attachment directly in the database instead.
-    content = Column(Binary)
+    content = Column(LargeBinary)
 
     # The attachment may have alt text associated.
     alt = Column(Unicode)

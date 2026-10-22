@@ -5,7 +5,7 @@ import json
 import os
 import random
 import requests
-from nose.tools import set_trace
+from pdb import set_trace
 from .model import (
     get_one_or_create,
     InvalidPost,

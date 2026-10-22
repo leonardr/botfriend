@@ -1,5 +1,5 @@
 """Delivery mechanism for botfriend that just prints the output."""
-from nose.tools import set_trace
+from pdb import set_trace
 from botfriend.bot import Publisher
 
 class EchoPublisher(Publisher):

@@ -1,4 +1,4 @@
-from nose.tools import set_trace
+from pdb import set_trace
 from mastodon import Mastodon
 from botfriend.bot import Publisher
 
@@ -56,7 +56,8 @@ class MastodonPublisher(Publisher):
             content = publication.content or post.content
             content = self.mastodon_safe(content)
             response = self.api.status_post(
-                content, media_ids=media_ids, sensitive=post.sensitive
+                content, media_ids=media_ids, sensitive=post.sensitive,
+                visibility=getattr(post, 'visibility', 'unlisted')
             )
             publication.report_success(response['id'])
         except Exception as e:

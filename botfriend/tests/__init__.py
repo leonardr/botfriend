@@ -1,6 +1,6 @@
 import sys
 import os
-from nose.tools import set_trace
+from pdb import set_trace
 
 # Add the parent directory to the path so that import statements will work
 # the same in tests as in code.

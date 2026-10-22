@@ -1,7 +1,7 @@
 # encoding: utf-8
 """Tumblr delivery mechanism for botfriend."""
 import re
-from nose.tools import set_trace
+from pdb import set_trace
 import pytumblr
 import logging
 from botfriend.bot import Publisher

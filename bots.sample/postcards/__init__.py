@@ -1,6 +1,6 @@
 # encoding: utf-8
 import json
-from nose.tools import set_trace
+from pdb import set_trace
 from botfriend.bot import BasicBot
 from botfriend.model import (
     Post,

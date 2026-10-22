@@ -1,4 +1,4 @@
-from nose.tools import set_trace
+from pdb import set_trace
 from argparse import ArgumentParser
 import logging
 import os
@@ -245,7 +245,7 @@ class PostScript(BotScript):
         if self.args.dry_run:
             print(bot_model.name)
             for post in posts:
-                print(post.content)
+                print(post.content.encode("utf8"))
                 print("-" * 80)
                 return
 

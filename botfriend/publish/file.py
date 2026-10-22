@@ -4,7 +4,7 @@ By itself, this is mainly used for testing, but it's also the basis for
 classes like PodcastPublisher.
 """
 import os
-from nose.tools import set_trace
+from pdb import set_trace
 from botfriend.bot import Publisher
 from botfriend.model import _now
 

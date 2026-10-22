@@ -3,7 +3,7 @@
 from io import BytesIO
 import re
 import unicodedata
-from nose.tools import set_trace
+from pdb import set_trace
 import tweepy
 import logging
 from botfriend.bot import Publisher

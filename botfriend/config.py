@@ -1,4 +1,4 @@
-from nose.tools import set_trace
+from pdb import set_trace
 import os
 import sys
 import logging

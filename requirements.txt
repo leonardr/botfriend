@@ -3,10 +3,10 @@ TextBlob
 beautifulsoup4
 feedgen
 feedparser
-nose
 olipy>=1.0.3
 pytumblr
 pyyaml
 requests
 sqlalchemy
 tweepy
+pytz
